@@ -18,42 +18,76 @@
   </a>
 </p>
 
+## Visão Geral do Projeto
+
+Este repositório contém o código-fonte e a documentação técnica do projeto **V.I.D.A. (Vetor Inteligente de Decisão Assistida)**, desenvolvido em parceria com a empresa Venturus. O V.I.D.A. é um sistema de auto-organização assistida que ajuda usuários a gerenciar diferentes áreas da vida por meio de inteligência artificial, automatizando decisões rotineiras e fornecendo sugestões personalizadas.
+
+Você encontrará aqui:
+
+- Backend desenvolvido com Node.js, Express e MySQL  
+- Frontend construído com React e Tailwind CSS  
+- Lógica de IA aplicada para automação de tarefas e microdecisões personalizadas  
+- Estrutura modular abrangendo gestão financeira, estudos, saúde física e mental, e organização de tarefas diárias
+
+
+---
+
+## Funcionalidades Principais
+
+-  **Gestão Financeira:** Cadastro e análise de receitas/despesas, com sugestões automáticas de economia.
+-  **Planejamento de Estudos:** Criação de rotinas e metas personalizadas para os estudos.
+-  **Acompanhamento de Saúde:** Sugestões de bem-estar físico e mental com base nas preferências e metas do usuário.
+-  **Organização de Tarefas:** Listas de tarefas com sugestões automatizadas baseadas no comportamento.
+-  **IA de Decisão Assistida:** Algoritmo inteligente para apoiar microdecisões rotineiras.
+
+---
+
 ##  Estrutura do Projeto
 
-- **Backend**: API REST com Node.js, Express e MySQL
-- **Frontend**: Interface web com React e Tailwind CSS
-- **Documentação**: # Documentação técnica e de arquitetura dentro do docs
+```
+📦 vida/
+ ┣ 📂 backend/         → API REST (Node.js, Express, MySQL)
+ ┣ 📂 frontend/        → Interface (React, Tailwind CSS)
+ ┣ 📂 database/        → Scripts SQL (criação e inserção de dados)
+ ┣ 📂 docs/            → Documentação técnica e de arquitetura
+ ┗ 📄 README.md        → Documentação principal do projeto
+```
 
-##   Visão Geral do Projeto
+---
 
-Este repositório contém o código e a documentação do projeto V.I.D.A. (Vetor Inteligente de Decisão Assistida), desenvolvido em parceria com a empresa Venturus. O objetivo do V.I.D.A. é criar um sistema de auto-organização assistida que auxilia os usuários a gerenciar diversas áreas de suas vidas, utilizando inteligência artificial para automatizar decisões rotineiras e fornecer suporte personalizado.
+## Como Executar o Projeto
 
-##   Resumo
+### Backend
 
-Aqui você encontrará os detalhes da implementação do V.I.D.A., incluindo a estrutura do backend (Node.js, Express.js, MongoDB), frontend (React, Tailwind CSS) e a lógica da IA para sugestão de decisões. O sistema abrange módulos para gestão financeira, estudos, saúde física e mental, e pequenas tarefas do dia a dia.
+```bash
+# Configure o arquivo .env DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, JWT_SECRET e OPENAI_API_KEY
+cd backend
+npm install
+npx sequelize-cli db:migrate
+npx sequelize-cli db:seed:all
+npm run dev
+```
 
-##   Funcionalidades Principais
+### Frontend
 
-O V.I.D.A. oferece as seguintes funcionalidades:
+```bash
+# Configure o arquivo .env com: VITE_API_URL=http://localhost:5000/api
+cd frontend
+npm install
+npm run dev
+```
 
-* **Gestão Financeira:** Cadastro de informações financeiras, análise de gastos e sugestões para otimização.
-* **Planejamento de Estudos:** Criação de planos de estudo personalizados com base nos objetivos do usuário.
-* **Acompanhamento de Saúde:** Sugestões para rotinas de exercícios, dietas e bem-estar mental.
-* **Organização de Tarefas:** Gestão de listas de tarefas diárias com IA que aprende as preferências do usuário.
-* **IA de Decisão Assistida:** A IA analisa o contexto do usuário para sugerir microdecisões e automatizar tarefas.
+---
 
-##   Stack de Desenvolvimento
+## Stack de Tecnologias
 
-**Backend:**
+### Backend
 
 [![Node.js](https://img.shields.io/badge/Node.js-0FC2C0?style=for-the-badge&logo=node.js&logoColor=0D1117)](https://nodejs.org/)
 &nbsp;
 [![Express.js](https://img.shields.io/badge/Express.js-0FC2C0?style=for-the-badge&logo=express&logoColor=0D1117)](https://expressjs.com/)
 &nbsp;
-[![MongoDB](https://img.shields.io/badge/MongoDB-0FC2C0?style=for-the-badge&logo=mongodb&logoColor=0D1117)](https://www.mongodb.com/)
-&nbsp;
-[![Mongoose](https://img.shields.io/badge/Mongoose-0FC2C0?style=for-the-badge&logo=mongoose&logoColor=0D1117)](https://mongoosejs.com/)
-&nbsp;
+[![MySQL](https://img.shields.io/badge/MySQL-0FC2C0?style=for-the-badge&logo=mysql&logoColor=0D1117)](https://www.mysql.com/)
 [![JWT](https://img.shields.io/badge/JWT-0FC2C0?style=for-the-badge&logo=jsonwebtokens&logoColor=0D1117)](https://jwt.io/)
 &nbsp;
 [![Swagger](https://img.shields.io/badge/Swagger-0FC2C0?style=for-the-badge&logo=swagger&logoColor=0D1117)](https://swagger.io/)
@@ -63,7 +97,8 @@ O V.I.D.A. oferece as seguintes funcionalidades:
 [![Supertest](https://img.shields.io/badge/Supertest-0FC2C0?style=for-the-badge&logoColor=white&color=0FC2C0)](https://github.com/visionmedia/supertest)
 &nbsp;
 
-**Frontend:**
+
+### Frontend
 
 [![JavaScript](https://img.shields.io/badge/JavaScript-0FC2C0?style=for-the-badge&logo=javascript&logoColor=0D1117)](https://www.javascript.com/)
 &nbsp;
@@ -86,7 +121,7 @@ O V.I.D.A. oferece as seguintes funcionalidades:
 [![Fetch API](https://img.shields.io/badge/Fetch_API-0FC2C0?style=for-the-badge&logoColor=white&color=0FC2C0)](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
 &nbsp;
 
-**Utilitários:**
+### Utilitários
 
 [![npm](https://img.shields.io/badge/npm-0FC2C0?style=for-the-badge&logo=npm&logoColor=0D1117)](https://www.npmjs.com/)
 &nbsp;
@@ -99,63 +134,63 @@ O V.I.D.A. oferece as seguintes funcionalidades:
 [![Prettier](https://img.shields.io/badge/Prettier-0FC2C0?style=for-the-badge&logo=prettier&logoColor=0D1117)](https://prettier.io/)
 &nbsp;
 
-###   Contribuidores
+---
+
+## Documentação Técnica
+
+A pasta [`/docs`](./docs) contém:
+
+- Especificação completa da API (via Swagger)
+- Diagrama DER do banco MySQL
+- Estrutura de arquivos do sistema
+- Fluxograma de funcionamento
+- Protótipos das telas
+
+---
+
+## Contribuidores
+
+<div align="center">
 
 <table>
-    <tr>
-        <td align="center">
-            <a href="https://github.com/andreiolicar">
-                <img src="https://avatars.githubusercontent.com/u/166918480?v=4" width="100px;"
-                    alt="Ícone do Andrei no GitHub" /><br>
-                <sub>
-                    <b>Andrei</b>
-                </sub> <br>
-            </a>
-            <sub>
-                Task1, Task2, Task3
-            </sub>
-        </td>
-        <td align="center">
-            <a href="https://github.com/joaoxaviersilva">
-                <img src="https://avatars.githubusercontent.com/u/96438479?v=4" width="100px;"
-                    alt="Ícone do joaoxaviersilva no GitHub" /><br>
-                <sub>
-                    <b>João</b>
-                </sub> <br>
-            </a>
-            <sub>
-                Task1, Task2, Task3
-            </sub>
-        </td>
-        <td align="center">
-            <a href="https://github.com/nsmillena">
-                <img src="https://avatars.githubusercontent.com/u/120488775?v=4" width="100px;"
-                    alt="Ícone do nsmillena no GitHub" /><br>
-                <sub>
-                    <b>Millena</b>
-                </sub> <br>
-            </a>
-            <sub>
-                Task1, Task2, Task3
-            </sub>
-        </td>
-        <td align="center">
-            <a href="https://github.com/sofismoura">
-                <img src="https://avatars.githubusercontent.com/u/146744026?v=4" width="100px;"
-                    alt="Ícone do sofismoura no GitHub" /><br>
-                <sub>
-                    <b>Sofia</b>
-                </sub> <br>
-            </a>
-            <sub>
-                Task1, Task2, Task3
-            </sub>
-        </td>
-    </tr>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/andreiolicar">
+        <img src="https://avatars.githubusercontent.com/u/166918480?v=4" width="100px;" alt="Andrei"/><br />
+        <b>Andrei</b><br />
+        <sub>Backend, Infra</sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/joaoxaviersilva">
+        <img src="https://avatars.githubusercontent.com/u/96438479?v=4" width="100px;" alt="João"/><br />
+        <b>João</b><br />
+        <sub>Frontend, Testes</sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/nsmillena">
+        <img src="https://avatars.githubusercontent.com/u/120488775?v=4" width="100px;" alt="Millena"/><br />
+        <b>Millena</b><br />
+        <sub>Design, Documentação</sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/sofismoura">
+        <img src="https://avatars.githubusercontent.com/u/146744026?v=4" width="100px;" alt="Sofia"/><br />
+        <b>Sofia</b><br />
+        <sub>Fullstack, IA</sub>
+      </a>
+    </td>
+  </tr>
 </table>
+</div>
 
-<hr>
+---
 
-Este README fornece uma visão geral do projeto V.I.D.A. e sua estrutura. Para detalhes específicos sobre cada módulo e funcionalidade, consulte a documentação dentro das pastas correspondentes.
-<br>
-Para mostrar apoio, dê uma ⭐ estrela a este repositório!
+## Apoie o Projeto
+
+Este README fornece uma visão geral do projeto V.I.D.A. e sua estrutura. Para detalhes específicos sobre cada módulo e funcionalidade, consulte a documentação dentro das pastas correspondentes. Se você curtiu, deixe uma ⭐ estrela no repositório para mostrar seu apoio!
+
+---
+
