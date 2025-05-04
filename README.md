@@ -163,21 +163,21 @@ A pasta [`/docs`](./docs) contém:
     </td>
     <td align="center">
       <a href="https://github.com/joaoxaviersilva">
-        <img src="https://avatars.githubusercontent.com/u/96438479?v=4" width="100px;" alt="João"/><br />
+        <img src="https://avatars.githubusercontent.com/u/166918086?v=4" width="100px;" alt="João"/><br />
         <b>João</b><br />
         <sub>Frontend, Testes</sub>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/nsmillena">
-        <img src="https://avatars.githubusercontent.com/u/120488775?v=4" width="100px;" alt="Millena"/><br />
+        <img src="https://avatars.githubusercontent.com/u/166918300?v=4" width="100px;" alt="Millena"/><br />
         <b>Millena</b><br />
         <sub>Design, Documentação</sub>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/sofismoura">
-        <img src="https://avatars.githubusercontent.com/u/146744026?v=4" width="100px;" alt="Sofia"/><br />
+        <img src="https://avatars.githubusercontent.com/u/166918518?s=400&u=76c54fc8d9ef41bfda8dcfada372d9fba0ee8954&v=4" width="100px;" alt="Sofia"/><br />
         <b>Sofia</b><br />
         <sub>Fullstack, IA</sub>
       </a>
