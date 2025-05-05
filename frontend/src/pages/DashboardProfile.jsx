@@ -17,7 +17,11 @@ export default function DashboardProfile() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const res = await axios.get(`http://localhost:5000/api/user/get/${userId}`);
+        const res = await axios.get(`http://localhost:5000/api/user/get/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         const data = await res.data;
 
@@ -50,11 +54,19 @@ export default function DashboardProfile() {
     setMessage('');
 
     try {
-      const res = await axios.put(`http://localhost:5000/api/user/update/${userId}`, {
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-      });
+      const res = await axios.put(
+        `http://localhost:5000/api/user/update/${userId}`,
+        {
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
       const data = await res.data;
       console.log(data);

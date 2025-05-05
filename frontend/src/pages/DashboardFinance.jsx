@@ -6,7 +6,7 @@ import StudyRouteCard from '@/components/StudyRouteCard';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 
-export default function DashboardStudy() {
+export default function DashboardFinance() {
   const userId = localStorage.getItem('user');
   const token = localStorage.getItem('token');
 

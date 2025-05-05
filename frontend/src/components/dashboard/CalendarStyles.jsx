@@ -7,7 +7,7 @@ export default function CalendarStyled({ events = [], onDayClick }) {
 
   const tileClassName = ({ date, view }) => {
     if (view === 'month') {
-      const dayEvents = events.filter(event => {
+      const dayEvents = events.filter((event) => {
         const eventDate = new Date(event.datetime);
         return (
           eventDate.getFullYear() === date.getFullYear() &&

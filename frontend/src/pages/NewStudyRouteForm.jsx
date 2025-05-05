@@ -21,6 +21,7 @@ const AREAS = [
 
 export default function NewStudyRouteForm() {
   const user = localStorage.getItem('user');
+  const token = localStorage.getItem('token');
   const [title, setTitle] = useState('');
   const [area, setArea] = useState('');
   const [description, setDescription] = useState('');
@@ -28,7 +29,6 @@ export default function NewStudyRouteForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { token } = useAuth();
 
   const handleTopicChange = (value, index) => {
     const updated = [...topics];
@@ -61,12 +61,20 @@ export default function NewStudyRouteForm() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/study-routes/${user}`, {
-        title,
-        area,
-        description,
-        topics: topics.filter((t) => t.trim() !== ''),
-      });
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/study-routes/${user}`,
+        {
+          title,
+          area,
+          description,
+          topics: topics.filter((t) => t.trim() !== ''),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );  
 
       const data = await response.data;
       console.log('API response:', data);
