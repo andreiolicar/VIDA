@@ -60,38 +60,26 @@ Você encontrará aqui:
 ### 🛠️ Backend
 
 <p align="left">
-  <img src="https://skillicons.dev/icons?i=nodejs" alt="Node.js" width="40"/>
-  <img src="https://skillicons.dev/icons?i=express" alt="Express.js" width="40"/>
-  <img src="https://skillicons.dev/icons?i=mysql" alt="MySQL" width="40"/>
-  <img src="https://skillicons.dev/icons?i=jwt" alt="JWT" width="40"/>
-  <img src="https://skillicons.dev/icons?i=swagger" alt="Swagger" width="40"/>
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=nodejs,express,mysql,docker,jest,sequelize" />
+  </a>
 </p>
 
 ### 🎨 Frontend
 
 <p align="left">
-  <img src="https://skillicons.dev/icons?i=js" alt="JavaScript" width="40"/>
-  <img src="https://skillicons.dev/icons?i=react" alt="React" width="40"/>
-  <img src="https://skillicons.dev/icons?i=tailwind" alt="Tailwind CSS" width="40"/>
-  <img src="https://skillicons.dev/icons?i=reactrouter" alt="React Router" width="40"/>
-  <img src="https://skillicons.dev/icons?i=webpack" alt="Webpack" width="40"/>
-  <img src="https://skillicons.dev/icons?i=vite" alt="Vite" width="40"/>
-  <img src="https://skillicons.dev/icons?i=jest" alt="Jest" width="40"/>
-  <img src="https://skillicons.dev/icons?i=testinglibrary" alt="React Testing Library" width="40"/>
-  <img src="https://skillicons.dev/icons?i=axios" alt="Axios" width="40"/>
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=javascrip,react,tailwind,css,webpack,vite,jest" />
+  </a>
 </p>
 
 ### 🧰 Utilitários
 
 <p align="left">
-  <img src="https://skillicons.dev/icons?i=npm" alt="npm" width="40"/>
-  <img src="https://skillicons.dev/icons?i=yarn" alt="Yarn" width="40"/>
-  <img src="https://skillicons.dev/icons?i=dotenv" alt="dotenv" width="40"/>
-  <img src="https://skillicons.dev/icons?i=eslint" alt="ESLint" width="40"/>
-  <img src="https://skillicons.dev/icons?i=prettier" alt="Prettier" width="40"/>
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=npm,express,mysql,docker" />
+  </a>
 </p>
-
-
 ---
 
 ## Documentação Técnica
