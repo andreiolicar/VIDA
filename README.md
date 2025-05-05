@@ -55,56 +55,31 @@ Você encontrará aqui:
 ---
 
 
-## Stack de Tecnologias
+## 🚀 Stack de Tecnologias
 
-### Backend
+### 🛠️ Backend
 
-[![Node.js](https://img.shields.io/badge/Node.js-0FC2C0?style=for-the-badge&logo=node.js&logoColor=0D1117)](https://nodejs.org/)
-&nbsp;
-[![Express.js](https://img.shields.io/badge/Express.js-0FC2C0?style=for-the-badge&logo=express&logoColor=0D1117)](https://expressjs.com/)
-&nbsp;
-[![MySQL](https://img.shields.io/badge/MySQL-0FC2C0?style=for-the-badge&logo=mysql&logoColor=0D1117)](https://www.mysql.com/)
-[![JWT](https://img.shields.io/badge/JWT-0FC2C0?style=for-the-badge&logo=jsonwebtokens&logoColor=0D1117)](https://jwt.io/)
-&nbsp;
-[![Swagger](https://img.shields.io/badge/Swagger-0FC2C0?style=for-the-badge&logo=swagger&logoColor=0D1117)](https://swagger.io/)
-&nbsp;
+<p align="left">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=nodejs,express,mysql,jest,sequelize" />
+  </a>
+</p>
 
+### 🎨 Frontend
 
-### Frontend
+<p align="left">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=javascript,react,tailwind,css,webpack,vite,jest" />
+  </a>
+</p>
 
-[![JavaScript](https://img.shields.io/badge/JavaScript-0FC2C0?style=for-the-badge&logo=javascript&logoColor=0D1117)](https://www.javascript.com/)
-&nbsp;
-[![React](https://img.shields.io/badge/React-0FC2C0?style=for-the-badge&logo=react&logoColor=0D1117)](https://reactjs.org/)
-&nbsp;
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-0FC2C0?style=for-the-badge&logo=tailwindcss&logoColor=0D1117)](https://tailwindcss.com/)
-&nbsp;
-[![React Router Dom](https://img.shields.io/badge/React_Router_Dom-0FC2C0?style=for-the-badge&logo=reactrouter&logoColor=0D1117)](https://reactrouter.com/)
-&nbsp;
-[![Webpack](https://img.shields.io/badge/Webpack-0FC2C0?style=for-the-badge&logo=webpack&logoColor=0D1117)](https://webpack.js.org/)
-&nbsp;
-[![Vite](https://img.shields.io/badge/Vite-0FC2C0?style=for-the-badge&logo=vite&logoColor=0D1117)](https://vitejs.dev/)
-&nbsp;
-[![Jest](https://img.shields.io/badge/Jest-0FC2C0?style=for-the-badge&logo=jest&logoColor=0D1117)](https://jestjs.io/)
-&nbsp;
-[![React Testing Library](https://img.shields.io/badge/React_Testing_Library-0FC2C0?style=for-the-badge&logoColor=white&color=0FC2C0)](https://testing-library.com/docs/react-testing-library/intro/)
-&nbsp;
-[![Axios](https://img.shields.io/badge/Axios-0FC2C0?style=for-the-badge&logo=axios&logoColor=0D1117)](https://axios-http.com/)
-&nbsp;
+### 🧰 Utilitários
 
-
-### Utilitários
-
-[![npm](https://img.shields.io/badge/npm-0FC2C0?style=for-the-badge&logo=npm&logoColor=0D1117)](https://www.npmjs.com/)
-&nbsp;
-[![Yarn](https://img.shields.io/badge/Yarn-0FC2C0?style=for-the-badge&logo=yarn&logoColor=0D1117)](https://yarnpkg.com/)
-&nbsp;
-[![dotenv](https://img.shields.io/badge/dotenv-0FC2C0?style=for-the-badge&logo=dotenv&logoColor=0D1117)](https://github.com/motdotla/dotenv)
-&nbsp;
-[![ESLint](https://img.shields.io/badge/ESLint-0FC2C0?style=for-the-badge&logo=eslint&logoColor=0D1117)](https://eslint.org/)
-&nbsp;
-[![Prettier](https://img.shields.io/badge/Prettier-0FC2C0?style=for-the-badge&logo=prettier&logoColor=0D1117)](https://prettier.io/)
-&nbsp;
-
+<p align="left">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=npm" />
+  </a>
+</p>
 ---
 
 ## Documentação Técnica
