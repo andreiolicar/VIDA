@@ -61,7 +61,7 @@ Você encontrará aqui:
 
 <p align="left">
   <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=nodejs,express,mysql,docker,jest,sequelize" />
+    <img src="https://skillicons.dev/icons?i=nodejs,express,mysql,jest,sequelize" />
   </a>
 </p>
 
@@ -69,7 +69,7 @@ Você encontrará aqui:
 
 <p align="left">
   <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=javascrip,react,tailwind,css,webpack,vite,jest" />
+    <img src="https://skillicons.dev/icons?i=javascript,react,tailwind,css,webpack,vite,jest" />
   </a>
 </p>
 
@@ -77,7 +77,7 @@ Você encontrará aqui:
 
 <p align="left">
   <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=npm,express,mysql,docker" />
+    <img src="https://skillicons.dev/icons?i=npm" />
   </a>
 </p>
 ---
