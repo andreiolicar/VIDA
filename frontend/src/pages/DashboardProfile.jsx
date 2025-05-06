@@ -102,6 +102,7 @@ export default function DashboardProfile() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               name="name"
+              maxLength={20}
               value={form.name || ''}
               onChange={handleChange}
               placeholder="Nome"

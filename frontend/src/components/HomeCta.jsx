@@ -15,10 +15,12 @@ export default function HomeCta() {
             <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
                 <CtaButton />
 
-                <button className="inline-flex items-center justify-center gap-2 px-8 h-12 rounded-full border border-white/20 bg-white/10 text-white text-base font-medium backdrop-blur-md hover:bg-white/20 transition">
-                    <UserPlus size={18} />
-                    Criar Conta
-                </button>
+                <a href="/register">
+                    <button className="inline-flex items-center justify-center gap-2 px-8 h-12 rounded-full border border-white/20 bg-white/10 text-white text-base font-medium backdrop-blur-md hover:bg-white/20 transition">
+                        <UserPlus size={18} />
+                        Criar Conta
+                    </button>
+                </a>
             </div>
         </section>
     );
