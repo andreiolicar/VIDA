@@ -28,7 +28,6 @@ Este repositório contém o código-fonte e a documentação técnica do projeto
 -  **Organização de Tarefas:** Listas de tarefas com sugestões automatizadas baseadas no comportamento.
 -  **IA de Decisão Assistida:** Algoritmo inteligente para apoiar microdecisões rotineiras.
 
----
 
 ##  Estrutura do Projeto
 
