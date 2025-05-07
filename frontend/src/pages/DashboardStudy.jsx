@@ -51,29 +51,15 @@ export default function DashboardStudy() {
     fetchRoutes();
     fetchEvents();
   }, []);
-
-  // Excluir evento
-  const handleDeleteEvent = async (event) => {
-    if (window.confirm(`Tem certeza que deseja excluir o evento "${event.title}"?`)) {
-      try {
-        await axios.delete(`/events/${event.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        fetchEvents(); // Atualiza a lista após exclusão
-      } catch (err) {
-        console.error('Erro ao excluir evento:', err);
-        alert('Erro ao excluir evento');
-      }
-    }
-  };
-
   // Excluir trilha
   const handleDeleteRoute = async (route) => {
     if (window.confirm(`Tem certeza que deseja excluir a trilha "${route.title}"?`)) {
       try {
-        await axios.delete(`/study-routes/${route.id}`);
+        await axios.delete(`/study-routes/${route.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         fetchRoutes();
       } catch (err) {
         console.error('Erro ao excluir trilha:', err);
@@ -156,10 +142,6 @@ export default function DashboardStudy() {
                   {/* Botão de excluir */}
                   <button
                     title="Excluir evento"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete?.(event);
-                    }}
                     className="absolute top-3 right-3 z-10 transition"
                   >
                     <Trash2 size={18} className="text-gray-400 hover:text-red-500" />

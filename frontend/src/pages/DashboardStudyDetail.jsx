@@ -4,6 +4,7 @@ import axios from '@/services/axios';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import { ArrowLeft } from 'lucide-react';
+const token = localStorage.getItem('token');
 
 export default function DashboardStudyDetail() {
   const { id } = useParams();
@@ -13,7 +14,11 @@ export default function DashboardStudyDetail() {
   const [updatingTopicId, setUpdatingTopicId] = useState(null); // Para controlar o loading do tópico sendo atualizado
   const fetchRoute = async () => {
     try {
-      const res = await axios.get(`/study-routes/getone/${id}`);
+      const res = await axios.get(`/study-routes/getone/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       setRoute(res.data);
       setError('');
