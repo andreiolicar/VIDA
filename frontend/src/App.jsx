@@ -13,8 +13,15 @@ import DashboardStudyDetail from './pages/DashboardStudyDetail';
 import DashboardEventDetail from './pages/DashboardEventDetail';
 import NewEvent from '@/pages/NewEvent';
 import DashboardTasks from './pages/DashboardTasks';
+import NewTask from './pages/NewTask';
+import KanBanTasks from './pages/KanbanTasks';
 import DashboardFinance from './pages/DashboardFinance';
+import TaskListDetails from '@/pages/TaskListDetails';
+import EditTaskList from '@/pages/EditTaskList';
+import TaskDetails from '@/pages/TaskDetails';
+import EditTask from '@/pages/EditTask';
 import Chatbot from './pages/Chatbot';
+
 
 function App() {
   return (
@@ -33,7 +40,13 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/profile" element={<DashboardProfile />} />
           <Route path="/dashboard/tasks" element={<DashboardTasks />} />
+          <Route path="/dashboard/newtask" element={<NewTask />} />
+          <Route path="/dashboard/kanban" element={<KanBanTasks />} />
           <Route path="/dashboard/finance" element={<DashboardFinance />} />
+          <Route path="/dashboard/task-list/:id" element={<TaskListDetails />} />
+          <Route path="/dashboard/task-list/edit/:id" element={<EditTaskList />} />
+          <Route path="/dashboard/task/:id" element={<TaskDetails />} />
+          <Route path="/dashboard/task/edit/:id" element={<EditTask />} />
           <Route path="/dashboard/chatbot" element={<Chatbot />} />
 
           {/* Novas rotas para Trilhas de Estudos */}
@@ -42,6 +55,7 @@ function App() {
           <Route path="/dashboard/study/:id" element={<DashboardStudyDetail />} />
           <Route path="/dashboard/events/new" element={<NewEvent />} />
           <Route path="/dashboard/events/:id" element={<DashboardEventDetail />} />
+          
         </Route>
       </Route>
     </Routes>
