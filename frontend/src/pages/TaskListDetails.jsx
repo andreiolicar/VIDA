@@ -165,7 +165,7 @@ export default function TaskListDetails() {
           <h2 className="text-xl font-semibold mb-4">Editar Tarefa</h2>
 
           <div className="mb-4">
-            <label className="block mb-1 font-medium">Título *</label>
+            <label className="block mb-1 font-medium">Título </label>
             <input
               type="text"
               value={title}

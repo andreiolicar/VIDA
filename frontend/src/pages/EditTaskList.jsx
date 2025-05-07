@@ -4,46 +4,46 @@ import axios from '@/services/axios';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 
-const PRIORITIES = ['baixa', 'média', 'alta'];
-const STATUSES = ['a_fazer', 'em_andamento', 'feito'];
-
-export default function EditTask() {
+export default function EditTaskList() {
   const { id } = useParams();
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
   const [title, setTitle] = useState('');
+  const [type, setType] = useState('mercado');
   const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState(PRIORITIES[0]);
-  const [status, setStatus] = useState(STATUSES[0]);
+  const [favorite, setFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  // Buscar dados da tarefa para preencher o formulário
-  const fetchTask = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`/tasks/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const task = res.data;
-      setTitle(task.title);
-      setDescription(task.description || '');
-      setPriority(task.priority || PRIORITIES[0]);
-      setStatus(task.status || STATUSES[0]);
-      setError('');
-    } catch (err) {
-      console.error('Erro ao carregar tarefa:', err);
-      setError('Erro ao carregar a tarefa.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const LIST_TYPES = [
+    { value: 'mercado', label: 'Mercado' },
+    { value: 'projeto', label: 'Projeto' },
+    { value: 'doméstica', label: 'Doméstica' },
+  ];
 
   useEffect(() => {
-    fetchTask();
-  }, [id]);
+    async function fetchList() {
+      try {
+        setLoading(true);
+        const res = await axios.get(`/task-lists/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const list = res.data;
+        setTitle(list.title || '');
+        setType(list.type || 'mercado');
+        setDescription(list.description || '');
+        setFavorite(!!list.favorite);
+        setError('');
+      } catch (err) {
+        setError('Erro ao carregar a lista.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchList();
+  }, [id, token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,19 +55,18 @@ export default function EditTask() {
     setSaving(true);
     try {
       await axios.patch(
-        `/tasks/${id}`,
+        `/task-lists/${id}`,
         {
           title: title.trim(),
+          type,
           description: description.trim() || null,
-          priority,
-          status,
+          favorite,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      navigate(`/dashboard/task/${id}`);
+      navigate(`/dashboard/task-list/${id}`);
     } catch (err) {
-      console.error('Erro ao salvar tarefa:', err);
-      setError('Erro ao salvar a tarefa.');
+      setError('Erro ao salvar a lista.');
     } finally {
       setSaving(false);
     }
@@ -81,9 +80,9 @@ export default function EditTask() {
 
       <main className="flex-1 p-8 overflow-y-auto max-w-4xl mx-auto">
         <div className="mb-6 flex justify-between items-center">
-          <h1 className="text-3xl font-semibold">Editar Tarefa</h1>
+          <h1 className="text-3xl font-semibold">Editar Lista</h1>
           <Link
-            to={`/dashboard/task/${id}`}
+            to={`/dashboard/task-list/${id}`}
             className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-semibold"
           >
             Voltar
@@ -92,9 +91,9 @@ export default function EditTask() {
 
         {error && <p className="mb-4 text-red-500">{error}</p>}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 max-w-md">
           <div>
-            <label className="block mb-1 font-medium">Título *</label>
+            <label className="block mb-1 font-medium">Título </label>
             <input
               type="text"
               value={title}
@@ -102,6 +101,22 @@ export default function EditTask() {
               className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
               required
             />
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium">Tipo </label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
+              required
+            >
+              {LIST_TYPES.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -114,36 +129,17 @@ export default function EditTask() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-1 font-medium">Prioridade</label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
-              >
-                {PRIORITIES.map((p) => (
-                  <option key={p} value={p}>
-                    {p.charAt(0).toUpperCase() + p.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium">Status</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
-              >
-                {STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {s.replace('_', ' ').charAt(0).toUpperCase() + s.replace('_', ' ').slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="favorite"
+              checked={favorite}
+              onChange={(e) => setFavorite(e.target.checked)}
+              className="w-4 h-4 rounded"
+            />
+            <label htmlFor="favorite" className="select-none">
+              Marcar como favorita
+            </label>
           </div>
 
           <button

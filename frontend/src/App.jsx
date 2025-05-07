@@ -22,19 +22,18 @@ import TaskDetails from '@/pages/TaskDetails';
 import EditTask from '@/pages/EditTask';
 import Chatbot from './pages/Chatbot';
 
-
 function App() {
   return (
     <Routes>
-      {/*Público*/}
+      {/* Público */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="*" element={<h1>404</h1>}></Route>
+        <Route path="*" element={<h1>404</h1>} />
         <Route path="/register" element={<Register />} />
       </Route>
 
-      {/*Privado*/}
+      {/* Privado */}
       <Route element={<PrivateRoute />}>
         <Route element={<PrivateLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -55,7 +54,6 @@ function App() {
           <Route path="/dashboard/study/:id" element={<DashboardStudyDetail />} />
           <Route path="/dashboard/events/new" element={<NewEvent />} />
           <Route path="/dashboard/events/:id" element={<DashboardEventDetail />} />
-          
         </Route>
       </Route>
     </Routes>

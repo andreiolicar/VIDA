@@ -53,7 +53,7 @@ function EditListModal({ isOpen, onClose, list, onSave }) {
         <h2 className="text-xl font-semibold mb-4">Editar Lista</h2>
 
         <div className="mb-4">
-          <label className="block mb-1 font-medium">Título *</label>
+          <label className="block mb-1 font-medium">Título </label>
           <input
             type="text"
             value={title}
@@ -64,7 +64,7 @@ function EditListModal({ isOpen, onClose, list, onSave }) {
         </div>
 
         <div className="mb-4">
-          <label className="block mb-1 font-medium">Tipo *</label>
+          <label className="block mb-1 font-medium">Tipo </label>
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
@@ -199,7 +199,7 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
         <h2 className="text-xl font-semibold mb-4">Editar Tarefa</h2>
 
         <div className="mb-4">
-          <label className="block mb-1 font-medium">Título *</label>
+          <label className="block mb-1 font-medium">Título </label>
           <input
             type="text"
             value={title}
@@ -579,7 +579,7 @@ export default function DashboardTasks() {
           {showNewListForm && (
             <div className="mb-6 bg-[#1f2937] p-6 rounded-lg shadow-md max-w-5xl mx-auto">
               <div className="mb-4">
-                <label className="block mb-1 font-medium">Título *</label>
+                <label className="block mb-1 font-medium">Título </label>
                 <input
                   type="text"
                   value={title}
@@ -590,7 +590,7 @@ export default function DashboardTasks() {
               </div>
 
               <div className="mb-4">
-                <label className="block mb-1 font-medium">Tipo *</label>
+                <label className="block mb-1 font-medium">Tipo 1</label>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value)}
