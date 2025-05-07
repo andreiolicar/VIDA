@@ -9,8 +9,8 @@ import axios from '@/services/axios';
 export default function DashboardRightPanel() {
   const token = localStorage.getItem('token');
   const userId = localStorage.getItem('user');
-  const [showCalendars, setShowCalendars] = useState(true);
-  const [showCategories, setShowCategories] = useState(true);
+  const [showCalendars, setShowCalendars] = useState(false);
+  const [showCategories, setShowCategories] = useState(false);
   const [events, setEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [dayEvents, setDayEvents] = useState([]);
