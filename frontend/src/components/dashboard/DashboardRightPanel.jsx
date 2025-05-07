@@ -22,12 +22,7 @@ export default function DashboardRightPanel() {
   useEffect(() => {
     async function fetchEvents() {
       try {
-        if (!token) return console.log('token não fornecido');
-        const res = await axios.get(`/events/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await axios.get(`/events/${userId}`)
         setEvents(res.data);
       } catch (err) {
         console.error('Erro ao buscar eventos:', err);

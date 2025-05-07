@@ -12,16 +12,10 @@ export default function DashboardProfile() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem('token');
-
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const res = await axios.get(`http://localhost:5000/api/user/get/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await axios.get(`http://localhost:5000/api/user/get/${userId}`);
 
         const data = await res.data;
 
@@ -42,7 +36,7 @@ export default function DashboardProfile() {
     }
 
     fetchProfile();
-  }, [token]);
+  }, [userId]); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -60,12 +54,7 @@ export default function DashboardProfile() {
           name: form.name,
           email: form.email,
           phone: form.phone,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        }
       );
 
       const data = await res.data;

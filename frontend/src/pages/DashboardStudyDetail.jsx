@@ -14,11 +14,7 @@ export default function DashboardStudyDetail() {
   const [updatingTopicId, setUpdatingTopicId] = useState(null); // Para controlar o loading do tópico sendo atualizado
   const fetchRoute = async () => {
     try {
-      const res = await axios.get(`/study-routes/getone/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axios.get(`/study-routes/getone/${id}`);
 
       setRoute(res.data);
       setError('');

@@ -18,11 +18,7 @@ export default function DashboardStudy() {
 
   const fetchRoutes = async () => {
     try {
-      const res = await axios.get(`/study-routes/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axios.get(`/study-routes/${userId}`);
       setRoutes(res.data);
     } catch (err) {
       console.error('Erro ao buscar trilhas:', err);
@@ -32,11 +28,7 @@ export default function DashboardStudy() {
   const fetchEvents = async () => {
     try {
       setLoadingEvents(true);
-      const res = await axios.get(`/events/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axios.get(`/events/${userId}`);
       setEvents(res.data);
       setErrorEvents('');
     } catch (err) {
@@ -55,11 +47,7 @@ export default function DashboardStudy() {
   const handleDeleteRoute = async (route) => {
     if (window.confirm(`Tem certeza que deseja excluir a trilha "${route.title}"?`)) {
       try {
-        await axios.delete(`/study-routes/${route.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await axios.delete(`/study-routes/${route.id}`);
         fetchRoutes();
       } catch (err) {
         console.error('Erro ao excluir trilha:', err);

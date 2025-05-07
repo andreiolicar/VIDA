@@ -17,11 +17,7 @@ export default function DashboardTasks() {
 
   const fetchRoutes = async () => {
     try {
-      const res = await axios.get(`/study-routes/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axios.get(`/study-routes/${userId}`);
       setRoutes(res.data);
     } catch (err) {
       console.error('Erro ao buscar trilhas:', err);
@@ -31,11 +27,7 @@ export default function DashboardTasks() {
   const fetchEvents = async () => {
     try {
       setLoadingEvents(true);
-      const res = await axios.get(`/events/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axios.get(`/events/${userId}`);
       setEvents(res.data);
       setErrorEvents('');
     } catch (err) {
