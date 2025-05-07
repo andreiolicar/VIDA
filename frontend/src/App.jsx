@@ -14,6 +14,7 @@ import DashboardEventDetail from './pages/DashboardEventDetail';
 import NewEvent from '@/pages/NewEvent';
 import DashboardTasks from './pages/DashboardTasks';
 import DashboardFinance from './pages/DashboardFinance';
+import Chatbot from './pages/Chatbot';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="/dashboard/profile" element={<DashboardProfile />} />
           <Route path="/dashboard/tasks" element={<DashboardTasks />} />
           <Route path="/dashboard/finance" element={<DashboardFinance />} />
+          <Route path="/dashboard/chatbot" element={<Chatbot />} />
 
           {/* Novas rotas para Trilhas de Estudos */}
           <Route path="/dashboard/study" element={<DashboardStudy />} />
