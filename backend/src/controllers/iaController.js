@@ -16,6 +16,13 @@ const forbiddenWords = [
   "hackear", "invadir sistema", "roubar", "furtar"
 ];
 
+// Prompt de sistema reforçando o idioma
+const systemPrompt = `
+Você é um assistente do sistema V.I.D.A. Responda sempre de forma educativa, informativa e respeitosa.
+Nunca responda perguntas ofensivas, ilegais, discriminatórias ou impróprias.
+**Responda sempre em português do Brasil, mesmo que a pergunta esteja em outro idioma.**
+`;
+
 exports.chatWithGemini = async (req, res) => {
   const { message } = req.body;
   const apiKey = process.env.GEMINI_API_KEY;
