@@ -1,5 +1,5 @@
 import {
-    Home, CheckCircle, DollarSign, Book, HeartPulse, Brain,
+    Home, CheckCircle, DollarSign, Book, HeartPulse, Bot,
     Settings, LogOut
 } from 'lucide-react';
 import { useAuth } from '@/context/useAuth';
@@ -20,8 +20,7 @@ export default function Sidebar() {
         { label: 'Tarefas', icon: CheckCircle, path: '/dashboard/tasks' },
         { label: 'Finanças', icon: DollarSign, path: '/dashboard/finance' },
         { label: 'Estudos', icon: Book, path: '/dashboard/study' },
-        { label: 'Saúde Física', icon: HeartPulse, path: '/dashboard/physical' },
-        { label: 'Saúde Mental', icon: Brain, path: '/dashboard/mental' }
+        { label: 'IA', icon: Bot, path: '/dashboard/chatbot' },
     ];
 
     return (

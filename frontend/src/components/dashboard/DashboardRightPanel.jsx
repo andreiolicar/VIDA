@@ -9,8 +9,8 @@ import axios from '@/services/axios';
 export default function DashboardRightPanel() {
   const token = localStorage.getItem('token');
   const userId = localStorage.getItem('user');
-  const [showCalendars, setShowCalendars] = useState(true);
-  const [showCategories, setShowCategories] = useState(true);
+  const [showCalendars, setShowCalendars] = useState(false);
+  const [showCategories, setShowCategories] = useState(false);
   const [events, setEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [dayEvents, setDayEvents] = useState([]);
@@ -22,12 +22,7 @@ export default function DashboardRightPanel() {
   useEffect(() => {
     async function fetchEvents() {
       try {
-        if (!token) return console.log('token não fornecido');
-        const res = await axios.get(`/events/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await axios.get(`/events/${userId}`)
         setEvents(res.data);
       } catch (err) {
         console.error('Erro ao buscar eventos:', err);

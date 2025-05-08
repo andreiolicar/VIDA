@@ -68,12 +68,7 @@ export default function NewStudyRouteForm() {
           area,
           description,
           topics: topics.filter((t) => t.trim() !== ''),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        }
       );  
 
       const data = await response.data;

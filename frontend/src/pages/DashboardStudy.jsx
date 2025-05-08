@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import StudyRouteCard from '@/components/StudyRouteCard';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
+import { Trash2 } from 'lucide-react';
 
 export default function DashboardStudy() {
   const userId = localStorage.getItem('user');
@@ -17,11 +18,7 @@ export default function DashboardStudy() {
 
   const fetchRoutes = async () => {
     try {
-      const res = await axios.get(`/study-routes/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axios.get(`/study-routes/${userId}`);
       setRoutes(res.data);
     } catch (err) {
       console.error('Erro ao buscar trilhas:', err);
@@ -31,11 +28,7 @@ export default function DashboardStudy() {
   const fetchEvents = async () => {
     try {
       setLoadingEvents(true);
-      const res = await axios.get(`/events/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axios.get(`/events/${userId}`);
       setEvents(res.data);
       setErrorEvents('');
     } catch (err) {
@@ -50,7 +43,6 @@ export default function DashboardStudy() {
     fetchRoutes();
     fetchEvents();
   }, []);
-
   // Excluir trilha
   const handleDeleteRoute = async (route) => {
     if (window.confirm(`Tem certeza que deseja excluir a trilha "${route.title}"?`)) {
@@ -134,23 +126,31 @@ export default function DashboardStudy() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {sortedEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="p-4 bg-white/10 backdrop-blur rounded-xl shadow hover:shadow-lg transition cursor-pointer h-full flex flex-col justify-between"
-                >
-                  <h2 className="text-lg font-semibold mb-2 text-white">{event.title}</h2>
-                  <p className="text-sm text-gray-400 mb-4">
-                    {new Date(event.datetime).toLocaleString('pt-BR', {
-                      dateStyle: 'short',
-                      timeStyle: 'short',
-                    })}
-                  </p>
-                  <Link
-                    to={`/dashboard/events/${event.id}`}
-                    className="mt-auto text-blue-400 hover:underline"
+                <div className="relative group">
+                  {/* Botão de excluir */}
+                  <button
+                    title="Excluir evento"
+                    className="absolute top-3 right-3 z-10 transition"
                   >
-                    Ver detalhes
-                  </Link>
+                    <Trash2 size={18} className="text-gray-400 hover:text-red-500" />
+                  </button>
+
+                  {/* Conteúdo do card */}
+                  <div className="p-4 bg-white/10 backdrop-blur rounded-xl shadow hover:shadow-lg transition cursor-pointer h-full flex flex-col justify-between">
+                    <h2 className="text-lg font-semibold mb-2 text-white">{event.title}</h2>
+                    <p className="text-sm text-gray-400 mb-4">
+                      {new Date(event.datetime).toLocaleString('pt-BR', {
+                        dateStyle: 'short',
+                        timeStyle: 'short',
+                      })}
+                    </p>
+                    <Link
+                      to={`/dashboard/events/${event.id}`}
+                      className="mt-auto text-blue-400 hover:underline"
+                    >
+                      Ver detalhes
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>

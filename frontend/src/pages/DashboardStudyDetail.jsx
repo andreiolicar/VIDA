@@ -4,6 +4,7 @@ import axios from '@/services/axios';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import { ArrowLeft } from 'lucide-react';
+const token = localStorage.getItem('token');
 
 export default function DashboardStudyDetail() {
   const { id } = useParams();

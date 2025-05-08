@@ -12,20 +12,15 @@ export default function UserProfile() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const res = await axios.get(`http://localhost:5000/api/user/get/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await axios.get(`http://localhost:5000/api/user/get/${userId}`);
+        const data = res.data;
 
-        const data = await res.data;
         setUser({
           name: data.user.name || '',
           email: data.user.email || '',
         });
       } catch (error) {
         console.error('[PERFIL] Erro ao carregar perfil:', error);
-        console.log(error);
       }
     }
 

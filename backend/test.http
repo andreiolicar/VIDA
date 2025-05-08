@@ -1,0 +1,22 @@
+### LOGIN - gerar token
+### REGISTER - criar novo usuário
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Maria Teste",
+  "email": "maria@teste.com",
+  "phone": "11999999999",
+  "password": "123456"
+}
+
+### LOGIN - gerar token
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "maria@teste.com",
+  "password": "123456"
+}
+
+

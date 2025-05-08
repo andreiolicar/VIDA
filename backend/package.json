@@ -21,6 +21,7 @@
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.0",
     "openai": "^4.97.0",
+    "react-markdown": "^10.1.0",
     "sequelize": "^6.35.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"

@@ -43,12 +43,7 @@ export default function NewEvent() {
           description,
           topics: topics.filter((t) => t.trim() !== ''),
           datetime,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        }
       );
       navigate('/dashboard/study');
     } catch (err) {

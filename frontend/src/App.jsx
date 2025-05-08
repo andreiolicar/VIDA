@@ -13,26 +13,40 @@ import DashboardStudyDetail from './pages/DashboardStudyDetail';
 import DashboardEventDetail from './pages/DashboardEventDetail';
 import NewEvent from '@/pages/NewEvent';
 import DashboardTasks from './pages/DashboardTasks';
+import NewTask from './pages/NewTask';
+import KanBanTasks from './pages/KanbanTasks';
 import DashboardFinance from './pages/DashboardFinance';
+import TaskListDetails from '@/pages/TaskListDetails';
+import EditTaskList from '@/pages/EditTaskList';
+import TaskDetails from '@/pages/TaskDetails';
+import EditTask from '@/pages/EditTask';
+import Chatbot from './pages/Chatbot';
 
 function App() {
   return (
     <Routes>
-      {/*Público*/}
+      {/* Público */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="*" element={<h1>404</h1>}></Route>
+        <Route path="*" element={<h1>404</h1>} />
         <Route path="/register" element={<Register />} />
       </Route>
 
-      {/*Privado*/}
+      {/* Privado */}
       <Route element={<PrivateRoute />}>
         <Route element={<PrivateLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/profile" element={<DashboardProfile />} />
           <Route path="/dashboard/tasks" element={<DashboardTasks />} />
+          <Route path="/dashboard/newtask" element={<NewTask />} />
+          <Route path="/dashboard/kanban" element={<KanBanTasks />} />
           <Route path="/dashboard/finance" element={<DashboardFinance />} />
+          <Route path="/dashboard/task-list/:id" element={<TaskListDetails />} />
+          <Route path="/dashboard/task-list/edit/:id" element={<EditTaskList />} />
+          <Route path="/dashboard/task/:id" element={<TaskDetails />} />
+          <Route path="/dashboard/task/edit/:id" element={<EditTask />} />
+          <Route path="/dashboard/chatbot" element={<Chatbot />} />
 
           {/* Novas rotas para Trilhas de Estudos */}
           <Route path="/dashboard/study" element={<DashboardStudy />} />
