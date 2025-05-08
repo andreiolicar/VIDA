@@ -2,29 +2,61 @@ import { Link } from 'react-router-dom';
 import { Plus, Trash, Edit } from 'lucide-react';
 
 export default function TaskCard({ task, onDelete, onToggleStatus, onEdit, extraButtons }) {
+  // Função para definir a cor da prioridade
+  const getPriorityColor = (priority) => {
+    switch (priority?.toLowerCase()) {
+      case 'alta':
+        return 'text-red-500';
+      case 'media':
+      case 'média':
+        return 'text-yellow-400';
+      case 'baixa':
+        return 'text-green-500';
+      default:
+        return 'text-gray-400';
+    }
+  };
+
+  const formatStatus = (status) => {
+    if (!status) return '';
+    return status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  };
+
   return (
     <Link
       to={`/dashboard/task/${task.id}`}
-      className={`relative rounded-2xl p-4 min-h-[140px] min-w-[220px] shadow-md hover:shadow-lg transition cursor-pointer flex flex-col group bg-[#1f2937] ${
+      className={`relative rounded-2xl p-4 min-h-[180px] min-w-[220px] max-w-[280px] shadow-md hover:shadow-lg transition cursor-pointer flex flex-col group bg-[#1f2937] ${
         task.status === 'feito' ? 'border-2 border-green-500' : ''
       }`}
     >
-      <h3 className="text-xl font-semibold mb-2 leading-tight pr-14">{task.title}</h3>
+      <h3 className="text-xl font-semibold mb-2 leading-tight pr-14 line-clamp-2">{task.title}</h3>
 
-      <p className="flex-1 text-gray-300 text-sm leading-relaxed break-words whitespace-pre-wrap max-h-24 overflow-auto mb-3">
+      {task.list && (
+        <p className="text-sm text-indigo-400 font-medium mb-2 truncate max-w-full">
+          Lista: {task.list.title}
+        </p>
+      )}
+
+      <p className="flex-1 text-gray-300 text-sm leading-relaxed break-words whitespace-pre-wrap overflow-hidden mb-3 max-h-[4.5rem]">
         {task.description || 'Sem descrição'}
       </p>
 
-      <div className="flex justify-between items-center text-xs text-gray-400 mb-3">
-        <span>
-          Prioridade: <span className="font-medium capitalize">{task.priority}</span>
-        </span>
-        <span>
-          Status: <span className="font-medium capitalize">{task.status.replace('_', ' ')}</span>
-        </span>
+      {/* Espaçamento horizontal ajustado entre Prioridade e Status */}
+      <div
+        className="flex justify-start items-center text-xs text-gray-400 mb-2 gap-x-10 max-w-[180px]"
+      >
+        <div className="flex flex-col items-start">
+          <span className="font-semibold">Prioridade:</span>
+          <span className={`font-medium capitalize ${getPriorityColor(task.priority)}`}>
+            {task.priority}
+          </span>
+        </div>
+        <div className="flex flex-col items-start">
+          <span className="font-semibold">Status:</span>
+          <span className="font-medium capitalize">{formatStatus(task.status)}</span>
+        </div>
       </div>
 
-      {/* Área para botões extras (ex: mover status) */}
       <div
         className="overflow-hidden transition-all max-h-0 opacity-0 pointer-events-none group-hover:max-h-40 group-hover:opacity-100 group-hover:pointer-events-auto"
         style={{ transitionProperty: 'max-height, opacity' }}
@@ -32,7 +64,6 @@ export default function TaskCard({ task, onDelete, onToggleStatus, onEdit, extra
         {extraButtons}
       </div>
 
-      {/* Botões de ação */}
       <div className="absolute top-3 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition">
         <button
           onClick={(e) => {

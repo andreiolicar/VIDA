@@ -22,18 +22,21 @@ function EditListModal({ isOpen, onClose, list, onSave }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (list) {
+    if (isOpen && list) {
       setTitle(list.title || '');
       setType(list.type || 'mercado');
       setDescription(list.description || '');
       setFavorite(list.favorite || false);
+      setSaving(false);
     }
-  }, [list]);
+  }, [isOpen, list]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
+
     setSaving(true);
     try {
       await onSave({ id: list.id, title, type, description, favorite });
@@ -42,6 +45,11 @@ function EditListModal({ isOpen, onClose, list, onSave }) {
       alert('Erro ao salvar lista.');
       setSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    setSaving(false);
+    onClose();
   };
 
   return (
@@ -105,7 +113,7 @@ function EditListModal({ isOpen, onClose, list, onSave }) {
         <div className="flex justify-end gap-4">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleCancel}
             className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 transition"
             disabled={saving}
           >
@@ -159,21 +167,24 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (task) {
+    if (isOpen && task) {
       setTitle(task.title || '');
       setDescription(task.description || '');
       setPriority(task.priority || 'baixa');
       setStatus(task.status || 'a_fazer');
+      setSaving(false);
     }
-  }, [task]);
+  }, [isOpen, task]);
 
   if (!isOpen) return null;
 
   const PRIORITIES = ['baixa', 'média', 'alta'];
-  const STATUSES = ['a_fazer', 'em_andamento', 'feito'];
+  const STATUSES = ['a_fazer', 'fazendo', 'feito']; // status corrigido
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
+
     setSaving(true);
     try {
       await onSave({
@@ -188,6 +199,11 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
       alert('Erro ao salvar tarefa.');
       setSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    setSaving(false);
+    onClose();
   };
 
   return (
@@ -252,7 +268,7 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
         <div className="flex justify-end gap-4">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleCancel}
             className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 transition"
             disabled={saving}
           >
@@ -267,33 +283,6 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
           </button>
         </div>
       </form>
-    </div>
-  );
-}
-
-function ConfirmTaskDeleteModal({ isOpen, title, message, onConfirm, onCancel }) {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-[#1f2937] p-6 rounded-xl max-w-sm w-full text-white shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">{title}</h2>
-        <p className="mb-6">{message}</p>
-        <div className="flex justify-end gap-4">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 transition"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition"
-          >
-            Excluir
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
@@ -440,7 +429,7 @@ export default function DashboardTasks() {
       setModalOpen(false);
       setListToDelete(null);
       fetchLists();
-      fetchTasks(); // Atualiza tarefas após exclusão da lista
+      fetchTasks();
     } catch (err) {
       console.error('Erro ao excluir lista:', err);
       alert('Erro ao excluir lista.');
@@ -526,20 +515,12 @@ export default function DashboardTasks() {
     setTaskPage(newPage);
   };
 
-  const handleDeleteTask = (task) => {
-    openDeleteTaskModal(task);
-  };
-
   const handleToggleStatus = async (task) => {
     try {
       const newStatus = task.status === 'feito' ? 'a_fazer' : 'feito';
-      await axios.patch(
-        `/tasks/${task.id}`,
-        { status: newStatus }
-      );
+      await axios.patch(`/tasks/${task.id}`, { status: newStatus });
       fetchTasks();
     } catch (err) {
-      console.error('Erro ao atualizar status da tarefa:', err);
       alert('Erro ao atualizar status');
     }
   };
@@ -788,12 +769,15 @@ export default function DashboardTasks() {
 
       <EditTaskModal
         isOpen={editTaskModalOpen}
-        onClose={() => setEditTaskModalOpen(false)}
+        onClose={() => {
+          setEditTaskModalOpen(false);
+          setTaskToEdit(null);
+        }}
         task={taskToEdit}
         onSave={saveTaskEdits}
       />
 
-      <ConfirmTaskDeleteModal
+      <ConfirmModal
         isOpen={deleteTaskModalOpen}
         title="Confirmar exclusão"
         message={`Tem certeza que deseja excluir a tarefa "${taskToDelete?.title}"? Essa ação não pode ser desfeita.`}

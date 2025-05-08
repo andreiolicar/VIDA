@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from '@/services/axios';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
@@ -13,7 +13,25 @@ export default function TaskDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Buscar dados da tarefa pelo id
+  const getPriorityColor = (priority) => {
+    switch (priority?.toLowerCase()) {
+      case 'alta':
+        return 'text-red-500';
+      case 'media':
+      case 'média':
+        return 'text-yellow-400';
+      case 'baixa':
+        return 'text-green-500';
+      default:
+        return 'text-gray-400';
+    }
+  };
+
+  const formatStatus = (status) => {
+    if (!status) return '';
+    return status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  };
+
   const fetchTask = async () => {
     try {
       setLoading(true);
@@ -53,20 +71,29 @@ export default function TaskDetails() {
           </button>
         </div>
 
+        {task.list && (
+          <section className="mb-6">
+            <h2 className="text-xl font-semibold mb-2">Lista</h2>
+            <p className="text-gray-300">{task.list.title}</p>
+          </section>
+        )}
+
         <section className="mb-6">
           <h2 className="text-xl font-semibold mb-2">Descrição</h2>
           <p className="whitespace-pre-wrap text-gray-300">{task.description || 'Sem descrição'}</p>
         </section>
 
-        <section className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-semibold text-lg mb-1">Prioridade</h3>
-            <p className="text-gray-300 capitalize">{task.priority || 'Não definida'}</p>
+        <section className="mb-6 grid grid-cols-2 gap-6 max-w-md">
+          <div className="flex flex-col items-start">
+            <span className="font-semibold">Prioridade:</span>
+            <span className={`font-medium ${getPriorityColor(task.priority)}`}>
+              {task.priority ? task.priority.charAt(0).toUpperCase() + task.priority.slice(1) : 'Não Definida'}
+            </span>
           </div>
 
-          <div>
-            <h3 className="font-semibold text-lg mb-1">Status</h3>
-            <p className="text-gray-300 capitalize">{task.status?.replace('_', ' ') || 'Não definido'}</p>
+          <div className="flex flex-col items-start">
+            <span className="font-semibold">Status:</span>
+            <span className="font-medium">{formatStatus(task.status)}</span>
           </div>
 
           <div>
@@ -79,8 +106,6 @@ export default function TaskDetails() {
             <p className="text-gray-300">{new Date(task.updatedAt).toLocaleString()}</p>
           </div>
         </section>
-
-        {/* Aqui você pode adicionar botões para editar, excluir, etc */}
       </main>
 
       <DashboardRightPanel />

@@ -1,6 +1,6 @@
 const db = require("../models");
 const Op = db.Sequelize.Op;
-const { Task, TaskAttachment, TaskReminder } = db;
+const { Task, TaskAttachment, TaskReminder, TaskList } = db;
 
 const { suggestPriority } = require("../gemini");
 const { buildUserPriorityProfile } = require("../prioritization");
@@ -73,7 +73,7 @@ const updateTask = async (req, res) => {
   }
 };
 
-// Buscar tarefas por Usuário
+// Buscar tarefas por Usuário incluindo lista, anexos e lembretes
 const getTasksByUser = async (req, res) => {
   const { userId } = req.params;
   try {
@@ -82,18 +82,18 @@ const getTasksByUser = async (req, res) => {
       include: [
         { model: TaskAttachment, as: "attachments" },
         { model: TaskReminder, as: "reminders" },
+        { model: TaskList, as: "list" }, // inclusão da lista
       ],
       order: [["dueDate", "ASC"]],
     });
-    res.json(tasks); // Retorna array vazio se não houver tarefas
+    res.json(tasks);
   } catch (error) {
     console.error("Erro ao buscar tarefas por usuário:", error);
     res.status(500).json({ message: "Erro ao buscar tarefas por usuário." });
   }
 };
 
-
-// Buscar tarefas por lista
+// Buscar tarefas por lista incluindo anexos e lembretes
 const getTasksByList = async (req, res) => {
   const { listId } = req.params;
 
@@ -103,6 +103,7 @@ const getTasksByList = async (req, res) => {
       include: [
         { model: TaskAttachment, as: "attachments" },
         { model: TaskReminder, as: "reminders" },
+        { model: TaskList, as: "list" }, // inclusão da lista
       ],
       order: [["dueDate", "ASC"]],
     });
@@ -113,7 +114,7 @@ const getTasksByList = async (req, res) => {
   }
 };
 
-// Buscar tarefa por ID
+// Buscar tarefa por ID incluindo anexos, lembretes e lista
 const getTaskById = async (req, res) => {
   const { id } = req.params;
 
@@ -122,6 +123,7 @@ const getTaskById = async (req, res) => {
       include: [
         { model: TaskAttachment, as: "attachments" },
         { model: TaskReminder, as: "reminders" },
+        { model: TaskList, as: "list" }, // inclusão da lista
       ],
     });
     if (!task) return res.status(404).json({ message: "Tarefa não encontrada." });
@@ -132,7 +134,7 @@ const getTaskById = async (req, res) => {
   }
 };
 
-// Deletar tarefa
+// Deletar tarefa e seus anexos e lembretes
 const deleteTask = async (req, res) => {
   const { id } = req.params;
 
@@ -164,6 +166,7 @@ const getTasksKanbanByList = async (req, res) => {
       include: [
         { model: TaskAttachment, as: "attachments" },
         { model: TaskReminder, as: "reminders" },
+        { model: TaskList, as: "list" }, // inclusão da lista
       ],
       order: [["dueDate", "ASC"]],
     });
@@ -240,10 +243,10 @@ const getTasksCalendarByUser = async (req, res) => {
 module.exports = {
   createTask,
   updateTask,
+  getTasksByUser,
   getTasksByList,
   getTaskById,
   deleteTask,
   getTasksKanbanByList,
   getTasksCalendarByUser,
-  getTasksByUser,
 };

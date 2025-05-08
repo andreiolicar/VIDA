@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import axios from '@/services/axios';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import TaskCard from '@/components/TaskCard';
-import axios from '@/services/axios';
 
 const STATUS = [
   { value: 'a_fazer', label: 'A Fazer' },
-  { value: 'fazendo', label: 'Fazendo' },
+  { value: 'fazendo', label: 'Fazendo' }, // corrigido aqui
   { value: 'feito', label: 'Feito' },
 ];
-
-// --- Modais inline copiados do dashboard ---
 
 function EditTaskModal({ isOpen, onClose, task, onSave }) {
   const [title, setTitle] = useState('');
@@ -21,21 +19,24 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (task) {
+    if (isOpen && task) {
       setTitle(task.title || '');
       setDescription(task.description || '');
       setPriority(task.priority || 'baixa');
       setStatus(task.status || 'a_fazer');
+      setSaving(false);
     }
-  }, [task]);
+  }, [isOpen, task]);
 
   if (!isOpen) return null;
 
   const PRIORITIES = ['baixa', 'média', 'alta'];
-  const STATUSES = ['a_fazer', 'em_andamento', 'feito'];
+  const STATUSES = ['a_fazer', 'fazendo', 'feito']; // corrigido aqui
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
+
     setSaving(true);
     try {
       await onSave({
@@ -52,6 +53,11 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
     }
   };
 
+  const handleCancel = () => {
+    setSaving(false);
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <form
@@ -61,7 +67,7 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
         <h2 className="text-xl font-semibold mb-4">Editar Tarefa</h2>
 
         <div className="mb-4">
-          <label className="block mb-1 font-medium">Título *</label>
+          <label className="block mb-1 font-medium">Título </label>
           <input
             type="text"
             value={title}
@@ -114,7 +120,7 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
         <div className="flex justify-end gap-4">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleCancel}
             className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 transition"
             disabled={saving}
           >
@@ -160,21 +166,17 @@ function ConfirmTaskDeleteModal({ isOpen, title, message, onConfirm, onCancel })
   );
 }
 
-// --- Fim dos modais inline ---
-
 export default function KanbanTasks() {
   const userId = localStorage.getItem('user');
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Modais e tarefa selecionada
   const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState(null);
 
   const [deleteTaskModalOpen, setDeleteTaskModalOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
 
-  // Buscar tarefas
   const fetchTasks = async () => {
     setLoading(true);
     try {
@@ -191,7 +193,6 @@ export default function KanbanTasks() {
     fetchTasks();
   }, []);
 
-  // Editar tarefa
   const openEditTaskModal = (task) => {
     setTaskToEdit(task);
     setEditTaskModalOpen(true);
@@ -199,15 +200,12 @@ export default function KanbanTasks() {
 
   const saveTaskEdits = async (updatedTask) => {
     try {
-      await axios.patch(
-        `/tasks/${updatedTask.id}`,
-        {
-          title: updatedTask.title,
-          description: updatedTask.description,
-          priority: updatedTask.priority,
-          status: updatedTask.status,
-        }
-      );
+      await axios.patch(`/tasks/${updatedTask.id}`, {
+        title: updatedTask.title,
+        description: updatedTask.description,
+        priority: updatedTask.priority,
+        status: updatedTask.status,
+      });
       setEditTaskModalOpen(false);
       setTaskToEdit(null);
       fetchTasks();
@@ -217,7 +215,6 @@ export default function KanbanTasks() {
     }
   };
 
-  // Excluir tarefa
   const openDeleteTaskModal = (task) => {
     setTaskToDelete(task);
     setDeleteTaskModalOpen(true);
@@ -240,18 +237,16 @@ export default function KanbanTasks() {
     setTaskToDelete(null);
   };
 
-  // Alterar status (concluir/reabrir)
   const handleToggleStatus = async (task) => {
     try {
       const newStatus = task.status === 'feito' ? 'a_fazer' : 'feito';
       await axios.patch(`/tasks/${task.id}`, { status: newStatus });
       fetchTasks();
-    } catch (err) {
+    } catch {
       alert('Erro ao atualizar status');
     }
   };
 
-  // Mover tarefa entre colunas
   const handleMoveTask = async (task, newStatus) => {
     if (task.status === newStatus) return;
     try {
@@ -336,7 +331,6 @@ export default function KanbanTasks() {
 
       <DashboardRightPanel />
 
-      {/* Modais inline */}
       <EditTaskModal
         isOpen={editTaskModalOpen}
         onClose={() => {
