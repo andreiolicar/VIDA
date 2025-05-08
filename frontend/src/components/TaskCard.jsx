@@ -22,12 +22,31 @@ export default function TaskCard({ task, onDelete, onToggleStatus, onEdit, extra
     return status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
+  // Função para verificar se o prazo está expirado, ignorando tarefas concluídas
+  const isDueDateExpired = (task) => {
+    if (!task.dueDate) return false;
+    if (task.status === 'feito') return false;
+    return new Date(task.dueDate) < new Date();
+  };
+
+  // Define a classe da borda
+  const borderClass = isDueDateExpired(task)
+    ? 'border-2 border-red-500'
+    : task.status === 'feito'
+    ? 'border-2 border-green-500'
+    : '';
+
+  // Define a cor do texto do prazo
+  const dueDateTextColor = task.status === 'feito'
+    ? 'text-green-500'
+    : isDueDateExpired(task)
+    ? 'text-red-500'
+    : 'text-gray-300';
+
   return (
     <Link
       to={`/dashboard/task/${task.id}`}
-      className={`relative rounded-2xl p-4 min-h-[180px] min-w-[220px] max-w-[280px] shadow-md hover:shadow-lg transition cursor-pointer flex flex-col group bg-[#1f2937] ${
-        task.status === 'feito' ? 'border-2 border-green-500' : ''
-      }`}
+      className={`relative rounded-2xl p-4 min-h-[180px] min-w-[220px] max-w-[280px] shadow-md hover:shadow-lg transition cursor-pointer flex flex-col group bg-[#1f2937] ${borderClass}`}
     >
       <h3 className="text-xl font-semibold mb-2 leading-tight pr-14 line-clamp-2">{task.title}</h3>
 
@@ -41,7 +60,6 @@ export default function TaskCard({ task, onDelete, onToggleStatus, onEdit, extra
         {task.description || 'Sem descrição'}
       </p>
 
-      {/* Espaçamento horizontal ajustado entre Prioridade e Status */}
       <div
         className="flex justify-start items-center text-xs text-gray-400 mb-2 gap-x-10 max-w-[180px]"
       >
@@ -57,6 +75,23 @@ export default function TaskCard({ task, onDelete, onToggleStatus, onEdit, extra
         </div>
       </div>
 
+      {/* Prazo organizado com fonte menor */}
+      <div className="mb-2">
+        <div className="text-xs font-semibold text-gray-400 mb-1">Data do Prazo</div>
+        <div className={`flex justify-between items-center text-xs font-semibold ${dueDateTextColor}`}>
+          <span>
+            {task.dueDate ? new Date(task.dueDate).toLocaleString() : 'Não definido'}
+          </span>
+          <span>
+            {task.status === 'feito' ? (
+              <span className="text-green-500 font-semibold">Tarefa Concluída</span>
+            ) : isDueDateExpired(task) ? (
+              <span className="text-red-500 font-semibold">Prazo Expirado</span>
+            ) : null}
+          </span>
+        </div>
+      </div>
+
       <div
         className="overflow-hidden transition-all max-h-0 opacity-0 pointer-events-none group-hover:max-h-40 group-hover:opacity-100 group-hover:pointer-events-auto"
         style={{ transitionProperty: 'max-height, opacity' }}
@@ -64,7 +99,8 @@ export default function TaskCard({ task, onDelete, onToggleStatus, onEdit, extra
         {extraButtons}
       </div>
 
-      <div className="absolute top-3 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition">
+      {/* Espaçamento reduzido entre os ícones */}
+      <div className="absolute top-3 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition">
         <button
           onClick={(e) => {
             e.preventDefault();

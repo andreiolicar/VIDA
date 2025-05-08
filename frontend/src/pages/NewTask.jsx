@@ -19,7 +19,7 @@ export default function NewTask() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('Média');
-  const [listId, setListId] = useState(''); // guarda o id da lista selecionada
+  const [listId, setListId] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [subtasks, setSubtasks] = useState(['']);
   const [status, setStatus] = useState('a_fazer');
@@ -62,6 +62,15 @@ export default function NewTask() {
     }
   };
 
+  // Função para garantir formato datetime-local correto para backend
+  const formatDueDateForBackend = (dt) => {
+    if (!dt) return null;
+    if (dt.includes('T')) {
+      return new Date(dt).toISOString();
+    }
+    return new Date(dt + 'T00:00').toISOString();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (
@@ -84,9 +93,9 @@ export default function NewTask() {
         title,
         description,
         priority: priority.toLowerCase(),
-        dueDate,
+        dueDate: formatDueDateForBackend(dueDate),
         status,
-        listId: Number(listId), // envia o id numérico da lista
+        listId: Number(listId),
         subtasks: subtasks.filter((t) => t.trim() !== ''),
       });
 
@@ -133,7 +142,7 @@ export default function NewTask() {
                 <label className="block text-sm mb-1">Título </label>
                 <input
                   type="text"
-                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 transition-all"
+                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
@@ -143,7 +152,7 @@ export default function NewTask() {
               <div>
                 <label className="block text-sm mb-1">Descrição</label>
                 <textarea
-                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 transition-all"
+                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -154,7 +163,7 @@ export default function NewTask() {
                 <div className="flex-1">
                   <label className="block text-sm mb-1">Prioridade </label>
                   <select
-                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 transition-all"
+                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
                     required
@@ -177,7 +186,7 @@ export default function NewTask() {
                     <p className="text-gray-400">Nenhuma lista cadastrada.</p>
                   ) : (
                     <select
-                      className="w-full bg-[#111827] text-white rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 transition-all"
+                      className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
                       value={listId}
                       onChange={(e) => setListId(e.target.value)}
                       required
@@ -195,8 +204,8 @@ export default function NewTask() {
                 <div className="flex-1">
                   <label className="block text-sm mb-1">Prazo</label>
                   <input
-                    type="date"
-                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 transition-all"
+                    type="datetime-local"
+                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
                   />
@@ -205,7 +214,7 @@ export default function NewTask() {
                 <div className="flex-1">
                   <label className="block text-sm mb-1">Status </label>
                   <select
-                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 transition-all"
+                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
                     required
@@ -228,7 +237,7 @@ export default function NewTask() {
                         type="text"
                         value={subtask}
                         onChange={(e) => handleSubtaskChange(e.target.value, i)}
-                        className="flex-1 bg-[#111827] text-white rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 transition-all"
+                        className="flex-1 bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
                         placeholder={`Subtarefa ${i + 1}`}
                       />
                       {subtasks.length > 1 && (
@@ -258,7 +267,7 @@ export default function NewTask() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg transition-all disabled:opacity-50"
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg transition-all disabled:opacity-50"
                 >
                   {loading ? 'Criando...' : 'Criar Tarefa'}
                 </button>
