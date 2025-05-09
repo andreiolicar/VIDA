@@ -1,0 +1,20 @@
+
+### REGISTER - criar novo usuário
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Sofia Teste",
+  "email": "sofia.moura.bot@gmail.com",
+  "phone": "11999999999",
+  "password": "123456"
+}
+
+### LOGIN - gerar token
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "sofia.moura.bot@gmail.com",
+  "password": "123456"
+}

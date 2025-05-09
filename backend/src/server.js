@@ -12,9 +12,11 @@ async function start() {
 
         app.listen(PORT, () => {
             console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+            console.log(`📚 Documentação Swagger: http://localhost:${PORT}/api-docs`);
         });
     } catch (error) {
         console.error('❌ Erro ao conectar no banco:', error.message);
+        console.error(error.stack);
     }
 }
 

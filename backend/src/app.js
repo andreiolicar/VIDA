@@ -10,7 +10,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(swaggerConfig);
+
+
+swaggerConfig(app);  // Chama a função que adiciona a rota /api-docs
 
 // Rotas
 app.use('/api/auth', require('./routes/auth.routes'));
