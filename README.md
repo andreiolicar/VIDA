@@ -85,6 +85,11 @@ VITE_API_URL=http://localhost:5000/api
 
 ### 3. Instale as dependências
 
+#### Raiz
+```bash
+npm install
+```
+
 #### Backend
 ```bash
 cd backend
@@ -98,22 +103,21 @@ cd frontend
 npm install
 ```
 
-### 4. Rode as Migrations e Seeders (opcional)
+### 4. Rode as Migrations e Seeders
 
 ```bash
 cd ..
 cd backend
-npx sequelize db:migrate
-npx sequelize db:seed:all
+npx sequeliz-cli db:migrate
+npx sequelize-cli db:seed:all
 ```
 
-### 5. Rode o Swagger UI (opcional)
+### 5. Rode o Swagger UI (Documentação)
 
 ```bash
 cd ..
 cd backend
 npm install swagger-ui-express swagger-jsdoc
-
 ```
 
 ### 6. Inicie os servidores
