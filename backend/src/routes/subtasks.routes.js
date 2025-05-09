@@ -1,10 +1,43 @@
-// subtasks.routes.js
 const express = require('express');
 const router = express.Router();
-const { Subtask } = require('../models'); // ajuste conforme sua estrutura
+const { Subtask } = require('../models');
 const { Op } = require('sequelize');
 
-// Criar nova subtarefa
+/**
+ * @swagger
+ * tags:
+ *   name: Subtasks
+ *   description: Management of subtasks related to tasks
+ */
+
+/**
+ * @swagger
+ * /subtasks:
+ *   post:
+ *     summary: Create a new subtask
+ *     tags: [Subtasks]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - taskId
+ *               - title
+ *             properties:
+ *               taskId:
+ *                 type: integer
+ *               title:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Subtask created successfully
+ *       400:
+ *         description: Missing taskId or title
+ *       500:
+ *         description: Server error
+ */
 router.post('/', async (req, res) => {
   try {
     const { taskId, title } = req.body;
@@ -19,7 +52,25 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Listar subtarefas por taskId
+/**
+ * @swagger
+ * /subtasks/task/{taskId}:
+ *   get:
+ *     summary: Get all subtasks by task ID
+ *     tags: [Subtasks]
+ *     parameters:
+ *       - in: path
+ *         name: taskId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the task
+ *     responses:
+ *       200:
+ *         description: List of subtasks
+ *       500:
+ *         description: Server error
+ */
 router.get('/task/:taskId', async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -31,7 +82,38 @@ router.get('/task/:taskId', async (req, res) => {
   }
 });
 
-// Atualizar subtarefa (ex: título, completed)
+/**
+ * @swagger
+ * /subtasks/{id}:
+ *   patch:
+ *     summary: Update a subtask by ID
+ *     tags: [Subtasks]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the subtask
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               completed:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Subtask updated
+ *       404:
+ *         description: Subtask not found
+ *       500:
+ *         description: Server error
+ */
 router.patch('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -50,7 +132,27 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// Deletar subtarefa
+/**
+ * @swagger
+ * /subtasks/{id}:
+ *   delete:
+ *     summary: Delete a subtask by ID
+ *     tags: [Subtasks]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the subtask
+ *     responses:
+ *       204:
+ *         description: Subtask deleted successfully
+ *       404:
+ *         description: Subtask not found
+ *       500:
+ *         description: Server error
+ */
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
