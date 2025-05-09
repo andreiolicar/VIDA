@@ -6,6 +6,8 @@
 
 > V.I.D.A. é um sistema inteligente de auto-organização assistida, com IA para otimizar decisões rotineiras em áreas como finanças, saúde, estudos e tarefas diárias.
 
+> Pitch VIDA: https://drive.google.com/drive/folders/16RLG5eRIuv2RW-AOCX-Nwk5-Xn0Ac5cs?usp=drive_link
+
 ## Visão Geral do Projeto
 
 Este repositório contém o código-fonte e a documentação técnica do projeto **V.I.D.A. (Vetor Inteligente de Decisão Assistida)**, desenvolvido em parceria com a empresa Venturus. O V.I.D.A. é um sistema de auto-organização assistida que ajuda usuários a gerenciar diferentes áreas da vida por meio de inteligência artificial, automatizando decisões rotineiras e fornecendo sugestões personalizadas.
