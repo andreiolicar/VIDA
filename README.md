@@ -111,7 +111,7 @@ npm install
 ```bash
 cd ..
 cd backend
-npx sequeliz-cli db:migrate
+npx sequelize-cli db:migrate
 npx sequelize-cli db:seed:all
 ```
 
