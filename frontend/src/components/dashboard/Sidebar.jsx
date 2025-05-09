@@ -18,7 +18,6 @@ export default function Sidebar() {
     const menuItems = [
         { label: 'Início', icon: Home, path: '/dashboard' },
         { label: 'Tarefas', icon: CheckCircle, path: '/dashboard/tasks' },
-        { label: 'Finanças', icon: DollarSign, path: '/dashboard/finance' },
         { label: 'Estudos', icon: Book, path: '/dashboard/study' },
         { label: 'IA', icon: Bot, path: '/dashboard/chatbot' },
     ];
