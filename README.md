@@ -27,6 +27,7 @@ Este repositório contém o código-fonte e a documentação técnica do projeto
 📦 vida/
  ┣ 📂 backend/         → API REST (Node.js, Express, MySQL, Documentação via Swagger)
  ┣ 📂 frontend/        → Interface (React, Tailwind CSS)
+ ┣ 📂 docs/        → Documentação (Requisições para o Insomnia/Postman)
  ┗ 📄 README.md        → Documentação principal do projeto
 
 ```
@@ -138,7 +139,7 @@ npm run dev
 
 > Acesse a aplicação em: `http://localhost:5173`
 
-#### Documentação
+#### Documentação Swagger
 ```bash
 cd ..
 cd backend
