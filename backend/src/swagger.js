@@ -1,39 +1,24 @@
-const express = require('express');
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
-
-const router = express.Router();
-
+const path = require("path");
 
 const swaggerOptions = {
-    definition: {
-        openapi: '3.0.0',
-        info: {
-          title: 'API Simples com Swagger',
-          version: '1.0.0',
-          description: 'Exemplo básico de documentação Swagger com Express',
-        },
-        components: {
-          securitySchemes: {
-            bearerAuth: {
-              type: 'http',
-              scheme: 'bearer',
-              bearerFormat: 'JWT', // opcional, mas deixa claro que é JWT
-            },
-          },
-        },
-        security: [
-          {
-            bearerAuth: [],
-          },
-        ],
-      },
-      apis: [__dirname + '/routes/*.js'],
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Documentação Swagger da API do V.I.D.A.",
+      version: "1.0.0",
+      description:
+        "Esta é a documentação Swagger da API do projeto V.I.D.A. (Vetor Inteligente de Decisão Assistida). Aqui você encontrará todas as rotas disponíveis, seus parâmetros, respostas e exemplos de uso.",
+    },
+  },
+  apis: [path.join(__dirname, "/routes/*.js")],
+};
 
-  };
-  
 const swaggerSpec = swaggerJsDoc(swaggerOptions);
-  
-router.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-module.exports = router
+function setupSwagger(app) {
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
+
+module.exports = setupSwagger;
