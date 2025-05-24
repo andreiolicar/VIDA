@@ -136,25 +136,9 @@ cd backend
 npm run dev
 ```
 
-#### Frontend
-
-```bash
-cd ..
-cd frontend
-npm run dev
-```
-
 > Acesse a aplicação em: `http://localhost:5173`
-
-#### Documentação Swagger
-
-```bash
-cd ..
-cd backend
-node src/server.js
-```
-
-> Acesse a aplicação em: `http://localhost:5000/api-docs`
+>
+> Acesse a documentação em: `http://localhost:5000/api-docs`
 
 ---
 
@@ -263,5 +247,5 @@ Este README fornece uma visão geral do projeto V.I.D.A. e sua estrutura. Para d
 ---
 
 <div align="center">
-<img src="https://github.com/andreiolicar/VIDA/blob/master/frontend/src/assets/mini-azul-vida.png" alt="VIDA logo icone" width="75px">
+<img src="frontend/src/assets/mini-azul-vida.png" alt="VIDA logo icone" width="75px">
 </div>
