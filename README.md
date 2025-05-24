@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://github.com/andreiolicar/VIDA/blob/master/frontend/src/assets/azul-vida.png" alt="VIDA logo" width="250px">
+<img src="frontend/src/assets/azul-vida.png" alt="VIDA logo" width="250px">
 </div>
 
 # V.I.D.A. - Vetor Inteligente de Decisão Assistida
@@ -16,14 +16,14 @@ Este repositório contém o código-fonte e a documentação técnica do projeto
 
 ## Funcionalidades Principais
 
--  **Gestão Financeira:** Cadastro e análise de receitas/despesas, com sugestões automáticas de economia.
--  **Planejamento de Estudos:** Criação de rotinas e metas personalizadas para os estudos.
--  **Organização de Tarefas:** Listas de tarefas com sugestões automatizadas baseadas no comportamento.
--  **IA de Decisão Assistida:** Algoritmo inteligente para apoiar microdecisões rotineiras.
+- **Gestão Financeira:** Cadastro e análise de receitas/despesas, com sugestões automáticas de economia.
+- **Planejamento de Estudos:** Criação de rotinas e metas personalizadas para os estudos.
+- **Organização de Tarefas:** Listas de tarefas com sugestões automatizadas baseadas no comportamento.
+- **IA de Decisão Assistida:** Algoritmo inteligente para apoiar microdecisões rotineiras.
 
 ---
 
-##  Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 📦 vida/
@@ -78,6 +78,7 @@ SMTP_PASS=cjgr ozmc qrhn lcaq
 GEMINI_API_KEY=AIzaSyBFLvf5vUfDFj7IN8531Xq3Ikf2tbY_40I
 
 ```
+
 - Configure o `.env` no frontend com suas credenciais:
 
 ```env
@@ -85,21 +86,23 @@ VITE_API_URL=http://localhost:5000/api
 
 ```
 
-
 ### 3. Instale as dependências
 
 #### Raiz
+
 ```bash
 npm install
 ```
 
 #### Backend
+
 ```bash
 cd backend
 npm install
 ```
 
 #### Frontend
+
 ```bash
 cd ..
 cd frontend
@@ -126,6 +129,7 @@ npm install swagger-ui-express swagger-jsdoc
 ### 6. Inicie os servidores
 
 #### Backend
+
 ```bash
 cd ..
 cd backend
@@ -133,6 +137,7 @@ npm run dev
 ```
 
 #### Frontend
+
 ```bash
 cd ..
 cd frontend
@@ -142,25 +147,22 @@ npm run dev
 > Acesse a aplicação em: `http://localhost:5173`
 
 #### Documentação Swagger
+
 ```bash
 cd ..
 cd backend
 node src/server.js
 ```
 
-
 > Acesse a aplicação em: `http://localhost:5000/api-docs`
 
-
 ---
-
 
 ## 🚀 Stack de Tecnologias
 
 ### 🛠️ Backend
 
 <br>
-
 
 ![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white) – Escolhido pela sua simplicidade e flexibilidade na criação de APIs RESTful com Node.js.
 
@@ -210,7 +212,7 @@ node src/server.js
 
 ![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white) – Integrado ao projeto para reforçar boas práticas de código e evitar bugs comuns.
 
-![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier&logoColor=white)  – Adotado para manter a base de código limpa e padronizada automaticamente.
+![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier&logoColor=white) – Adotado para manter a base de código limpa e padronizada automaticamente.
 
 ---
 
