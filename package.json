@@ -1,8 +1,16 @@
 {
-  "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
-    "react-markdown": "^10.1.0"
+  "name": "vida",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "scripts": {
+    "install-all": "npm install && npm run install-backend && npm run install-frontend",
+    "install-backend": "cd backend && npm install",
+    "install-frontend": "cd frontend && npm install",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && nodemon src/server.js",
+    "client": "cd frontend && npm run dev"
   }
 }
