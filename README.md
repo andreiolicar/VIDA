@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://github.com/andreiolicar/VIDA/blob/master/frontend/src/assets/azul-vida.png" alt="VIDA logo" width="250px">
+<img src="frontend/src/assets/azul-vida.png" alt="VIDA logo" width="250px">
 </div>
 
 # V.I.D.A. - Vetor Inteligente de Decisão Assistida
@@ -90,20 +90,7 @@ VITE_API_URL=http://localhost:5000/api
 
 #### Raiz
 ```bash
-npm install
-```
-
-#### Backend
-```bash
-cd backend
-npm install
-```
-
-#### Frontend
-```bash
-cd ..
-cd frontend
-npm install
+npm install-all
 ```
 
 ### 4. Rode as Migrations e Seeders
@@ -125,17 +112,9 @@ npm install swagger-ui-express swagger-jsdoc
 
 ### 6. Inicie os servidores
 
-#### Backend
+#### Raiz
 ```bash
 cd ..
-cd backend
-npm run dev
-```
-
-#### Frontend
-```bash
-cd ..
-cd frontend
 npm run dev
 ```
 
@@ -261,5 +240,5 @@ Este README fornece uma visão geral do projeto V.I.D.A. e sua estrutura. Para d
 ---
 
 <div align="center">
-<img src="https://github.com/andreiolicar/VIDA/blob/master/frontend/src/assets/mini-azul-vida.png" alt="VIDA logo icone" width="75px">
+<img src="frontend/src/assets/mini-azul-vida.png" alt="VIDA logo icone" width="75px">
 </div>
