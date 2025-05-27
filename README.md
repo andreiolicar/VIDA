@@ -96,10 +96,7 @@ npm install-all
 ### 4. Rode as Migrations e Seeders
 
 ```bash
-cd ..
-cd backend
-npx sequelize-cli db:migrate
-npx sequelize-cli db:seed:all
+npm setup
 ```
 
 ### 5. Rode o Swagger UI (Documentação)
