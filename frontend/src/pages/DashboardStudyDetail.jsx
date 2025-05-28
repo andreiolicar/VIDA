@@ -4,6 +4,7 @@ import axios from '@/services/axios';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import { ArrowLeft } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 const token = localStorage.getItem('token');
 
 export default function DashboardStudyDetail() {
@@ -111,11 +112,10 @@ export default function DashboardStudyDetail() {
               {route.topics.map((topic) => (
                 <li
                   key={topic.id}
-                  className={`p-4 rounded-lg border flex justify-between items-center ${
-                    topic.completed
+                  className={`p-4 rounded-lg border flex justify-between items-center ${topic.completed
                       ? 'border-green-500 bg-green-900'
                       : 'border-gray-600 bg-[#111827]'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <input
@@ -128,9 +128,8 @@ export default function DashboardStudyDetail() {
                     <span className="text-lg">{topic.title}</span>
                   </div>
                   <span
-                    className={`text-sm font-semibold ${
-                      topic.completed ? 'text-green-400' : 'text-gray-400'
-                    }`}
+                    className={`text-sm font-semibold ${topic.completed ? 'text-green-400' : 'text-gray-400'
+                      }`}
                   >
                     {topic.completed ? 'Concluído' : 'Pendente'}
                   </span>
@@ -141,9 +140,14 @@ export default function DashboardStudyDetail() {
             <p className="text-gray-400">Nenhum tópico cadastrado.</p>
           )}
 
-          {/* Roadmap exibido, porém vazio */}
           <h2 className="text-2xl font-semibold mt-8 mb-4">Roadmap Completo</h2>
-          <pre className="bg-[#111827] p-4 rounded-lg whitespace-pre-wrap text-sm">{''}</pre>
+          <div className="bg-[#111827] p-4 rounded-lg whitespace-pre-wrap text-sm min-h-[80px]">
+            {route.roadmap ? (
+              <ReactMarkdown>{route.roadmap}</ReactMarkdown>
+            ) : (
+              <span className="text-gray-400">Nenhum roadmap gerado ainda.</span>
+            )}
+          </div>
         </div>
       </main>
 

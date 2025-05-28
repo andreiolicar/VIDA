@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
       title: DataTypes.STRING,
       description: DataTypes.TEXT,
       area: DataTypes.STRING, // uma das 10 áreas mais estudadas por pessoas que estudam sozinhas
-      roadmap: DataTypes.JSON, // roadmap gerado por ia
+      roadmap: DataTypes.TEXT, // roadmap gerado por ia
       userId: DataTypes.INTEGER,
       favorite: {
         type: DataTypes.BOOLEAN,

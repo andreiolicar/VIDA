@@ -19,7 +19,7 @@ module.exports = {
         type: Sequelize.STRING,
       },
       roadmap: {
-        type: Sequelize.JSON,
+        type: Sequelize.TEXT,
       },
       userId: {
         type: Sequelize.INTEGER,

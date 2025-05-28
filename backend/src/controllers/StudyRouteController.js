@@ -1,5 +1,34 @@
 const nodemailer = require("nodemailer");
+const axios = require('axios');
 const { StudyRoute, StudyTopic, User } = require("../models");
+
+async function generateRoadmapWithIA({ title, area, description, topics }) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  const prompt = `
+Você é um assistente educacional. Crie um roadmap de estudos detalhado, organizado em etapas, para a seguinte trilha:
+
+Título: ${title}
+Área: ${area}
+Descrição: ${description}
+Tópicos principais: ${topics.join(', ')}
+
+O roadmap deve ser prático, progressivo e motivador, com dicas, sugestões de recursos e boas práticas. Responda em português do Brasil, no formato markdown.
+`;
+
+  try {
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+      {
+        contents: [{ parts: [{ text: prompt }] }],
+      }
+    );
+
+    return response.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  } catch (error) {
+    console.error('Erro ao gerar roadmap com IA:', error?.response?.data || error.message);
+    return '';
+  }
+}
 
 module.exports = {
   createRoute: async (req, res) => {
@@ -20,14 +49,8 @@ module.exports = {
       });
     }
 
-    const roadmap = topics
-      .map(
-        (topic, index) =>
-          `Etapa ${
-            index + 1
-          }: ${topic}\n- Estude o tópico "${topic}" com atenção.\n- Marcável como concluída.\n`
-      )
-      .join("\n");
+    const roadmap = await generateRoadmapWithIA({ title, area, description, topics });
+    console.log('Roadmap gerado:', roadmap);
 
     try {
       const newRoute = await StudyRoute.create({
