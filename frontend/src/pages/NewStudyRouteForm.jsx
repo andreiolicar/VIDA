@@ -43,49 +43,60 @@ export default function NewStudyRouteForm() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (
-      !user ||
-      !title ||
-      !area ||
-      !description ||
-      topics.length < 3 ||
-      topics.some((t) => t.trim() === '')
-    ) {
-      setError('Preencha todos os campos e tenha pelo menos 3 tópicos.');
-      return;
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (
+    !user ||
+    !title ||
+    !area ||
+    !description ||
+    topics.length < 3 ||
+    topics.some((t) => t.trim() === '')
+  ) {
+    setError('Preencha todos os campos e tenha pelo menos 3 tópicos.');
+    return;
+  }
 
-    setError('');
-    setLoading(true);
+  setError('');
+  setLoading(true);
 
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/study-routes/${user}`,
-        {
-          title,
-          area,
-          description,
-          topics: topics.filter((t) => t.trim() !== ''),
-        }
-      );  
+  try {
+    console.log('User ID:', user);
 
-      const data = await response.data;
-      console.log('API response:', data);
-
-      if (!data) {
-        throw new Error(data?.message || 'Erro ao criar rota de estudo.');
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_URL}/study-routes/${user}`,
+      {
+        title,
+        area,
+        description,
+        topics: topics.filter((t) => t.trim() !== ''),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
+    );
 
-      navigate('/dashboard/study');
-    } catch (err) {
-      console.error('Erro ao enviar:', err);
-      setError(err.message || 'Erro inesperado.');
-    } finally {
-      setLoading(false);
+    const data = response.data;
+    console.log('API response:', data);
+
+    if (!data) {
+      throw new Error('Erro ao criar rota de estudo.');
     }
-  };
+
+    navigate('/dashboard/study');
+  } catch (err) {
+    console.error('Erro ao enviar:', err);
+    const message =
+      err.response?.data?.message ||
+      err.message ||
+      'Erro inesperado.';
+    setError(message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">

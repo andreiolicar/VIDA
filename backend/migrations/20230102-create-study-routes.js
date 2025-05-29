@@ -21,6 +21,11 @@ module.exports = {
       roadmap: {
         type: Sequelize.TEXT,
       },
+      favorite: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       userId: {
         type: Sequelize.INTEGER,
         references: {

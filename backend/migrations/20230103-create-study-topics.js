@@ -20,6 +20,11 @@ module.exports = {
         },
         onDelete: 'CASCADE',
       },
+      completed: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE,
     });
