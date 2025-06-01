@@ -21,6 +21,7 @@ import EditTaskList from '@/pages/EditTaskList';
 import TaskDetails from '@/pages/TaskDetails';
 import EditTask from '@/pages/EditTask';
 import Chatbot from './pages/Chatbot';
+import SettingsPage from '@/pages/Settings';
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
           <Route path="/dashboard/task/:id" element={<TaskDetails />} />
           <Route path="/dashboard/task/edit/:id" element={<EditTask />} />
           <Route path="/dashboard/chatbot" element={<Chatbot />} />
+          <Route path="/dashboard/settings" element={<SettingsPage />} />
 
           {/* Novas rotas para Trilhas de Estudos */}
           <Route path="/dashboard/study" element={<DashboardStudy />} />

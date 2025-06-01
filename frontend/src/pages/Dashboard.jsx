@@ -2,15 +2,6 @@ import Sidebar from "@/components/dashboard/Sidebar";
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import { useState, useEffect } from "react";
 import axios from "@/services/axios";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ResponsiveContainer,
-} from 'recharts';
 
 import {
   BookOpen,
@@ -51,26 +42,6 @@ export default function Dashboard() {
     fetchUser();
   }, []);
 
-  const dataProgressoMensal = [
-    { name: 'Jan', Estudos: 55 },
-    { name: 'Fev', Estudos: 62 },
-    { name: 'Mar', Estudos: 68 },
-    { name: 'Abr', Estudos: 75 },
-    { name: 'Mai', Estudos: 70 },
-    { name: 'Jun', Estudos: 82 },
-    { name: 'Jul', Estudos: 90 },
-    { name: 'Ago', Estudos: 85 },
-    { name: 'Set', Estudos: 88 },
-    { name: 'Out', Estudos: 95 },
-    { name: 'Nov', Estudos: 98 },
-    { name: 'Dez', Estudos: 100 },
-  ];
-
-  // Ícone tem largura 20px (w-5 h-5), gap 8px (gap-2 = 0.5rem = 8px)
-  const ICON_WIDTH = 20;
-  const ICON_GAP = 8;
-  const GRAPH_PADDING_LEFT = ICON_WIDTH + ICON_GAP; // 28px
-
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
       <Sidebar />
@@ -86,48 +57,20 @@ export default function Dashboard() {
         </header>
 
         <section className="flex flex-col md:flex-row gap-6 md:gap-8 min-h-[330px]">
-          {/* Card do gráfico com alinhamento do gráfico ao ícone */}
-          <div className="flex-1 bg-[#1f2937] rounded-xl py-6 shadow-lg flex flex-col min-w-0">
-            <h2 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-2 px-6">
-              <BookOpen className="w-5 h-5 text-blue-400" />
-              Progresso Mensal de Estudos
-            </h2>
-            <div
-              className="flex-1 w-full"
-              style={{ paddingLeft: GRAPH_PADDING_LEFT }}
+          <div className="flex-1 bg-[#1f2937] rounded-xl p-6 shadow-lg flex flex-col items-center justify-center min-w-0">
+            <BookOpen className="w-10 h-10 text-blue-400 mb-4" />
+            <h2 className="text-lg md:text-2xl font-semibold mb-2 text-center">Estísticas VIDA</h2>
+            <p className="text-gray-300 max-w-xs text-center text-sm md:text-base">
+              Em breve, um gráfico personalizado para você se analisar e crescer e se analisar e crescer!!
+            </p>
+            <button
+              onClick={() => alert('Essa feature está em desenvolvimento!')}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg transition text-sm md:text-base"
             >
-              <ResponsiveContainer width="100%" height={220}>
-                <LineChart
-                  data={dataProgressoMensal}
-                  margin={{ top: 20, right: 20, bottom: 5, left: 0 }}
-                >
-                  <CartesianGrid stroke="#334155" strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="name"
-                    stroke="#bbb"
-                    ticks={['Fev', 'Abr', 'Jun', 'Ago', 'Out', 'Dez']}
-                    dx={-10} // desloca labels X um pouco para esquerda para melhorar alinhamento
-                  />
-                  <YAxis stroke="#bbb" domain={[0, 110]} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#1f2937', border: 'none' }}
-                    itemStyle={{ color: '#60a5fa' }}
-                    labelStyle={{ color: '#94a3b8' }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="Estudos"
-                    stroke="#3b82f6"
-                    strokeWidth={3}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+              Saiba mais
+            </button>
           </div>
 
-          {/* Card Comunidade VIDA (igual ao seu código) */}
           <div className="flex-1 bg-[#1f2937] rounded-xl p-6 shadow-lg flex flex-col items-center justify-center min-w-0">
             <Users className="w-10 h-10 text-purple-400 mb-4" />
             <h2 className="text-lg md:text-2xl font-semibold mb-2 text-center">Comunidade VIDA</h2>
