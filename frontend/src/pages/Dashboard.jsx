@@ -3,12 +3,22 @@ import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import { useState, useEffect } from "react";
 import axios from "@/services/axios";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
 } from 'recharts';
-import { BookOpen, DollarSign, Heart, CheckCircle, Users } from "lucide-react";
 
-const COLORS = ['#3B82F6', '#22C55E', '#F59E42', '#FBBF24'];
+import {
+  BookOpen,
+  DollarSign,
+  Heart,
+  CheckCircle,
+  Users,
+} from "lucide-react";
 
 export default function Dashboard() {
   const [userName, setUserName] = useState("Usuário");
@@ -18,36 +28,48 @@ export default function Dashboard() {
     saudeAtividades: 4,
     tarefasPendentes: 7,
   });
-  const [insight, setInsight] = useState("“O amanhã pertence àqueles que se preparam hoje.” – Malcolm X");
 
   useEffect(() => {
     async function fetchUser() {
       try {
         const userId = localStorage.getItem('user');
-        const res = await axios.get(`/users/${userId}`);
-        if (res.data && res.data.name) {
-          setUserName(res.data.name);
+        if (!userId) {
+          setUserName("Usuário");
+          return;
+        }
+        const res = await axios.get(`http://localhost:5000/api/user/get/${userId}`);
+        if (res.data && res.data.user && res.data.user.name) {
+          setUserName(res.data.user.name);
+        } else {
+          setUserName("Usuário");
         }
       } catch (err) {
         console.error("Erro ao buscar usuário:", err);
+        setUserName("Usuário");
       }
     }
     fetchUser();
   }, []);
 
   const dataProgressoMensal = [
-    { name: 'Estudos', Progresso: stats.estudios },
-    { name: 'Saúde', Progresso: stats.saudeAtividades * 20 },
-    { name: 'Finanças', Progresso: 100 - stats.finançasPendentes * 20 },
-    { name: 'Tarefas', Progresso: 100 - stats.tarefasPendentes * 15 },
+    { name: 'Jan', Estudos: 55 },
+    { name: 'Fev', Estudos: 62 },
+    { name: 'Mar', Estudos: 68 },
+    { name: 'Abr', Estudos: 75 },
+    { name: 'Mai', Estudos: 70 },
+    { name: 'Jun', Estudos: 82 },
+    { name: 'Jul', Estudos: 90 },
+    { name: 'Ago', Estudos: 85 },
+    { name: 'Set', Estudos: 88 },
+    { name: 'Out', Estudos: 95 },
+    { name: 'Nov', Estudos: 98 },
+    { name: 'Dez', Estudos: 100 },
   ];
 
-  const dataDistribuicao = [
-    { name: 'Estudos', value: stats.estudios },
-    { name: 'Saúde', value: stats.saudeAtividades * 10 },
-    { name: 'Finanças', value: stats.finançasPendentes * 5 },
-    { name: 'Tarefas', value: stats.tarefasPendentes * 6 },
-  ];
+  // Ícone tem largura 20px (w-5 h-5), gap 8px (gap-2 = 0.5rem = 8px)
+  const ICON_WIDTH = 20;
+  const ICON_GAP = 8;
+  const GRAPH_PADDING_LEFT = ICON_WIDTH + ICON_GAP; // 28px
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
@@ -63,66 +85,61 @@ export default function Dashboard() {
           </p>
         </header>
 
-        <section className="
-          bg-[#1f2937] rounded-xl p-4 md:p-6 shadow-lg
-          flex flex-col md:flex-row gap-4 md:gap-8
-          min-h-[330px] max-h-fit
-        ">
-          <div className="flex-1 min-w-0 flex flex-col">
-            <h2 className="text-base md:text-lg font-semibold mb-2 flex items-center gap-2">
+        <section className="flex flex-col md:flex-row gap-6 md:gap-8 min-h-[330px]">
+          {/* Card do gráfico com alinhamento do gráfico ao ícone */}
+          <div className="flex-1 bg-[#1f2937] rounded-xl py-6 shadow-lg flex flex-col min-w-0">
+            <h2 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-2 px-6">
               <BookOpen className="w-5 h-5 text-blue-400" />
-              Progresso Mensal
+              Progresso Mensal de Estudos
             </h2>
-            <div className="flex-1 w-full">
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={dataProgressoMensal} margin={{ top: 10, right: 20, bottom: 5, left: 0 }}>
-                  <XAxis dataKey="name" stroke="#bbb" />
-                  <YAxis stroke="#bbb" />
-                  <Tooltip />
-                  <Bar dataKey="Progresso" fill="#3b82f6" />
-                </BarChart>
+            <div
+              className="flex-1 w-full"
+              style={{ paddingLeft: GRAPH_PADDING_LEFT }}
+            >
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart
+                  data={dataProgressoMensal}
+                  margin={{ top: 20, right: 20, bottom: 5, left: 0 }}
+                >
+                  <CartesianGrid stroke="#334155" strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    stroke="#bbb"
+                    ticks={['Fev', 'Abr', 'Jun', 'Ago', 'Out', 'Dez']}
+                    dx={-10} // desloca labels X um pouco para esquerda para melhorar alinhamento
+                  />
+                  <YAxis stroke="#bbb" domain={[0, 110]} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#1f2937', border: 'none' }}
+                    itemStyle={{ color: '#60a5fa' }}
+                    labelStyle={{ color: '#94a3b8' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="Estudos"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
-          <div className="flex-1 min-w-0 flex flex-col items-center justify-start">
-            <h2 className="text-base md:text-lg font-semibold mb-2 flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-green-400" />
-              Distribuição Geral
-            </h2>
-            <div className="flex-1 w-full flex items-center justify-center">
-              <ResponsiveContainer width={180} height={180}>
-                <PieChart>
-                  <Pie
-                    data={dataDistribuicao}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={55}
-                    fill="#82ca9d"
-                    label
-                  >
-                    {dataDistribuicao.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex flex-wrap justify-center gap-4 mt-2 w-full">
-              {dataDistribuicao.map((entry, index) => (
-                <div
-                  key={`legend-item-${index}`}
-                  className="flex items-center gap-2 text-xs md:text-sm text-gray-300 whitespace-nowrap"
-                >
-                  <span
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                  ></span>
-                  {entry.name}
-                </div>
-              ))}
-            </div>
+
+          {/* Card Comunidade VIDA (igual ao seu código) */}
+          <div className="flex-1 bg-[#1f2937] rounded-xl p-6 shadow-lg flex flex-col items-center justify-center min-w-0">
+            <Users className="w-10 h-10 text-purple-400 mb-4" />
+            <h2 className="text-lg md:text-2xl font-semibold mb-2 text-center">Comunidade VIDA</h2>
+            <p className="text-gray-300 max-w-xs text-center text-sm md:text-base">
+              Em breve, um espaço para você se conectar com outros usuários, trocar experiências, ajudar e crescer junto!
+            </p>
+            <button
+              onClick={() => alert('Essa feature está em desenvolvimento!')}
+              className="mt-4 bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg transition text-sm md:text-base"
+            >
+              Saiba mais
+            </button>
           </div>
         </section>
 
@@ -160,35 +177,18 @@ export default function Dashboard() {
             bgColor="bg-yellow-900"
           />
         </section>
-
-        <section className="bg-[#1f2937] rounded-xl p-4 md:p-6 shadow-lg max-w-3xl mx-auto flex flex-col items-center gap-3 text-center">
-          <Users className="w-8 h-8 md:w-10 md:h-10 text-purple-400" />
-          <h2 className="text-lg md:text-2xl font-semibold">Comunidade VIDA</h2>
-          <p className="text-gray-300 max-w-md text-sm md:text-base">
-            Em breve, um espaço para você se conectar com outros usuários, trocar experiências, ajudar e crescer junto!
-          </p>
-          <button
-            onClick={() => alert('Essa feature está em desenvolvimento!')}
-            className="mt-1 md:mt-2 bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition text-sm md:text-base"
-          >
-            Saiba mais
-          </button>
-        </section>
       </main>
 
-      <DashboardRightPanel>
-        <div className="p-4 md:p-6 bg-[#1f2937] rounded-xl shadow-lg max-w-xs space-y-4 md:space-y-6">
-          <h3 className="text-base md:text-lg font-semibold mb-2">Insight do dia</h3>
-          <p className="text-gray-300 italic text-sm md:text-base">{insight}</p>
-        </div>
-      </DashboardRightPanel>
+      <DashboardRightPanel />
     </div>
   );
 }
 
 function CardDashboard({ icon, title, subtitle, btnText, btnLink, bgColor }) {
   return (
-    <div className={`${bgColor} rounded-xl p-4 md:p-6 shadow-lg flex flex-col`}>
+    <div
+      className={`${bgColor} rounded-xl p-4 md:p-6 shadow-lg flex flex-col`}
+    >
       <div className="mb-3 md:mb-4 flex items-center gap-2 md:gap-3">
         {icon}
         <h3 className="text-base md:text-xl font-semibold">{title}</h3>
@@ -196,7 +196,7 @@ function CardDashboard({ icon, title, subtitle, btnText, btnLink, bgColor }) {
       <p className="flex-1 text-gray-300 text-sm md:text-base">{subtitle}</p>
       <button
         className="mt-4 md:mt-6 bg-white/10 hover:bg-white/20 px-3 py-2 md:px-4 md:py-2 rounded-lg transition text-xs md:text-base"
-        onClick={() => window.location.href = btnLink}
+        onClick={() => (window.location.href = btnLink)}
       >
         {btnText}
       </button>
