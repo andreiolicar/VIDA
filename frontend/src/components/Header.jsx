@@ -11,19 +11,21 @@ export default function Header() {
       <div className="max-w-[1300px] mx-auto flex items-center justify-between">
 
         <div className="text-xl font-bold flex items-center gap-1">
-          <img src={brancoVidaLogo} alt="logo" className="h-10" />
+          <Link to="/">
+            <img src={brancoVidaLogo} alt="logo" className="h-10" />
+          </Link>
         </div>
 
         <nav className="hidden md:flex flex-1 justify-center">
           <ul className="flex gap-10 text-[18px] items-center">
             <li>
-              <a href="#" className="hover:text-blue-400 transition-all duration-300">Solução</a>
+              <Link to="/solution" className="hover:text-blue-400 transition-all duration-300">Solução</Link>
             </li>
             <li>
-              <a href="#" className="hover:text-blue-400 transition-all duration-300">Sobre</a>
+              <Link to="/about-us" className="hover:text-blue-400 transition-all duration-300">Sobre</Link>
             </li>
             <li>
-              <a href="#" className="hover:text-blue-400 transition-all duration-300">Contato</a>
+              <Link to="/contact" className="hover:text-blue-400 transition-all duration-300">Contato</Link>
             </li>
           </ul>
         </nav>
@@ -55,9 +57,9 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-20 left-0 w-full bg-[#0f172a] px-6 py-8 shadow-xl z-50">
           <ul className="space-y-6 text-lg text-white">
-            <li><a href="#" className="block hover:text-blue-400 transition">Solução</a></li>
-            <li><a href="#" className="block hover:text-blue-400 transition">Sobre</a></li>
-            <li><a href="#" className="block hover:text-blue-400 transition">Contato</a></li>
+            <li><Link to="/solution" className="block hover:text-blue-400 transition">Solução</Link></li>
+            <li><Link to="/about-us" className="block hover:text-blue-400 transition">Sobre</Link></li>
+            <li><Link to="/contact" className="block hover:text-blue-400 transition">Contato</Link></li>
           </ul>
           <div className="mt-6 space-y-3">
             <Link

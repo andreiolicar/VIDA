@@ -15,7 +15,9 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between gap-10">
 
           <div className="md:w-1/3 space-y-4">
-            <img src={brancoVidaLogo} alt="logo" className="h-7" />
+            <Link to="/">
+              <img src={brancoVidaLogo} alt="logo" className="h-8" />
+            </Link>
             <p className="text-white text-base leading-relaxed">
               Sua VIDA organizada com praticidade,<br />
               bem-estar e eficiência.
