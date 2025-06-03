@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 
 import brancoVidaLogo from '../assets/branco-site-vida.png';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
@@ -39,9 +40,9 @@ export default function Footer() {
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-white/80">
-                <li><a href="#">Privacidade</a></li>
-                <li><a href="#">Termos</a></li>
-                <li><a href="#">Parcerias</a></li>
+                <li><Link to="/privacy-policy" className="hover:underline">Privacidade</Link></li>
+                <li><Link to="/terms-of-use" className="hover:underline">Termos</Link></li>
+                <li><Link to="/partnerships" className="hover:underline">Parceiros</Link></li>
               </ul>
             </div>
           </div>

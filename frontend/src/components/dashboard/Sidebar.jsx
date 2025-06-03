@@ -6,6 +6,8 @@ import { useAuth } from '@/context/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 
+import brancoVidaLogo from '../../assets/branco-site-vida.png';
+
 export default function Sidebar() {
     const { logout } = useAuth();
     const navigate = useNavigate();
@@ -61,7 +63,7 @@ export default function Sidebar() {
                 style={{ minHeight: '100vh' }}
             >
                 <div className="space-y-8">
-                    <h1 className="text-2xl font-bold px-7">V.I.D.A</h1>
+                    <img src={brancoVidaLogo} className="px-7 h-8" alt="logo"/>
 
                     <nav className="flex flex-col gap-2 px-4 text-sm text-white/80">
                         {menuItems.map((item) => (

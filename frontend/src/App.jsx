@@ -22,6 +22,9 @@ import TaskDetails from '@/pages/TaskDetails';
 import EditTask from '@/pages/EditTask';
 import Chatbot from './pages/Chatbot';
 import SettingsPage from '@/pages/Settings';
+import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
+import TermsOfUse from './pages/TermsOfUse.jsx';
+import Partnerships from './pages/Partnerships.jsx';
 
 function App() {
   return (
@@ -32,6 +35,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="*" element={<h1>404</h1>} />
         <Route path="/register" element={<Register />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-use" element={<TermsOfUse />} />
+        <Route path="/partnerships" element={<Partnerships />} />
       </Route>
 
       {/* Privado */}
