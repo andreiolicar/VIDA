@@ -4,6 +4,8 @@ import {
   Github,
 } from "lucide-react";
 
+import brancoVidaLogo from '../assets/branco-site-vida.png';
+
 export default function Footer() {
   return (
     <footer className="w-full bg-white/5 backdrop-blur-md border-t border-white/10 rounded-t-3xl py-16 mt-10">
@@ -12,9 +14,9 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between gap-10">
 
           <div className="md:w-1/3 space-y-4">
-            <div className="text-2xl font-bold text-white">VIDA</div>
-            <p className="text-white text-lg font-semibold leading-relaxed">
-              Sua VIDA organizada com praticidade,<br/>
+            <img src={brancoVidaLogo} alt="logo" className="h-7" />
+            <p className="text-white text-base leading-relaxed">
+              Sua VIDA organizada com praticidade,<br />
               bem-estar e eficiência.
             </p>
           </div>

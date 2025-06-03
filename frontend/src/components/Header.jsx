@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import brancoVidaLogo from '../assets/branco-site-vida.png';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -10,9 +11,7 @@ export default function Header() {
       <div className="max-w-[1300px] mx-auto flex items-center justify-between">
 
         <div className="text-xl font-bold flex items-center gap-1">
-          <span className="text-white text-2xl">VIDA</span>
-          <span className="text-gray-400 text-lg">Recursos</span>
-          {/* <img src="/logo.svg" alt="logo" className="h-10" /> */}
+          <img src={brancoVidaLogo} alt="logo" className="h-10" />
         </div>
 
         <nav className="hidden md:flex flex-1 justify-center">
