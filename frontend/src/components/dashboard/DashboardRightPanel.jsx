@@ -1,177 +1,161 @@
-import { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import CalendarStyled from './CalendarStyles';
+import { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import UserProfile from './UserProfile';
-import RadioFilterGroup from './RadioFilterGroup';
-import axios from '@/services/axios';
 
-export default function DashboardRightPanel() {
-  const token = localStorage.getItem('token');
-  const userId = localStorage.getItem('user');
-  const [showCalendars, setShowCalendars] = useState(false);
-  const [showCategories, setShowCategories] = useState(false);
-  const [events, setEvents] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [dayEvents, setDayEvents] = useState([]);
-  const [showCard, setShowCard] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
 
-  const navigate = useNavigate();
+function getFirstDayOfWeek(year, month) {
+  return new Date(year, month, 1).getDay();
+}
 
-  useEffect(() => {
-    async function fetchEvents() {
-      try {
-        const res = await axios.get(`/events/${userId}`)
-        setEvents(res.data);
-      } catch (err) {
-        console.error('Erro ao buscar eventos:', err);
-      }
-    }
-    fetchEvents();
-  }, []);
-
-  // Função para alterar o filtro de categoria
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
-    setSelectedDate(null);
-    setDayEvents([]);
-    setShowCard(false);
-  };
-
-  // Filtra eventos conforme categoria selecionada
-  const filteredEvents = events.filter((event) => {
-    if (selectedCategory === 'all') return true;
-    // Normaliza strings para comparação segura (remove espaços e case insensitive)
-    if (!event.category) return false;
-    return event.category.trim().toLowerCase() === selectedCategory.trim().toLowerCase();
-  });
-
-  // Função para lidar com clique no dia do calendário
-  const handleDayClick = (date) => {
-    setSelectedDate(date);
-    const filtered = filteredEvents.filter((event) => {
-      const eventDate = new Date(event.datetime);
-      return (
-        eventDate.getFullYear() === date.getFullYear() &&
-        eventDate.getMonth() === date.getMonth() &&
-        eventDate.getDate() === date.getDate()
-      );
-    });
-    setDayEvents(filtered);
-    setShowCard(true);
-  };
-
-  // Fecha o card com animação
-  const closeCard = () => {
-    setShowCard(false);
-    setTimeout(() => {
-      setSelectedDate(null);
-      setDayEvents([]);
-    }, 300);
-  };
-
-  // DEBUG: Exibe categorias e filtro no console
-  // Remova após confirmar funcionamento
-  console.log('Categoria selecionada:', selectedCategory);
-  console.log(
-    'Categorias dos eventos:',
-    events.map((e) => e.category),
+function isSameDate(d1, d2) {
+  return (
+    d1.getDate() === d2.getDate() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getFullYear() === d2.getFullYear()
   );
-  console.log('Eventos filtrados:', filteredEvents);
+}
+
+function Calendar() {
+  const today = new Date();
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [selectedDate, setSelectedDate] = useState(today);
+
+  const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+  const firstDayOfWeek = getFirstDayOfWeek(currentYear, currentMonth);
+
+  const calendarDays = [];
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    calendarDays.push(null);
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    calendarDays.push(new Date(currentYear, currentMonth, day));
+  }
+
+  function handlePrevMonth() {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  }
+
+  function handleNextMonth() {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  }
+
+  function handleSelectDate(date) {
+    setSelectedDate(date);
+  }
+
+  const monthNames = [
+    "Janeiro", "Fevereiro", "Março",
+    "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro",
+    "Outubro", "Novembro", "Dezembro",
+  ];
+
+  const weekDayLabels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
   return (
-    <aside className="hidden xl:flex flex-col w-[320px] text-white px-6 py-8 space-y-6 relative">
-      <UserProfile />
+    <div className="bg-[#1f2937] rounded-xl p-4 text-white flex flex-col select-none"
+      style={{ maxHeight: '400px', overflowY: 'auto' }}>
 
-      <CalendarStyled events={filteredEvents} onDayClick={handleDayClick} />
-
-      {selectedDate && dayEvents.length > 0 && (
-        <div
-          className={`absolute top-[400px] left-6 w-[270px] bg-[#1f2937] rounded-xl p-4 shadow-lg z-20
-            transition-opacity duration-300 ease-in-out
-            ${showCard ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      <div className="flex items-center justify-between mb-2">
+        <button
+          className="p-1 hover:bg-white/10 rounded transition"
+          onClick={handlePrevMonth}
+          aria-label="Mês anterior"
+          type="button"
         >
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-semibold text-center flex-1">
-              Eventos em {selectedDate.toLocaleDateString('pt-BR')}
-            </h3>
-            <button
-              onClick={closeCard}
-              className="ml-4 text-gray-400 hover:text-gray-200 transition"
-              aria-label="Fechar"
-              title="Fechar"
-            >
-              ✕
-            </button>
-          </div>
-
-          <ul className="space-y-2 max-h-48 overflow-y-auto">
-            {dayEvents.map((event) => (
-              <li
-                key={event.id}
-                className="cursor-pointer p-2 rounded hover:bg-blue-600 transition"
-                onClick={() => navigate(`/dashboard/events/${event.id}`)}
-              >
-                <div className="font-medium">{event.title}</div>
-                <div className="text-sm text-gray-300">
-                  {new Date(event.datetime).toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Filtros */}
-      <div className="bg-[#1f2937] rounded-xl p-4">
-        <div
-          className="flex items-center justify-between cursor-pointer mb-2"
-          onClick={() => setShowCalendars(!showCalendars)}
+          <ChevronLeft size={20} />
+        </button>
+        <h2 className="text-lg font-semibold">{monthNames[currentMonth]} {currentYear}</h2>
+        <button
+          className="p-1 hover:bg-white/10 rounded transition"
+          onClick={handleNextMonth}
+          aria-label="Próximo mês"
+          type="button"
         >
-          <span className="text-sm font-medium">Filtros</span>
-          {showCalendars ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </div>
-        {showCalendars && (
-          <RadioFilterGroup
-            selectedCategory={selectedCategory}
-            onCategoryChange={handleCategoryChange}
-          />
-        )}
+          <ChevronRight size={20} />
+        </button>
       </div>
 
-      {/* Legenda */}
-      <div className="bg-[#1f2937] rounded-xl p-4">
-        <div
-          className="flex items-center justify-between cursor-pointer mb-2"
-          onClick={() => setShowCategories(!showCategories)}
-        >
-          <span className="text-sm font-medium">Legenda</span>
-          {showCategories ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </div>
-        {showCategories && (
-          <div className="space-y-3 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-purple-500"></span>
-              Estudos
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-green-500"></span>
-              Finanças
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-              Saúde
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-yellow-400"></span>
-              Tarefas
-            </div>
-          </div>
-        )}
+      <div className="grid grid-cols-7 text-center text-xs text-gray-400 mb-2 font-medium">
+        {weekDayLabels.map((day) => (
+          <div key={day}>{day}</div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-1">
+        {calendarDays.map((date, index) => {
+          if (!date) return <div key={`empty-${index}`} />;
+
+          const isToday = isSameDate(date, new Date());
+          const isSelected = isSameDate(date, selectedDate);
+
+          return (
+            <button
+              key={date.toISOString()}
+              onClick={() => handleSelectDate(date)}
+              className={`
+                aspect-square flex items-center justify-center rounded-md text-sm
+                transition-colors
+                ${isSelected ? "bg-blue-600 text-white font-semibold" : "hover:bg-white/20"}
+                ${isToday && !isSelected ? "border border-blue-500" : ""}
+                focus:outline-none focus:ring-2 focus:ring-blue-400
+              `}
+              aria-label={`Dia ${date.getDate()}, ${isToday ? "hoje" : ""} ${isSelected ? "selecionado" : ""}`}
+              type="button"
+            >
+              {date.getDate()}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function getDayOfYear(date) {
+  const start = new Date(date.getFullYear(), 0, 0);
+  const diff = date - start;
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
+export default function DashboardRightPanel() {
+  const insights = [
+    "O amanhã pertence àqueles que se preparam hoje. – Malcolm X",
+    "Não espere por oportunidades, crie-as.",
+    "A disciplina é a ponte entre objetivos e realizações.",
+    "Persistência é o caminho do êxito.",
+    "Cada pequeno esforço soma para grandes resultados.",
+    "Aprender é um tesouro que seguirá seu dono em todos os lugares.",
+    "O sucesso é a soma de pequenos esforços repetidos dia após dia.",
+  ];
+
+  const today = new Date();
+  const dayOfYear = getDayOfYear(today);
+  const insight = insights[dayOfYear % insights.length];
+
+  return (
+    <aside className="hidden xl:flex flex-col w-[320px] text-white px-6 py-8 space-y-6 rounded-xl">
+      <UserProfile />
+
+      <Calendar />
+
+      <div className="p-6 bg-[#1f2937] rounded-xl shadow-lg text-center">
+        <h3 className="text-lg font-semibold mb-2">Insight do dia</h3>
+        <p className="text-gray-300 italic text-sm md:text-base">{insight}</p>
       </div>
     </aside>
   );
