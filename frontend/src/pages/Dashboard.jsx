@@ -14,7 +14,7 @@ import {
 export default function Dashboard() {
   const [userName, setUserName] = useState("Usuário");
   const [stats, setStats] = useState({
-    estudios: 65,
+    estudos: 65,
     finançasPendentes: 3,
     saudeAtividades: 4,
     tarefasPendentes: 7,
@@ -59,7 +59,7 @@ export default function Dashboard() {
         <section className="flex flex-col md:flex-row gap-6 md:gap-8 min-h-[330px]">
           <div className="flex-1 bg-[#1f2937] rounded-xl p-6 shadow-lg flex flex-col items-center justify-center min-w-0">
             <BookOpen className="w-10 h-10 text-blue-400 mb-4" />
-            <h2 className="text-lg md:text-2xl font-semibold mb-2 text-center">Estísticas VIDA</h2>
+            <h2 className="text-lg md:text-2xl font-semibold mb-2 text-center">Estatísticas VIDA</h2>
             <p className="text-gray-300 max-w-xs text-center text-sm md:text-base">
               Em breve, um gráfico personalizado para você se analisar e crescer e se analisar e crescer!!
             </p>
@@ -90,7 +90,7 @@ export default function Dashboard() {
           <CardDashboard
             icon={<BookOpen className="w-8 h-8 text-blue-400" />}
             title="Estudos"
-            subtitle={`${stats.estudios}% da meta anual`}
+            subtitle={`${stats.estudos}% da meta anual`}
             btnText="Ver Trilhas"
             btnLink="/dashboard/study"
             bgColor="bg-blue-900"

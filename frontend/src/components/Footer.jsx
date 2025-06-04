@@ -36,7 +36,7 @@ export default function Footer() {
               <h4 className="font-semibold mb-4">Empresa</h4>
               <ul className="space-y-2 text-sm text-white/80">
                 <li><a href="#">LinkedIn</a></li>
-                <li><a href="#">Contato</a></li>
+                <li><Link to="/contact" className="hover:underline">Contato</Link></li>
               </ul>
             </div>
             <div>
