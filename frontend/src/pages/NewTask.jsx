@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { BadgeCheck, Plus, Trash } from 'lucide-react';
+import { BadgeCheck, Plus, Trash, AlertCircle } from 'lucide-react';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import axios from '@/services/axios';
@@ -18,11 +18,11 @@ export default function NewTask() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState('Média');
+  const [priority, setPriority] = useState('');
   const [listId, setListId] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [subtasks, setSubtasks] = useState(['']);
-  const [status, setStatus] = useState('a_fazer');
+  const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -62,7 +62,6 @@ export default function NewTask() {
     }
   };
 
-  // Função para garantir formato datetime-local correto para backend
   const formatDueDateForBackend = (dt) => {
     if (!dt) return null;
     if (dt.includes('T')) {
@@ -71,17 +70,22 @@ export default function NewTask() {
     return new Date(dt + 'T00:00').toISOString();
   };
 
+  const isFormValid = () => {
+    return (
+      user &&
+      title.trim() !== '' &&
+      priority !== '' &&
+      status !== '' &&
+      listId !== '' &&
+      dueDate !== '' &&
+      subtasks.every((t) => t.trim() !== '')
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (
-      !user ||
-      !title ||
-      !priority ||
-      !status ||
-      !listId ||
-      subtasks.some((t) => t.trim() === '')
-    ) {
-      setError('Preencha todos os campos obrigatórios e não deixe subtarefas em branco.');
+    if (!isFormValid()) {
+      setError('Preencha todos os campos obrigatórios.');
       return;
     }
 
@@ -118,13 +122,10 @@ export default function NewTask() {
       <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           <div className="bg-[#1f2937] rounded-xl p-6 sm:p-10 shadow-xl relative">
-            {/* Botão Voltar no canto superior direito */}
             <div className="flex justify-end mb-6">
               <Link
                 to="/dashboard/tasks"
-                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-3 py-1 rounded-lg transition-all inline-block text-xl leading-none"
-                aria-label="Voltar"
-                title="Voltar"
+                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-3 py-1 rounded-lg transition-all text-xl leading-none"
               >
                 ×
               </Link>
@@ -136,60 +137,67 @@ export default function NewTask() {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="flex items-center gap-2 text-yellow-400 text-sm mb-2">
+                <AlertCircle className="w-4 h-4" />
+                <span>Todos os campos devem ser preenchidos antes de criar a tarefa.</span>
+              </div>
+
               {error && <p className="text-red-400 text-sm">{error}</p>}
 
               <div>
-                <label className="block text-sm mb-1">Título </label>
+                <label className="block text-sm mb-1">Título</label>
                 <input
                   type="text"
-                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
+                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  required
                 />
+                {title === '' && <p className="text-red-400 text-xs mt-1">Título é obrigatório.</p>}
               </div>
 
               <div>
                 <label className="block text-sm mb-1">Descrição</label>
                 <textarea
-                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
-                  rows={4}
+                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500"
+                  rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
 
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block text-sm mb-1">Prioridade </label>
-                  <select
-                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value)}
-                    required
-                  >
-                    {PRIORIDADES.map((p, i) => (
-                      <option key={i} value={p}>
-                        {p}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm mb-1">Prioridade</label>
+                <select
+                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500"
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                >
+                  <option value="">Selecione uma prioridade</option>
+                  {PRIORIDADES.map((p, i) => (
+                    <option key={i} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+                {priority === '' && (
+                  <p className="text-red-400 text-xs mt-1">Prioridade é obrigatória.</p>
+                )}
+              </div>
 
-                <div className="flex-1">
-                  <label className="block text-sm mb-1">Lista </label>
-                  {loadingLists ? (
-                    <p>Carregando listas...</p>
-                  ) : errorLists ? (
-                    <p className="text-red-400">{errorLists}</p>
-                  ) : lists.length === 0 ? (
-                    <p className="text-gray-400">Nenhuma lista cadastrada.</p>
-                  ) : (
+              <div>
+                <label className="block text-sm mb-1">Lista</label>
+                {loadingLists ? (
+                  <p>Carregando listas...</p>
+                ) : errorLists ? (
+                  <p className="text-red-400">{errorLists}</p>
+                ) : lists.length === 0 ? (
+                  <p className="text-gray-400">Nenhuma lista cadastrada.</p>
+                ) : (
+                  <>
                     <select
-                      className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
+                      className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500"
                       value={listId}
                       onChange={(e) => setListId(e.target.value)}
-                      required
                     >
                       <option value="">Selecione uma lista</option>
                       {lists.map((list) => (
@@ -198,34 +206,43 @@ export default function NewTask() {
                         </option>
                       ))}
                     </select>
-                  )}
-                </div>
+                    {listId === '' && (
+                      <p className="text-red-400 text-xs mt-1">Selecione uma lista.</p>
+                    )}
+                  </>
+                )}
+              </div>
 
-                <div className="flex-1">
-                  <label className="block text-sm mb-1">Prazo</label>
-                  <input
-                    type="datetime-local"
-                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                  />
-                </div>
+              <div>
+                <label className="block text-sm mb-1">Prazo</label>
+                <input
+                  type="datetime-local"
+                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                />
+                {dueDate === '' && (
+                  <p className="text-red-400 text-xs mt-1">Prazo é obrigatório.</p>
+                )}
+              </div>
 
-                <div className="flex-1">
-                  <label className="block text-sm mb-1">Status </label>
-                  <select
-                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    required
-                  >
-                    {STATUS.map((s, i) => (
-                      <option key={i} value={s.value}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm mb-1">Status</label>
+                <select
+                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="">Selecione um status</option>
+                  {STATUS.map((s, i) => (
+                    <option key={i} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+                {status === '' && (
+                  <p className="text-red-400 text-xs mt-1">Status é obrigatório.</p>
+                )}
               </div>
 
               <div>
@@ -237,7 +254,7 @@ export default function NewTask() {
                         type="text"
                         value={subtask}
                         onChange={(e) => handleSubtaskChange(e.target.value, i)}
-                        className="flex-1 bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500 transition-all"
+                        className="flex-1 bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-blue-500"
                         placeholder={`Subtarefa ${i + 1}`}
                       />
                       {subtasks.length > 1 && (
@@ -245,13 +262,15 @@ export default function NewTask() {
                           type="button"
                           onClick={() => removeSubtask(i)}
                           className="text-red-400 hover:text-red-300"
-                          title="Remover subtarefa"
                         >
                           <Trash className="w-4 h-4" />
                         </button>
                       )}
                     </div>
                   ))}
+                  {subtasks.some((t) => t.trim() === '') && (
+                    <p className="text-red-400 text-xs">Preencha todas as subtarefas.</p>
+                  )}
                   <button
                     type="button"
                     onClick={addSubtask}
@@ -266,8 +285,12 @@ export default function NewTask() {
               <div className="text-right">
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg transition-all disabled:opacity-50"
+                  disabled={!isFormValid() || loading}
+                  className={`font-semibold px-6 py-3 rounded-lg transition-all ${
+                    !isFormValid() || loading
+                      ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  }`}
                 >
                   {loading ? 'Criando...' : 'Criar Tarefa'}
                 </button>

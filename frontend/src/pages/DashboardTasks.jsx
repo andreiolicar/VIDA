@@ -36,7 +36,6 @@ function EditListModal({ isOpen, onClose, list, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (saving) return;
-
     setSaving(true);
     try {
       await onSave({ id: list.id, title, type, description, favorite });
@@ -179,7 +178,7 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
   if (!isOpen) return null;
 
   const PRIORITIES = ['baixa', 'média', 'alta'];
-  const STATUSES = ['a_fazer', 'fazendo', 'feito']; // status corrigido
+  const STATUSES = ['a_fazer', 'fazendo', 'feito'];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -308,6 +307,7 @@ export default function DashboardTasks() {
   const [errorNewList, setErrorNewList] = useState('');
 
   const [listFilter, setListFilter] = useState('');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [listPage, setListPage] = useState(1);
 
   const [taskFilter, setTaskFilter] = useState('');
@@ -325,6 +325,11 @@ export default function DashboardTasks() {
   const [deleteTaskModalOpen, setDeleteTaskModalOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
 
+  useEffect(() => {
+    fetchTasks();
+    fetchLists();
+  }, []);
+
   const fetchTasks = async () => {
     try {
       setLoadingTasks(true);
@@ -332,7 +337,6 @@ export default function DashboardTasks() {
       setTasks(res.data || []);
       setErrorTasks('');
     } catch (err) {
-      console.error('Erro ao buscar tarefas:', err);
       setErrorTasks('Erro ao carregar tarefas.');
     } finally {
       setLoadingTasks(false);
@@ -346,17 +350,19 @@ export default function DashboardTasks() {
       setLists(res.data || []);
       setErrorLists('');
     } catch (err) {
-      console.error('Erro ao buscar listas:', err);
       setErrorLists('Erro ao carregar listas.');
     } finally {
       setLoadingLists(false);
     }
   };
 
-  useEffect(() => {
-    fetchTasks();
-    fetchLists();
-  }, []);
+  const PRIORITY_ORDER = {
+    alta: 1,
+    média: 2,
+    baixa: 3,
+  };
+
+  
 
   const handleCreateList = async () => {
     if (!title.trim() || !type.trim()) {
@@ -366,16 +372,13 @@ export default function DashboardTasks() {
     setErrorNewList('');
     setCreatingList(true);
     try {
-      await axios.post(
-        '/task-lists',
-        {
-          title: title.trim(),
-          type: type.trim(),
-          description: description.trim() || null,
-          favorite,
-          userId,
-        }
-      );
+      await axios.post('/task-lists', {
+        title: title.trim(),
+        type: type.trim(),
+        description: description.trim() || null,
+        favorite,
+        userId,
+      });
       setTitle('');
       setType(LIST_TYPES[0].value);
       setDescription('');
@@ -383,7 +386,6 @@ export default function DashboardTasks() {
       setShowNewListForm(false);
       fetchLists();
     } catch (err) {
-      console.error('Erro ao criar lista:', err);
       setErrorNewList('Erro ao criar lista.');
     } finally {
       setCreatingList(false);
@@ -399,18 +401,14 @@ export default function DashboardTasks() {
 
   const saveListEdits = async (updatedList) => {
     try {
-      await axios.patch(
-        `/task-lists/${updatedList.id}`,
-        {
-          title: updatedList.title,
-          type: updatedList.type,
-          description: updatedList.description,
-          favorite: updatedList.favorite,
-        }
-      );
+      await axios.patch(`/task-lists/${updatedList.id}`, {
+        title: updatedList.title,
+        type: updatedList.type,
+        description: updatedList.description,
+        favorite: updatedList.favorite,
+      });
       fetchLists();
     } catch (err) {
-      console.error('Erro ao salvar lista:', err);
       throw err;
     }
   };
@@ -431,7 +429,6 @@ export default function DashboardTasks() {
       fetchLists();
       fetchTasks();
     } catch (err) {
-      console.error('Erro ao excluir lista:', err);
       alert('Erro ao excluir lista.');
     }
   };
@@ -448,18 +445,14 @@ export default function DashboardTasks() {
 
   const saveTaskEdits = async (updatedTask) => {
     try {
-      await axios.patch(
-        `/tasks/${updatedTask.id}`,
-        {
-          title: updatedTask.title,
-          description: updatedTask.description,
-          priority: updatedTask.priority,
-          status: updatedTask.status,
-        }
-      );
+      await axios.patch(`/tasks/${updatedTask.id}`, {
+        title: updatedTask.title,
+        description: updatedTask.description,
+        priority: updatedTask.priority,
+        status: updatedTask.status,
+      });
       fetchTasks();
     } catch (err) {
-      console.error('Erro ao salvar tarefa:', err);
       throw err;
     }
   };
@@ -477,8 +470,7 @@ export default function DashboardTasks() {
       setTaskToDelete(null);
       fetchTasks();
     } catch (err) {
-      console.error('Erro ao excluir tarefa:', err.response || err);
-      alert('Erro ao excluir tarefa: ' + (err.response?.data?.message || err.message));
+      alert('Erro ao excluir tarefa.');
     }
   };
 
@@ -487,19 +479,21 @@ export default function DashboardTasks() {
     setTaskToDelete(null);
   };
 
-  const filteredLists = lists.filter((list) =>
-    list.title.toLowerCase().includes(listFilter.toLowerCase())
-  );
+  const filteredLists = lists.filter((list) => {
+    const matchesTitle = list.title.toLowerCase().includes(listFilter.toLowerCase());
+    const matchesFavorite = showFavoritesOnly ? list.favorite === true : true;
+    return matchesTitle && matchesFavorite;
+  });
 
   const paginatedLists = filteredLists.slice(
     (listPage - 1) * ITEMS_PER_PAGE,
     listPage * ITEMS_PER_PAGE
   );
 
-  const filteredTasks = tasks.filter((task) =>
-    task.title.toLowerCase().includes(taskFilter.toLowerCase())
-  );
-
+const filteredTasks = tasks
+  .filter((task) => task.title.toLowerCase().includes(taskFilter.toLowerCase()))
+  .sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
+  
   const paginatedTasks = filteredTasks.slice(
     (taskPage - 1) * ITEMS_PER_PAGE,
     taskPage * ITEMS_PER_PAGE
@@ -525,6 +519,8 @@ export default function DashboardTasks() {
     }
   };
 
+  const hasFavorites = lists.some((list) => list.favorite === true);
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
       <Sidebar />
@@ -536,15 +532,35 @@ export default function DashboardTasks() {
             <h1 className="text-2xl font-semibold">
               Listas de Tarefas {filteredLists.length ? `(${filteredLists.length})` : ''}
             </h1>
-            <button
-              onClick={() => setShowNewListForm(!showNewListForm)}
-              className="bg-green-600 px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
-            >
-              <Plus size={18} /> {showNewListForm ? 'Cancelar' : 'Nova Lista'}
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowNewListForm(!showNewListForm)}
+                className="bg-green-600 px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+              >
+                <Plus size={18} /> {showNewListForm ? 'Cancelar' : 'Nova Lista'}
+              </button>
+
+              <button
+                onClick={() => {
+                  if (!hasFavorites) return;
+                  setShowFavoritesOnly((prev) => !prev);
+                  setListPage(1);
+                }}
+                disabled={!hasFavorites}
+                className={`px-4 py-2 rounded-lg font-semibold transition ${
+                  showFavoritesOnly
+                    ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
+                    : 'bg-gray-700 hover:bg-gray-600 text-gray-300 cursor-pointer'
+                } ${!hasFavorites ? 'opacity-50 cursor-not-allowed' : ''}`}
+                aria-pressed={showFavoritesOnly}
+                aria-label="Filtrar listas favoritas"
+              >
+                Favoritos
+              </button>
+            </div>
           </div>
 
-          <div className="mb-4">
+          <div className="mb-2 w-full max-w-5xl mx-auto">
             <input
               type="text"
               placeholder="Filtrar listas pelo título"
@@ -560,7 +576,7 @@ export default function DashboardTasks() {
           {showNewListForm && (
             <div className="mb-6 bg-[#1f2937] p-6 rounded-lg shadow-md max-w-5xl mx-auto">
               <div className="mb-4">
-                <label className="block mb-1 font-medium">Título </label>
+                <label className="block mb-1 font-medium">Título</label>
                 <input
                   type="text"
                   value={title}
@@ -571,7 +587,7 @@ export default function DashboardTasks() {
               </div>
 
               <div className="mb-4">
-                <label className="block mb-1 font-medium">Tipo 1</label>
+                <label className="block mb-1 font-medium">Tipo</label>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value)}
@@ -590,8 +606,8 @@ export default function DashboardTasks() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-green-500"
                   rows={3}
+                  className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-green-500"
                   placeholder="Descrição opcional"
                 />
               </div>
@@ -621,15 +637,15 @@ export default function DashboardTasks() {
             </div>
           )}
 
-          {loadingLists ? (
-            <p>Carregando listas...</p>
-          ) : errorLists ? (
-            <p className="text-red-400">{errorLists}</p>
-          ) : paginatedLists.length === 0 ? (
-            <p className="text-gray-400">Nenhuma lista cadastrada.</p>
-          ) : (
-            <ul className="w-full max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-10">
-              {paginatedLists.map((list) => (
+          <ul className="w-full max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-10">
+            {loadingLists ? (
+              <p>Carregando listas...</p>
+            ) : errorLists ? (
+              <p className="text-red-400">{errorLists}</p>
+            ) : paginatedLists.length === 0 ? (
+              <p className="text-gray-400">Nenhuma lista cadastrada.</p>
+            ) : (
+              paginatedLists.map((list) => (
                 <Link
                   key={list.id}
                   to={`/dashboard/task-list/${list.id}`}
@@ -670,32 +686,50 @@ export default function DashboardTasks() {
                     </p>
                   )}
                 </Link>
-              ))}
-            </ul>
-          )}
+              ))
+            )}
+          </ul>
         </div>
 
-        <div className="mt-12">
-          <div className="flex justify-between items-center mb-4">
+        {/* Tarefas */}
+        <div className="mt-12 max-w-5xl mx-auto w-full">
+          <div className="max-w-5xl mx-auto w-full mb-2">
+            {lists.length === 0 && (
+              <p className="text-red-400 text-sm text-right max-w-xs ml-auto">
+                Para criar uma tarefa, você deve primeiro criar uma lista.
+              </p>
+            )}
+          </div>
+
+          <div className="flex justify-between items-center max-w-5xl mx-auto w-full mb-4">
             <h1 className="text-2xl font-semibold">
               Tarefas {filteredTasks.length ? `(${filteredTasks.length})` : ''}
             </h1>
 
             <div className="flex gap-4">
               <Link to="/dashboard/newtask">
-                <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2 font-semibold">
+                <button
+                  disabled={lists.length === 0}
+                  className={`px-4 py-2 rounded-lg flex items-center gap-2 font-semibold ${
+                    lists.length === 0
+                      ? 'bg-gray-600 cursor-not-allowed'
+                      : 'bg-indigo-600 hover:bg-indigo-700'
+                  } text-white transition`}
+                  title={lists.length === 0 ? 'Crie uma lista antes de adicionar tarefas' : 'Nova Tarefa'}
+                >
                   <Plus size={18} /> Nova Tarefa
                 </button>
               </Link>
+
               <Link to="/dashboard/kanban">
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-semibold">
+                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-semibold transition">
                   <KanbanSquare size={18} /> Kanban
                 </button>
               </Link>
             </div>
           </div>
 
-          <div className="mb-4 w-full max-w-5xl mx-auto">
+          <div className="mb-4">
             <input
               type="text"
               placeholder="Filtrar tarefas pelo título"
@@ -715,7 +749,7 @@ export default function DashboardTasks() {
           ) : paginatedTasks.length === 0 ? (
             <p className="text-gray-400 mt-8">Nenhuma tarefa cadastrada.</p>
           ) : (
-            <div className="w-full max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-10">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-10">
               {paginatedTasks.map((task) => (
                 <TaskCard
                   key={task.id}
@@ -723,13 +757,14 @@ export default function DashboardTasks() {
                   onDelete={() => openDeleteTaskModal(task)}
                   onToggleStatus={handleToggleStatus}
                   onEdit={() => openEditTaskModal(task)}
+                  className="min-h-[160px] min-w-[220px] max-w-[280px]"
                 />
               ))}
             </div>
           )}
 
           {filteredTasks.length > ITEMS_PER_PAGE && (
-            <div className="flex justify-center items-center gap-4 mt-4 text-white max-w-5xl mx-auto">
+            <div className="flex justify-center items-center gap-4 mt-4 text-white">
               <button
                 onClick={() => changeTaskPage(taskPage - 1)}
                 disabled={taskPage === 1}

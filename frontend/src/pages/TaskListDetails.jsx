@@ -177,6 +177,8 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
     onClose();
   };
 
+  
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <form
@@ -395,6 +397,12 @@ export default function TaskListDetails() {
     setTaskToDelete(null);
   };
 
+   const PRIORITY_ORDER = {
+    alta: 1,
+    média: 2,
+    baixa: 3,
+  };
+
   if (loading) return <p className="p-8 text-white">Carregando...</p>;
   if (error) return <p className="p-8 text-red-400">{error}</p>;
   if (!list) return <p className="p-8 text-gray-400">Lista não encontrada.</p>;
@@ -436,14 +444,17 @@ export default function TaskListDetails() {
           <h2 className="text-xl font-semibold mb-4">Tarefas</h2>
           {list.tasks && list.tasks.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {list.tasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onEdit={() => openEditTaskModal(task)}
-                  onDelete={() => openDeleteTaskModal(task)}
-                />
-              ))}
+               {list.tasks
+            .slice()
+            .sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])
+            .map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onEdit={() => openEditTaskModal(task)}
+                onDelete={() => openDeleteTaskModal(task)}
+              />
+            ))}
             </div>
           ) : (
             <p className="text-gray-400">Nenhuma tarefa nesta lista.</p>

@@ -144,6 +144,33 @@ export default function TaskDetails() {
         <div className="mb-6 flex justify-between items-center">
           <h1 className="text-3xl font-semibold">{task.title}</h1>
           <div className="flex items-center gap-2">
+            {/* Botão Marcar como concluído (toggle) */}
+            <button
+              onClick={async () => {
+                try {
+                  const novoStatus = task.status === 'feito' ? 'a_fazer' : 'feito';
+                  await axios.patch(
+                    `/tasks/${id}`,
+                    { status: novoStatus },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                  );
+                  fetchTask();
+                } catch (err) {
+                  alert('Erro ao atualizar status da tarefa.');
+                  console.error(err);
+                }
+              }}
+              className={`px-4 py-2 rounded-lg font-semibold ${
+                task.status === 'feito'
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-green-600 hover:bg-green-700'
+              }`}
+              title={task.status === 'feito' ? 'Reverter para não concluída' : 'Marcar como concluída'}
+            >
+              {task.status === 'feito' ? 'Não Concluir' : 'Concluir'}
+            </button>
+
+            {/* Botão Editar */}
             <button
               onClick={openEditModal}
               title="Editar tarefa"
@@ -151,6 +178,8 @@ export default function TaskDetails() {
             >
               Editar Tarefa
             </button>
+
+            {/* Botão Voltar */}
             <button
               onClick={() => navigate(-1)}
               className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-semibold"

@@ -7,9 +7,16 @@ import TaskCard from '@/components/TaskCard';
 
 const STATUS = [
   { value: 'a_fazer', label: 'A Fazer' },
-  { value: 'fazendo', label: 'Fazendo' }, // corrigido aqui
+  { value: 'fazendo', label: 'Fazendo' }, 
   { value: 'feito', label: 'Feito' },
 ];
+
+const PRIORITY_ORDER = {
+  alta: 1,
+  média: 2,
+  baixa: 3,
+};
+
 
 function EditTaskModal({ isOpen, onClose, task, onSave }) {
   const [title, setTitle] = useState('');
@@ -291,9 +298,10 @@ export default function KanbanTasks() {
                   ) : tasks.filter((t) => t.status === col.value).length === 0 ? (
                     <p className="text-gray-400">Nenhuma tarefa</p>
                   ) : (
-                    tasks
-                      .filter((t) => t.status === col.value)
-                      .map((task) => (
+                   tasks
+                   .filter((t) => t.status === col.value)
+                  .sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])
+                  .map((task) => (
                         <div key={task.id} className="group min-w-[220px]">
                           <TaskCard
                             task={task}
