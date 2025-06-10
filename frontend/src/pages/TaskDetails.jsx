@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '@/services/axios';
 import Sidebar from '@/components/dashboard/Sidebar';
@@ -25,6 +25,14 @@ export default function TaskDetails() {
   const [lists, setLists] = useState([]);
   const [loadingLists, setLoadingLists] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Novo estado para modal de exclusão
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // Estado e ref para dropdown
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const getPriorityColor = (priority) => {
     switch (priority?.toLowerCase()) {
@@ -86,6 +94,17 @@ export default function TaskDetails() {
     fetchTask();
   }, [id]);
 
+  // Fecha dropdown ao clicar fora
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const openEditModal = () => {
     if (!task) return;
     setTitle(task.title || '');
@@ -132,6 +151,51 @@ export default function TaskDetails() {
     }
   };
 
+  // Função para excluir tarefa
+  const handleDeleteTask = async () => {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      await axios.delete(`/tasks/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDeleting(false);
+      setDeleteModalOpen(false);
+      navigate('/dashboard/tasks');
+    } catch (err) {
+      alert('Erro ao excluir tarefa.');
+      console.error(err);
+      setDeleting(false);
+    }
+  };
+
+  // Funções para dropdown
+  const toggleStatus = async () => {
+    try {
+      const novoStatus = task.status === 'feito' ? 'a_fazer' : 'feito';
+      await axios.patch(
+        `/tasks/${id}`,
+        { status: novoStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchTask();
+      setDropdownOpen(false);
+    } catch (err) {
+      alert('Erro ao atualizar status da tarefa.');
+      console.error(err);
+    }
+  };
+
+  const handleEditClick = () => {
+    openEditModal();
+    setDropdownOpen(false);
+  };
+
+  const handleDeleteClick = () => {
+    setDeleteModalOpen(true);
+    setDropdownOpen(false);
+  };
+
   if (loading) return <p className="p-8 text-white">Carregando...</p>;
   if (error) return <p className="p-8 text-red-400">{error}</p>;
   if (!task) return <p className="p-8 text-gray-400">Tarefa não encontrada.</p>;
@@ -142,42 +206,62 @@ export default function TaskDetails() {
 
       <main className="flex-1 p-8 overflow-y-auto max-w-4xl mx-auto">
         <div className="mb-6 flex justify-between items-center">
-          <h1 className="text-3xl font-semibold">{task.title}</h1>
+          <h1
+            className="text-3xl font-semibold break-words overflow-wrap-anywhere mr-6"
+            style={{ wordBreak: 'break-word', whiteSpace: 'normal' }}
+          >
+            {task.title}
+          </h1>
           <div className="flex items-center gap-2">
-            {/* Botão Marcar como concluído (toggle) */}
-            <button
-              onClick={async () => {
-                try {
-                  const novoStatus = task.status === 'feito' ? 'a_fazer' : 'feito';
-                  await axios.patch(
-                    `/tasks/${id}`,
-                    { status: novoStatus },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                  );
-                  fetchTask();
-                } catch (err) {
-                  alert('Erro ao atualizar status da tarefa.');
-                  console.error(err);
-                }
-              }}
-              className={`px-4 py-2 rounded-lg font-semibold ${
-                task.status === 'feito'
-                  ? 'bg-red-600 hover:bg-red-700'
-                  : 'bg-green-600 hover:bg-green-700'
-              }`}
-              title={task.status === 'feito' ? 'Reverter para não concluída' : 'Marcar como concluída'}
-            >
-              {task.status === 'feito' ? 'Não Concluir' : 'Concluir'}
-            </button>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen((prev) => !prev)}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold"
+                aria-haspopup="true"
+                aria-expanded={dropdownOpen}
+              >
+                Ações
+                <svg
+                  className={`w-4 h-4 transition-transform ${dropdownOpen ? 'rotate-180' : 'rotate-0'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
 
-            {/* Botão Editar */}
-            <button
-              onClick={openEditModal}
-              title="Editar tarefa"
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold"
-            >
-              Editar Tarefa
-            </button>
+              {dropdownOpen && (
+                <ul className="absolute right-0 mt-2 w-48 bg-[#1f2937] rounded-md shadow-lg z-50 py-1 text-white">
+                  <li>
+                    <button
+                      onClick={toggleStatus}
+                      className="block w-full text-left px-4 py-2 hover:bg-blue-600 transition"
+                    >
+                      {task.status === 'feito' ? 'Reverter conclusão' : 'Marcar como concluída'}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={handleEditClick}
+                      className="block w-full text-left px-4 py-2 hover:bg-blue-600 transition"
+                    >
+                      Editar
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={handleDeleteClick}
+                      className="block w-full text-left px-4 py-2 hover:bg-red-600 transition"
+                    >
+                      Excluir
+                    </button>
+                  </li>
+                </ul>
+              )}
+            </div>
 
             {/* Botão Voltar */}
             <button
@@ -192,13 +276,23 @@ export default function TaskDetails() {
         {task.list && (
           <section className="mb-6">
             <h2 className="text-xl font-semibold mb-2">Lista</h2>
-            <p className="text-gray-300">{task.list.title}</p>
+            <p
+              className="text-gray-300 break-words overflow-wrap-anywhere"
+              style={{ wordBreak: 'break-word', whiteSpace: 'normal' }}
+            >
+              {task.list.title}
+            </p>
           </section>
         )}
 
         <section className="mb-6">
           <h2 className="text-xl font-semibold mb-2">Descrição</h2>
-          <p className="whitespace-pre-wrap text-gray-300">{task.description || 'Sem descrição'}</p>
+          <p
+            className="whitespace-pre-wrap break-words overflow-wrap-anywhere text-gray-300"
+            style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}
+          >
+            {task.description || 'Sem descrição'}
+          </p>
         </section>
 
         <section className="mb-6 grid grid-cols-2 gap-6 max-w-md">
@@ -370,6 +464,32 @@ export default function TaskDetails() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Modal de confirmação exclusão */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#1f2937] p-6 rounded-xl max-w-sm w-full text-white shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Confirmar exclusão</h2>
+            <p className="mb-6">Tem certeza que deseja excluir a tarefa "{task.title}"? Essa ação não pode ser desfeita.</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setDeleteModalOpen(false)}
+                className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 transition"
+                disabled={deleting}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteTask}
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition"
+                disabled={deleting}
+              >
+                {deleting ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

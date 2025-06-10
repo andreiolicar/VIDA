@@ -46,9 +46,71 @@ export default function TaskCard({ task, onDelete, onToggleStatus, onEdit, extra
   return (
     <Link
       to={`/dashboard/task/${task.id}`}
-      className={`relative rounded-2xl p-4 min-h-[180px] min-w-[220px] max-w-[280px] shadow-md hover:shadow-lg transition cursor-pointer flex flex-col group bg-[#1f2937] ${borderClass}`}
+      className={`relative rounded-2xl p-4 min-h-[180px] min-w-[220px] max-w-[280px] shadow-md transition cursor-pointer flex flex-col group bg-[#1f2937] ${borderClass} hover:bg-[#374151] hover:brightness-110`}
     >
-      <h3 className="text-xl font-semibold mb-2 leading-tight pr-14 line-clamp-2">{task.title}</h3>
+      <div className="flex justify-between items-start mb-2">
+        <h3
+          className="text-xl font-semibold leading-tight max-w-[calc(100%-60px)] overflow-hidden text-ellipsis break-words"
+          style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            hyphens: 'auto',
+            WebkitHyphens: 'auto',
+            MozHyphens: 'auto',
+            msHyphens: 'auto',
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
+          }}
+          lang="pt"
+          title={task.title}
+        >
+          {task.title}
+        </h3>
+
+        <div
+          className="absolute top-3 right-4 flex gap-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-10"
+        >
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onEdit && onEdit(task);
+            }}
+            title="Editar tarefa"
+            className="text-blue-400 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded"
+            aria-label="Editar tarefa"
+          >
+            <Edit size={18} />
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleStatus && onToggleStatus(task);
+            }}
+            title={task.status === 'feito' ? 'Reabrir tarefa' : 'Concluir tarefa'}
+            className="text-green-400 hover:text-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 rounded"
+            aria-label={task.status === 'feito' ? 'Reabrir tarefa' : 'Concluir tarefa'}
+          >
+            <Plus size={18} className={task.status === 'feito' ? 'rotate-45' : ''} />
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete && onDelete(task);
+            }}
+            title="Excluir tarefa"
+            className="text-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
+            aria-label="Excluir tarefa"
+          >
+            <Trash size={18} />
+          </button>
+        </div>
+      </div>
 
       {task.list && (
         <p className="text-sm text-indigo-400 font-medium mb-2 truncate max-w-full">
@@ -97,48 +159,6 @@ export default function TaskCard({ task, onDelete, onToggleStatus, onEdit, extra
         style={{ transitionProperty: 'max-height, opacity' }}
       >
         {extraButtons}
-      </div>
-
-      {/* Espaçamento reduzido entre os ícones */}
-      <div className="absolute top-3 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition">
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onEdit && onEdit(task);
-          }}
-          title="Editar tarefa"
-          className="text-blue-400 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded"
-          aria-label="Editar tarefa"
-        >
-          <Edit size={18} />
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onToggleStatus && onToggleStatus(task);
-          }}
-          title={task.status === 'feito' ? 'Reabrir tarefa' : 'Concluir tarefa'}
-          className="text-green-400 hover:text-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 rounded"
-          aria-label={task.status === 'feito' ? 'Reabrir tarefa' : 'Concluir tarefa'}
-        >
-          <Plus size={18} className={task.status === 'feito' ? 'rotate-45' : ''} />
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onDelete && onDelete(task);
-          }}
-          title="Excluir tarefa"
-          className="text-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
-          aria-label="Excluir tarefa"
-        >
-          <Trash size={18} />
-        </button>
       </div>
     </Link>
   );

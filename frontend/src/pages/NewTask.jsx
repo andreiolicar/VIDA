@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { BadgeCheck, Plus, Trash, AlertCircle } from 'lucide-react';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
@@ -15,11 +15,15 @@ const STATUS = [
 export default function NewTask() {
   const user = localStorage.getItem('user');
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const params = new URLSearchParams(location.search);
+  const preselectedListId = params.get('listId') || '';
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('');
-  const [listId, setListId] = useState('');
+  const [listId, setListId] = useState(preselectedListId);
   const [dueDate, setDueDate] = useState('');
   const [subtasks, setSubtasks] = useState(['']);
   const [status, setStatus] = useState('');
@@ -29,6 +33,13 @@ export default function NewTask() {
   const [lists, setLists] = useState([]);
   const [loadingLists, setLoadingLists] = useState(true);
   const [errorLists, setErrorLists] = useState('');
+
+  // Atualiza listId caso o parâmetro na URL mude
+  useEffect(() => {
+    if (preselectedListId) {
+      setListId(preselectedListId);
+    }
+  }, [preselectedListId]);
 
   // Buscar listas do usuário
   const fetchLists = async () => {

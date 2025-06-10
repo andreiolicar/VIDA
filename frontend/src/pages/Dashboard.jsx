@@ -17,7 +17,7 @@ export default function Dashboard() {
     estudos: 65,
     finançasPendentes: 3,
     saudeAtividades: 4,
-    tarefasPendentes: 7,
+    tarefasPendentes: 0, // Inicializado com 0
   });
 
   useEffect(() => {
@@ -28,14 +28,27 @@ export default function Dashboard() {
           setUserName("Usuário");
           return;
         }
+        // Buscar dados do usuário
         const res = await axios.get(`http://localhost:5000/api/user/get/${userId}`);
         if (res.data && res.data.user && res.data.user.name) {
           setUserName(res.data.user.name);
         } else {
           setUserName("Usuário");
         }
+
+        // Buscar tarefas do usuário
+        const tasksRes = await axios.get(`http://localhost:5000/api/tasks/user/${userId}`);
+        if (tasksRes.data) {
+          // Filtrar tarefas pendentes (status diferente de 'feito')
+          const pendentes = tasksRes.data.filter(task => task.status !== 'feito').length;
+
+          setStats(prev => ({
+            ...prev,
+            tarefasPendentes: pendentes,
+          }));
+        }
       } catch (err) {
-        console.error("Erro ao buscar usuário:", err);
+        console.error("Erro ao buscar usuário ou tarefas:", err);
         setUserName("Usuário");
       }
     }

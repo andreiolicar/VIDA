@@ -11,32 +11,61 @@ const STATUS = [
   { value: 'feito', label: 'Feito' },
 ];
 
-function EditTaskModal({ isOpen, onClose, task, onSave }) {
+const PRIORITIES = ['baixa', 'media', 'alta'];
+
+function ConfirmTaskDeleteModal({ isOpen, title, message, onConfirm, onCancel }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-[#1f2937] p-6 rounded-xl max-w-sm w-full text-white shadow-lg">
+        <h2 className="text-xl font-semibold mb-4">{title}</h2>
+        <p className="mb-6">{message}</p>
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 transition"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition"
+          >
+            Excluir
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditTaskModal({ isOpen, onClose, task, onSave, lists, loadingLists }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState('baixa');
+  const [priority, setPriority] = useState('media');
   const [status, setStatus] = useState('a_fazer');
+  const [dueDate, setDueDate] = useState('');
+  const [listIdTask, setListIdTask] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (isOpen && task) {
       setTitle(task.title || '');
       setDescription(task.description || '');
-      setPriority(task.priority || 'baixa');
+      setPriority(task.priority || 'media');
       setStatus(task.status || 'a_fazer');
+      setDueDate(task.dueDate ? task.dueDate.substring(0, 16) : '');
+      setListIdTask(task.listId || '');
       setSaving(false);
     }
   }, [isOpen, task]);
 
   if (!isOpen) return null;
 
-  const PRIORITIES = ['baixa', 'média', 'alta'];
-  const STATUSES = ['a_fazer', 'fazendo', 'feito']; // corrigido aqui
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (saving) return;
-
     setSaving(true);
     try {
       await onSave({
@@ -45,6 +74,8 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
         description: description.trim(),
         priority,
         status,
+        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+        listId: Number(listIdTask),
       });
       onClose();
     } catch {
@@ -67,7 +98,7 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
         <h2 className="text-xl font-semibold mb-4">Editar Tarefa</h2>
 
         <div className="mb-4">
-          <label className="block mb-1 font-medium">Título </label>
+          <label className="block mb-1 font-medium">Título</label>
           <input
             type="text"
             value={title}
@@ -102,19 +133,52 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
           </select>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-4">
           <label className="block mb-1 font-medium">Status</label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
           >
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s.replace('_', ' ').charAt(0).toUpperCase() + s.replace('_', ' ').slice(1)}
+            {STATUS.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="mb-4">
+          <label className="block mb-1 font-medium">Lista</label>
+          {loadingLists ? (
+            <p>Carregando listas...</p>
+          ) : lists.length === 0 ? (
+            <p className="text-gray-400">Nenhuma lista cadastrada.</p>
+          ) : (
+            <select
+              value={listIdTask}
+              onChange={(e) => setListIdTask(e.target.value)}
+              required
+              className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
+            >
+              <option value="">Selecione uma lista</option>
+              {lists.map((list) => (
+                <option key={list.id} value={list.id}>
+                  {list.title}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <div className="mb-6">
+          <label className="block mb-1 font-medium">Data do Prazo</label>
+          <input
+            type="datetime-local"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
+          />
         </div>
 
         <div className="flex justify-end gap-4">
@@ -139,35 +203,9 @@ function EditTaskModal({ isOpen, onClose, task, onSave }) {
   );
 }
 
-function ConfirmTaskDeleteModal({ isOpen, title, message, onConfirm, onCancel }) {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-[#1f2937] p-6 rounded-xl max-w-sm w-full text-white shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">{title}</h2>
-        <p className="mb-6">{message}</p>
-        <div className="flex justify-end gap-4">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 transition"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition"
-          >
-            Excluir
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function KanbanTasks() {
   const userId = localStorage.getItem('user');
+  const token = localStorage.getItem('token');
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -176,6 +214,9 @@ export default function KanbanTasks() {
 
   const [deleteTaskModalOpen, setDeleteTaskModalOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
+
+  const [lists, setLists] = useState([]);
+  const [loadingLists, setLoadingLists] = useState(false);
 
   const fetchTasks = async () => {
     setLoading(true);
@@ -189,13 +230,28 @@ export default function KanbanTasks() {
     }
   };
 
+  const fetchLists = async () => {
+    setLoadingLists(true);
+    try {
+      const res = await axios.get(`/task-lists/user/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLists(res.data || []);
+    } catch {
+      setLists([]);
+    } finally {
+      setLoadingLists(false);
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
   }, []);
 
-  const openEditTaskModal = (task) => {
+  const openEditTaskModal = async (task) => {
     setTaskToEdit(task);
     setEditTaskModalOpen(true);
+    await fetchLists();
   };
 
   const saveTaskEdits = async (updatedTask) => {
@@ -205,13 +261,16 @@ export default function KanbanTasks() {
         description: updatedTask.description,
         priority: updatedTask.priority,
         status: updatedTask.status,
+        dueDate: updatedTask.dueDate,
+        listId: updatedTask.listId,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
       });
       setEditTaskModalOpen(false);
       setTaskToEdit(null);
       fetchTasks();
-    } catch (err) {
+    } catch {
       alert('Erro ao salvar tarefa.');
-      throw err;
     }
   };
 
@@ -227,7 +286,7 @@ export default function KanbanTasks() {
       setDeleteTaskModalOpen(false);
       setTaskToDelete(null);
       fetchTasks();
-    } catch (err) {
+    } catch {
       alert('Erro ao excluir tarefa.');
     }
   };
@@ -247,14 +306,10 @@ export default function KanbanTasks() {
     }
   };
 
-  const handleMoveTask = async (task, newStatus) => {
-    if (task.status === newStatus) return;
-    try {
-      await axios.patch(`/tasks/${task.id}`, { status: newStatus });
-      fetchTasks();
-    } catch {
-      alert('Erro ao mover tarefa.');
-    }
+  const PRIORITY_ORDER = {
+    alta: 1,
+    média: 2,
+    baixa: 3,
   };
 
   return (
@@ -282,18 +337,21 @@ export default function KanbanTasks() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            {STATUS.map((col) => (
-              <div key={col.value}>
-                <h2 className="text-xl font-semibold mb-4">{col.label}</h2>
-                <div className="space-y-4 min-h-[120px]">
-                  {loading ? (
-                    <p className="text-gray-400">Carregando...</p>
-                  ) : tasks.filter((t) => t.status === col.value).length === 0 ? (
-                    <p className="text-gray-400">Nenhuma tarefa</p>
-                  ) : (
-                    tasks
-                      .filter((t) => t.status === col.value)
-                      .map((task) => (
+            {STATUS.map((col) => {
+              const tasksByStatus = tasks
+                .filter((t) => t.status === col.value)
+                .slice()
+                .sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]);
+              return (
+                <div key={col.value}>
+                  <h2 className="text-xl font-semibold mb-4">{col.label}</h2>
+                  <div className="space-y-4 min-h-[120px]">
+                    {loading ? (
+                      <p className="text-gray-400">Carregando...</p>
+                    ) : tasksByStatus.length === 0 ? (
+                      <p className="text-gray-400">Nenhuma tarefa</p>
+                    ) : (
+                      tasksByStatus.map((task) => (
                         <div key={task.id} className="group min-w-[220px]">
                           <TaskCard
                             task={task}
@@ -309,7 +367,9 @@ export default function KanbanTasks() {
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
-                                      handleMoveTask(task, s.value);
+                                      if (task.status !== s.value) {
+                                        axios.patch(`/tasks/${task.id}`, { status: s.value }).then(fetchTasks);
+                                      }
                                     }}
                                     title={`Mover para "${s.label}"`}
                                   >
@@ -321,10 +381,11 @@ export default function KanbanTasks() {
                           />
                         </div>
                       ))
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </main>
@@ -339,6 +400,8 @@ export default function KanbanTasks() {
         }}
         task={taskToEdit}
         onSave={saveTaskEdits}
+        lists={lists}
+        loadingLists={loadingLists}
       />
 
       <ConfirmTaskDeleteModal
