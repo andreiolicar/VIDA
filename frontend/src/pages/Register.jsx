@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/useAuth';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
+import { Undo2 } from 'lucide-react';
 
 function Register() {
   const navigate = useNavigate();
@@ -58,8 +59,17 @@ function Register() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Lado esquerdo - formulário */}
       <div className="flex flex-col justify-center items-center w-1/2 bg-[#0f172a] text-white px-10">
+        <button
+          onClick={() => navigate('/')}
+          className="absolute top-20 left-20 flex items-center gap-2 text-blue-400 font-semibold hover:text-white transition-colors"
+          aria-label="Voltar para home"
+          type="button"
+        >
+          <Undo2 size={20} />
+          <span>Voltar</span>
+        </button>
+
         <div className="w-full max-w-md space-y-6">
           <h1 className="text-3xl font-bold text-white">Crie sua conta</h1>
           <p className="text-white/80">Preencha os dados para começar a usar o V.I.D.A.</p>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/useAuth';
 import { FcGoogle } from 'react-icons/fc';
 import { FaApple } from 'react-icons/fa';
+import { Undo2 } from 'lucide-react';
 
 function Login() {
   const navigate = useNavigate();
@@ -45,6 +46,16 @@ function Login() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
+      <button
+        onClick={() => navigate('/')}
+        className="absolute top-20 left-20 flex items-center gap-2 text-blue-400 font-semibold hover:text-white transition-colors"
+        aria-label="Voltar para home"
+        type="button"
+      >
+        <Undo2 size={20} />
+        <span>Voltar</span>
+      </button>
+
       <div className="flex flex-col justify-center items-center w-full md:w-1/2 p-10">
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-2 text-center">

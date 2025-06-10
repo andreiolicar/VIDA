@@ -5,6 +5,7 @@ import { BadgeCheck, Plus, Trash } from 'lucide-react';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import axios from '../services/axios';
+import PopupMessage from "@/components/ui/PopupMessage"; // Importe o componente
 
 const AREAS = [
   'Programação',
@@ -28,6 +29,8 @@ export default function NewStudyRouteForm() {
   const [topics, setTopics] = useState(['', '', '']);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
   const handleTopicChange = (value, index) => {
@@ -43,63 +46,81 @@ export default function NewStudyRouteForm() {
     }
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (
-    !user ||
-    !title ||
-    !area ||
-    !description ||
-    topics.length < 3 ||
-    topics.some((t) => t.trim() === '')
-  ) {
-    setError('Preencha todos os campos e tenha pelo menos 3 tópicos.');
-    return;
-  }
-
-  setError('');
-  setLoading(true);
-
-  try {
-    console.log('User ID:', user);
-
-    const response = await axios.post(
-      `${import.meta.env.VITE_API_URL}/study-routes/${user}`,
-      {
-        title,
-        area,
-        description,
-        topics: topics.filter((t) => t.trim() !== ''),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    const data = response.data;
-    console.log('API response:', data);
-
-    if (!data) {
-      throw new Error('Erro ao criar rota de estudo.');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (
+      !user ||
+      !title ||
+      !area ||
+      !description ||
+      topics.length < 3 ||
+      topics.some((t) => t.trim() === '')
+    ) {
+      setError('Preencha todos os campos e tenha pelo menos 3 tópicos.');
+      return;
     }
 
-    navigate('/dashboard/study');
-  } catch (err) {
-    console.error('Erro ao enviar:', err);
-    const message =
-      err.response?.data?.message ||
-      err.message ||
-      'Erro inesperado.';
-    setError(message);
-  } finally {
-    setLoading(false);
-  }
-};
+    setError('');
+    setIsCreating(true); // Mostra "Criando..."
+    setLoading(true);
+
+    try {
+      console.log('User ID:', user);
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/study-routes/${user}`,
+        {
+          title,
+          area,
+          description,
+          topics: topics.filter((t) => t.trim() !== ''),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data;
+      console.log('API response:', data);
+
+      if (!data) {
+        throw new Error('Erro ao criar rota de estudo.');
+      }
+
+      setSuccessMessage('Trilha criada com sucesso!');
+      setTimeout(() => {
+        setSuccessMessage('');
+        navigate('/dashboard/study');
+      }, 3000);
+    } catch (err) {
+      console.error('Erro ao enviar:', err);
+      const message =
+        err.response?.data?.message ||
+        err.message ||
+        'Erro inesperado.';
+      setError(message);
+    } finally {
+      setIsCreating(false); // Esconde "Criando..."
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
+      <PopupMessage
+        message="Criando trilha de estudos..."
+        isVisible={isCreating}
+        loading={true}
+      />
+
+      <PopupMessage
+        message={successMessage}
+        isVisible={!!successMessage}
+        onClose={() => setSuccessMessage('')}
+      />
+
       <Sidebar />
 
       <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">

@@ -21,13 +21,14 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    async function fetchUser() {
+    async function fetchData() {
       try {
         const userId = localStorage.getItem('user');
         if (!userId) {
           setUserName("Usuário");
           return;
         }
+
         // Buscar dados do usuário
         const res = await axios.get(`http://localhost:5000/api/user/get/${userId}`);
         if (res.data && res.data.user && res.data.user.name) {
@@ -38,21 +39,27 @@ export default function Dashboard() {
 
         // Buscar tarefas do usuário
         const tasksRes = await axios.get(`http://localhost:5000/api/tasks/user/${userId}`);
+        let pendentes = 0;
         if (tasksRes.data) {
-          // Filtrar tarefas pendentes (status diferente de 'feito')
-          const pendentes = tasksRes.data.filter(task => task.status !== 'feito').length;
-
-          setStats(prev => ({
-            ...prev,
-            tarefasPendentes: pendentes,
-          }));
+          pendentes = tasksRes.data.filter(task => task.status !== 'feito').length;
         }
+
+        // Buscar trilhas de estudos do usuário
+        const routesRes = await axios.get(`/study-routes/${userId}`);
+        const numTrilhas = Array.isArray(routesRes.data) ? routesRes.data.length : 0;
+
+        setStats(prev => ({
+          ...prev,
+          tarefasPendentes: pendentes,
+          estudos: numTrilhas, // Atualiza com número real de trilhas
+        }));
+
       } catch (err) {
-        console.error("Erro ao buscar usuário ou tarefas:", err);
+        console.error("Erro ao buscar dados:", err);
         setUserName("Usuário");
       }
     }
-    fetchUser();
+    fetchData();
   }, []);
 
   return (
@@ -103,7 +110,7 @@ export default function Dashboard() {
           <CardDashboard
             icon={<BookOpen className="w-8 h-8 text-blue-400" />}
             title="Estudos"
-            subtitle={`${stats.estudos}% da meta anual`}
+            subtitle={`${stats.estudos} trilhas criadas`}
             btnText="Ver Trilhas"
             btnLink="/dashboard/study"
             bgColor="bg-blue-900"
