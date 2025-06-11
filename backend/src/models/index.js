@@ -14,6 +14,8 @@ db.TaskAttachment = require('./TaskAttachment')(sequelize, Sequelize.DataTypes);
 db.TaskReminder = require('./TaskReminder')(sequelize, Sequelize.DataTypes);
 db.TaskCollaborator = require('./TaskCollaborator')(sequelize, Sequelize.DataTypes);
 
+db.ChatSession = require('./ChatSession')(sequelize, Sequelize.DataTypes);
+
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
@@ -27,5 +29,7 @@ if (db.TaskList.associate) db.TaskList.associate(db);
 if (db.TaskAttachment.associate) db.TaskAttachment.associate(db);
 if (db.TaskReminder.associate) db.TaskReminder.associate(db);
 if (db.TaskCollaborator.associate) db.TaskCollaborator.associate(db);
+
+if (db.ChatSession.associate) db.ChatSession.associate(db);
 
 module.exports = db;

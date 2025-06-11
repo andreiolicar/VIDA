@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const eventsRoutes = require('./routes/events.routes');
 const swaggerConfig = require("./swagger");
-
+const chatSessionRoutes = require('./routes/chatSession.routes');
 
 require('dotenv').config();
 
@@ -11,8 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
-swaggerConfig(app);  // Chama a função que adiciona a rota /api-docs
+swaggerConfig(app); 
 
 // Rotas
 app.use('/api/auth', require('./routes/auth.routes'));
@@ -26,5 +25,7 @@ app.use('/api/task-lists', require('./routes/taskLists.routes'));
 app.use('/api/task-collaborators', require('./routes/taskCollaborators.routes'));
 app.use('/api/task-attachments', require('./routes/taskAttachments.routes'));
 app.use('/api/ia', require('./routes/ia.routes'));
+
+app.use('/api/chat-sessions', chatSessionRoutes);
 
 module.exports = app;

@@ -54,7 +54,7 @@ export default function Chatbot() {
       <main className="flex flex-col flex-1 px-6 py-6 md:px-12 md:py-8">
         {/* Header */}
         <header className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Assistente IA V.I.D.A</h1>
+          <h1 className="text-2xl font-semibold">Assistente IA V.I.D.A</h1>
           <p className="text-gray-400 max-w-xl mt-1 md:mt-2 text-sm md:text-base">
             Pergunte qualquer coisa! A IA V.I.D.A está pronta para ajudar você a organizar sua vida.
           </p>
@@ -91,7 +91,6 @@ export default function Chatbot() {
                     ) : (
                       <span>{msg.text}</span>
                     )}
-                    {/* Ponteira do balão */}
                     <span
                       className={`absolute bottom-0 w-3 md:w-4 h-3 md:h-4 bg-transparent ${isUser ? '-right-2 rounded-bl-2xl' : '-left-2 rounded-br-2xl'
                         }`}
