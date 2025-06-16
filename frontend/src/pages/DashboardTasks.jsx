@@ -572,7 +572,7 @@ export default function DashboardTasks() {
             <div className="flex gap-4">
               <button
                 onClick={() => setShowNewListForm(!showNewListForm)}
-                className="bg-green-600 px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+                className="bg-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2"
               >
                 <Plus size={18} /> {showNewListForm ? 'Cancelar' : 'Nova Lista'}
               </button>
@@ -587,7 +587,7 @@ export default function DashboardTasks() {
                 className={`px-4 py-2 rounded-lg font-semibold transition ${
                   showFavoritesOnly
                     ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
-                    : 'bg-gray-700 hover:bg-gray-600 text-gray-300 cursor-pointer'
+                    : 'bg-gray-700 text-gray-300'
                 } ${!hasFavorites ? 'opacity-50 cursor-not-allowed' : ''}`}
                 aria-pressed={showFavoritesOnly}
                 aria-label="Filtrar listas favoritas"
@@ -606,7 +606,7 @@ export default function DashboardTasks() {
                 setListFilter(e.target.value);
                 setListPage(1);
               }}
-              className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-green-500"
+              className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
             />
           </div>
 
@@ -618,7 +618,7 @@ export default function DashboardTasks() {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-green-500"
+                  className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
                   placeholder="Ex: Lista de Mercado"
                 />
               </div>
@@ -628,7 +628,7 @@ export default function DashboardTasks() {
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value)}
-                  className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-green-500"
+                  className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
                 >
                   {LIST_TYPES.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -644,7 +644,7 @@ export default function DashboardTasks() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-green-500"
+                  className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
                   placeholder="Descrição opcional"
                 />
               </div>
@@ -667,7 +667,7 @@ export default function DashboardTasks() {
               <button
                 onClick={handleCreateList}
                 disabled={creatingList}
-                className="bg-green-600 px-5 py-2 rounded-lg hover:bg-green-700 font-semibold w-full"
+                className="bg-indigo-600 px-5 py-2 rounded-lg hover:bg-indigo-700 font-semibold w-full"
               >
                 {creatingList ? 'Criando...' : 'Criar Lista'}
               </button>

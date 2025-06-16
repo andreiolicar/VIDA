@@ -20,6 +20,7 @@ app.use('/api/study-routes', require('./routes/studyRoutes'));
 app.use('/api/events', eventsRoutes);
 
 app.use('/api/tasks', require('./routes/tasks.routes'));
+app.use('/api/subtasks', require('./routes/subtasks.routes'));
 app.use('/api/task-reminders', require('./routes/taskReminders.routes'));
 app.use('/api/task-lists', require('./routes/taskLists.routes'));
 app.use('/api/task-collaborators', require('./routes/taskCollaborators.routes'));

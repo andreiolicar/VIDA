@@ -46,6 +46,7 @@ module.exports = (sequelize, DataTypes) => {
     Task.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
     Task.hasMany(models.TaskAttachment, { foreignKey: 'taskId', as: 'attachments' });
     Task.hasMany(models.TaskReminder, { foreignKey: 'taskId', as: 'reminders' });
+    Task.hasMany(models.Subtask, { foreignKey: 'taskId', as: 'subtasks', onDelete: 'CASCADE' });
   };
 
   return Task;

@@ -1,13 +1,13 @@
 const db = require("../models");
 const Op = db.Sequelize.Op;
-const { Task, TaskAttachment, TaskReminder, TaskList } = db;
+const { Task, TaskAttachment, TaskReminder, TaskList, Subtask } = db;
 
 const { suggestPriority } = require("../gemini");
 const { buildUserPriorityProfile } = require("../prioritization");
 
-// Criar tarefa com priorização inteligente
+// Criar tarefa com priorização inteligente e subtasks
 const createTask = async (req, res) => {
-  const { title, description, priority, dueDate, status, recurring, listId } = req.body;
+  const { title, description, priority, dueDate, status, recurring, listId, subtasks } = req.body;
   const userId = req.params.userId;
 
   if (!title || !listId) {
@@ -21,6 +21,7 @@ const createTask = async (req, res) => {
     // Obter sugestão da IA Gemini
     const suggestedPriority = await suggestPriority(userProfile, title, description);
 
+    // Criar a tarefa
     const task = await Task.create({
       title,
       description,
@@ -31,6 +32,21 @@ const createTask = async (req, res) => {
       listId,
       userId,
     });
+
+    // Criar subtasks em bulk, se existirem
+    if (subtasks && Array.isArray(subtasks) && subtasks.length > 0) {
+      const subtasksData = subtasks
+        .filter((t) => t.trim() !== '')
+        .map((title) => ({
+          taskId: task.id,
+          title,
+          completed: false,
+        }));
+
+      if (subtasksData.length > 0) {
+        await Subtask.bulkCreate(subtasksData);
+      }
+    }
 
     res.status(201).json({
       ...task.get({ plain: true }),
@@ -82,7 +98,7 @@ const getTasksByUser = async (req, res) => {
       include: [
         { model: TaskAttachment, as: "attachments" },
         { model: TaskReminder, as: "reminders" },
-        { model: TaskList, as: "list" }, // inclusão da lista
+        { model: TaskList, as: "list" },
       ],
       order: [["dueDate", "ASC"]],
     });
@@ -103,7 +119,7 @@ const getTasksByList = async (req, res) => {
       include: [
         { model: TaskAttachment, as: "attachments" },
         { model: TaskReminder, as: "reminders" },
-        { model: TaskList, as: "list" }, // inclusão da lista
+        { model: TaskList, as: "list" },
       ],
       order: [["dueDate", "ASC"]],
     });
@@ -114,7 +130,7 @@ const getTasksByList = async (req, res) => {
   }
 };
 
-// Buscar tarefa por ID incluindo anexos, lembretes e lista
+// Buscar tarefa por ID incluindo anexos, lembretes, lista e subtarefas
 const getTaskById = async (req, res) => {
   const { id } = req.params;
 
@@ -123,7 +139,8 @@ const getTaskById = async (req, res) => {
       include: [
         { model: TaskAttachment, as: "attachments" },
         { model: TaskReminder, as: "reminders" },
-        { model: TaskList, as: "list" }, // inclusão da lista
+        { model: TaskList, as: "list" },
+        { model: Subtask, as: "subtasks" }, // inclusão das subtarefas
       ],
     });
     if (!task) return res.status(404).json({ message: "Tarefa não encontrada." });
@@ -166,7 +183,7 @@ const getTasksKanbanByList = async (req, res) => {
       include: [
         { model: TaskAttachment, as: "attachments" },
         { model: TaskReminder, as: "reminders" },
-        { model: TaskList, as: "list" }, // inclusão da lista
+        { model: TaskList, as: "list" },
       ],
       order: [["dueDate", "ASC"]],
     });

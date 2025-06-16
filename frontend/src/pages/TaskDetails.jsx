@@ -3,6 +3,105 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from '@/services/axios';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
+import { Edit, Trash } from 'lucide-react';
+
+function ConfirmSubtaskDeleteModal({ isOpen, subtaskTitle, onConfirm, onCancel }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-[#1f2937] p-6 rounded-xl max-w-sm w-full text-white shadow-lg">
+        <h2 className="text-xl font-semibold mb-4">Confirmar exclusão</h2>
+        <p className="mb-6">
+          Tem certeza que deseja excluir a subtarefa &quot;{subtaskTitle}&quot;? Essa ação não pode ser desfeita.
+        </p>
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 transition"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition"
+          >
+            Excluir
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditSubtaskModal({ isOpen, subtask, onSave, onCancel }) {
+  const [title, setTitle] = useState(subtask?.title || '');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && subtask) {
+      setTitle(subtask.title || '');
+      setSaving(false);
+    }
+  }, [isOpen, subtask]);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (saving) return;
+    if (!title.trim()) return alert('O título não pode ser vazio.');
+
+    setSaving(true);
+    try {
+      await onSave({ ...subtask, title: title.trim() });
+    } catch {
+      alert('Erro ao salvar subtarefa.');
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-[#1f2937] p-6 rounded-xl max-w-md w-full text-white shadow-lg"
+      >
+        <h2 className="text-xl font-semibold mb-4">Editar Subtarefa</h2>
+
+        <div className="mb-6">
+          <label className="block mb-1 font-medium">Título</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            className="w-full rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
+            autoFocus
+          />
+        </div>
+
+        <div className="flex justify-end gap-4">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 transition"
+            disabled={saving}
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition"
+            disabled={saving}
+          >
+            {saving ? 'Salvando...' : 'Salvar'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
 
 export default function TaskDetails() {
   const { id } = useParams();
@@ -15,7 +114,7 @@ export default function TaskDetails() {
   const [error, setError] = useState('');
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  // Estados do formulário de edição
+  // Estados do formulário de edição da tarefa
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('media');
@@ -26,13 +125,25 @@ export default function TaskDetails() {
   const [loadingLists, setLoadingLists] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Novo estado para modal de exclusão
+  // Modal exclusão da tarefa
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Estado e ref para dropdown
+  // Dropdown
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Subtasks e modais de subtarefa
+  const [subtasks, setSubtasks] = useState([]);
+  const [updatingSubtaskIds, setUpdatingSubtaskIds] = useState(new Set());
+
+  const [newSubtask, setNewSubtask] = useState('');
+
+  const [editSubtaskModalOpen, setEditSubtaskModalOpen] = useState(false);
+  const [subtaskToEdit, setSubtaskToEdit] = useState(null);
+
+  const [deleteSubtaskModalOpen, setDeleteSubtaskModalOpen] = useState(false);
+  const [subtaskToDelete, setSubtaskToDelete] = useState(null);
 
   const getPriorityColor = (priority) => {
     switch (priority?.toLowerCase()) {
@@ -66,6 +177,7 @@ export default function TaskDetails() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTask(res.data);
+      setSubtasks(res.data.subtasks || []);
       setError('');
     } catch (err) {
       console.error('Erro ao buscar tarefa:', err);
@@ -94,7 +206,6 @@ export default function TaskDetails() {
     fetchTask();
   }, [id]);
 
-  // Fecha dropdown ao clicar fora
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -151,7 +262,6 @@ export default function TaskDetails() {
     }
   };
 
-  // Função para excluir tarefa
   const handleDeleteTask = async () => {
     if (deleting) return;
     setDeleting(true);
@@ -169,21 +279,47 @@ export default function TaskDetails() {
     }
   };
 
-  // Funções para dropdown
-  const toggleStatus = async () => {
+  // Função para alternar status da tarefa e subtarefas, usada pelo card e dropdown
+  const handleToggleStatusFromCard = async (taskToToggle) => {
     try {
-      const novoStatus = task.status === 'feito' ? 'a_fazer' : 'feito';
+      const novoStatus = taskToToggle.status === 'feito' ? 'a_fazer' : 'feito';
+
+      // Atualiza status da tarefa
       await axios.patch(
-        `/tasks/${id}`,
+        `/tasks/${taskToToggle.id}`,
         { status: novoStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      fetchTask();
-      setDropdownOpen(false);
-    } catch (err) {
-      alert('Erro ao atualizar status da tarefa.');
-      console.error(err);
+
+      // Atualiza todas as subtarefas para o mesmo status
+      if (subtasks.length > 0) {
+        await Promise.all(
+          subtasks
+            .filter((st) => st.completed !== (novoStatus === 'feito'))
+            .map((st) =>
+              axios.patch(
+                `/subtasks/${st.id}`,
+                { completed: novoStatus === 'feito' },
+                { headers: { Authorization: `Bearer ${token}` } }
+              )
+            )
+        );
+      }
+
+      // Atualiza estados locais para refletir as mudanças
+      setTask((prev) => (prev && prev.id === taskToToggle.id ? { ...prev, status: novoStatus } : prev));
+      setSubtasks((prev) => prev.map((st) => ({ ...st, completed: novoStatus === 'feito' })));
+    } catch (error) {
+      alert('Erro ao atualizar status da tarefa e subtarefas.');
+      console.error(error);
     }
+  };
+
+  // Função para alternar status da tarefa via dropdown (mantida para compatibilidade)
+  const toggleStatus = async () => {
+    if (!task) return;
+    await handleToggleStatusFromCard(task);
+    setDropdownOpen(false);
   };
 
   const handleEditClick = () => {
@@ -194,6 +330,140 @@ export default function TaskDetails() {
   const handleDeleteClick = () => {
     setDeleteModalOpen(true);
     setDropdownOpen(false);
+  };
+
+  // === FUNÇÃO ATUALIZADA ===
+  const toggleSubtaskCompleted = async (subtaskId, currentCompleted) => {
+    if (updatingSubtaskIds.has(subtaskId)) return;
+    setUpdatingSubtaskIds(new Set(updatingSubtaskIds).add(subtaskId));
+
+    try {
+      const newCompleted = !currentCompleted;
+      await axios.patch(
+        `/subtasks/${subtaskId}`,
+        { completed: newCompleted },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setSubtasks((prev) =>
+        prev.map((st) =>
+          st.id === subtaskId ? { ...st, completed: newCompleted } : st
+        )
+      );
+
+      // Atualiza o array localmente para verificar o status correto
+      const updatedSubtasks = subtasks.map((st) =>
+        st.id === subtaskId ? { ...st, completed: newCompleted } : st
+      );
+
+      const allCompleted = updatedSubtasks.length > 0 && updatedSubtasks.every(st => st.completed);
+      const anyCompleted = updatedSubtasks.some(st => st.completed);
+
+      let novoStatus = 'a_fazer';
+      if (allCompleted) {
+        novoStatus = 'feito';
+      } else if (anyCompleted) {
+        novoStatus = 'fazendo';
+      } else {
+        novoStatus = 'a_fazer';
+      }
+
+      if (task.status !== novoStatus) {
+        await axios.patch(
+          `/tasks/${id}`,
+          { status: novoStatus },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setTask((prev) => ({ ...prev, status: novoStatus }));
+      }
+    } catch (error) {
+      alert('Erro ao atualizar subtarefa.');
+      console.error(error);
+    } finally {
+      const newSet = new Set(updatingSubtaskIds);
+      newSet.delete(subtaskId);
+      setUpdatingSubtaskIds(newSet);
+    }
+  };
+
+  const handleAddSubtask = async (e) => {
+    e.preventDefault();
+    if (!newSubtask.trim()) return;
+
+    try {
+      const res = await axios.post(
+        '/subtasks',
+        {
+          taskId: task.id,
+          title: newSubtask.trim(),
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSubtasks((prev) => [...prev, res.data]);
+      setNewSubtask('');
+
+      // Se a tarefa estiver concluída, ao adicionar subtarefa ela deve ser marcada como não concluída
+      if (task.status === 'feito') {
+        await axios.patch(
+          `/tasks/${id}`,
+          { status: 'a_fazer' },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setTask((prev) => ({ ...prev, status: 'a_fazer' }));
+      }
+    } catch (error) {
+      alert('Erro ao adicionar subtarefa.');
+      console.error(error);
+    }
+  };
+
+  const openEditSubtaskModal = (subtask) => {
+    setSubtaskToEdit(subtask);
+    setEditSubtaskModalOpen(true);
+  };
+
+  const closeEditSubtaskModal = () => {
+    setEditSubtaskModalOpen(false);
+    setSubtaskToEdit(null);
+  };
+
+  const saveEditedSubtask = async (updatedSubtask) => {
+    try {
+      await axios.patch(
+        `/subtasks/${updatedSubtask.id}`,
+        { title: updatedSubtask.title },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSubtasks((prev) =>
+        prev.map((st) => (st.id === updatedSubtask.id ? updatedSubtask : st))
+      );
+      closeEditSubtaskModal();
+    } catch {
+      alert('Erro ao salvar subtarefa.');
+    }
+  };
+
+  const openDeleteSubtaskModal = (subtask) => {
+    setSubtaskToDelete(subtask);
+    setDeleteSubtaskModalOpen(true);
+  };
+
+  const closeDeleteSubtaskModal = () => {
+    setDeleteSubtaskModalOpen(false);
+    setSubtaskToDelete(null);
+  };
+
+  const confirmDeleteSubtask = async () => {
+    if (!subtaskToDelete) return;
+    try {
+      await axios.delete(`/subtasks/${subtaskToDelete.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSubtasks((prev) => prev.filter((st) => st.id !== subtaskToDelete.id));
+      closeDeleteSubtaskModal();
+    } catch {
+      alert('Erro ao excluir subtarefa.');
+    }
   };
 
   if (loading) return <p className="p-8 text-white">Carregando...</p>;
@@ -263,7 +533,6 @@ export default function TaskDetails() {
               )}
             </div>
 
-            {/* Botão Voltar */}
             <button
               onClick={() => navigate(-1)}
               className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-semibold"
@@ -293,6 +562,94 @@ export default function TaskDetails() {
           >
             {task.description || 'Sem descrição'}
           </p>
+        </section>
+
+        <section className="mb-6 max-w-md">
+          <h2 className="text-xl font-semibold mb-2">Subtarefas</h2>
+          {subtasks.length === 0 ? (
+            <p className="text-gray-400">Nenhuma subtarefa cadastrada.</p>
+          ) : (
+            <ul className="space-y-4">
+              {subtasks.map((subtask) => (
+                <li
+                  key={subtask.id}
+                  className={`p-4 rounded-lg border flex justify-between items-center ${
+                    subtask.completed ? 'border-green-500 bg-green-900' : 'border-gray-600 bg-[#111827]'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={subtask.completed}
+                      disabled={updatingSubtaskIds.has(subtask.id)}
+                      onChange={() => toggleSubtaskCompleted(subtask.id, subtask.completed)}
+                      className="w-5 h-5 accent-green-500 cursor-pointer flex-shrink-0"
+                      id={`subtask-${subtask.id}`}
+                    />
+                    <label
+                      htmlFor={`subtask-${subtask.id}`}
+                      className={`text-lg select-none truncate ${
+                        subtask.completed ? 'line-through text-green-400' : 'text-white'
+                      }`}
+                      title={subtask.title}
+                    >
+                      {subtask.title}
+                    </label>
+                  </div>
+
+                  <div className="flex gap-3 ml-4 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSubtaskToEdit(subtask);
+                        setEditSubtaskModalOpen(true);
+                      }}
+                      title="Editar subtarefa"
+                      className="text-blue-400 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSubtaskToDelete(subtask);
+                        setDeleteSubtaskModalOpen(true);
+                      }}
+                      title="Excluir subtarefa"
+                      className="text-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
+                    >
+                      <Trash size={18} />
+                    </button>
+                  </div>
+
+                  <span
+                    className={`text-sm font-semibold ml-4 ${
+                      subtask.completed ? 'text-green-400' : 'text-gray-400'
+                    }`}
+                  >
+                    {subtask.completed ? 'Concluído' : 'Pendente'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <form onSubmit={handleAddSubtask} className="mt-4 flex gap-2">
+            <input
+              type="text"
+              placeholder="Adicionar nova subtarefa"
+              value={newSubtask}
+              onChange={(e) => setNewSubtask(e.target.value)}
+              className="flex-1 rounded px-3 py-2 bg-[#111827] text-white outline-none focus:ring-2 ring-blue-500"
+            />
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-semibold transition"
+              disabled={!newSubtask.trim()}
+            >
+              Adicionar
+            </button>
+          </form>
         </section>
 
         <section className="mb-6 grid grid-cols-2 gap-6 max-w-md">
@@ -353,7 +710,28 @@ export default function TaskDetails() {
 
       <DashboardRightPanel />
 
-      {/* Modal Inline */}
+      <EditSubtaskModal
+        isOpen={editSubtaskModalOpen}
+        subtask={subtaskToEdit}
+        onSave={saveEditedSubtask}
+        onCancel={() => {
+          setEditSubtaskModalOpen(false);
+          setSubtaskToEdit(null);
+        }}
+      />
+
+      <ConfirmSubtaskDeleteModal
+        isOpen={deleteSubtaskModalOpen}
+        subtaskTitle={subtaskToDelete?.title || ''}
+        onConfirm={() => {
+          confirmDeleteSubtask();
+        }}
+        onCancel={() => {
+          setDeleteSubtaskModalOpen(false);
+          setSubtaskToDelete(null);
+        }}
+      />
+
       {editModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <form
@@ -467,7 +845,6 @@ export default function TaskDetails() {
         </div>
       )}
 
-      {/* Modal de confirmação exclusão */}
       {deleteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-[#1f2937] p-6 rounded-xl max-w-sm w-full text-white shadow-lg">

@@ -137,7 +137,6 @@ export default function TaskCard({ task, onDelete, onToggleStatus, onEdit, extra
         </div>
       </div>
 
-      {/* Prazo organizado com fonte menor */}
       <div className="mb-2">
         <div className="text-xs font-semibold text-gray-400 mb-1">Data do Prazo</div>
         <div className={`flex justify-between items-center text-xs font-semibold ${dueDateTextColor}`}>
