@@ -17,6 +17,11 @@ db.TaskCollaborator = require('./TaskCollaborator')(sequelize, Sequelize.DataTyp
 
 db.ChatSession = require('./ChatSession')(sequelize, Sequelize.DataTypes);
 
+db.Transaction = require('./Transaction')(sequelize, Sequelize.DataTypes);
+db.FinancialGoal = require('./FinancialGoal')(sequelize, Sequelize.DataTypes);
+db.VidaScore = require('./VidaScore')(sequelize, Sequelize.DataTypes);
+db.Alert = require('./Alert')(sequelize, Sequelize.DataTypes);
+
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
@@ -33,5 +38,10 @@ if (db.TaskReminder.associate) db.TaskReminder.associate(db);
 if (db.TaskCollaborator.associate) db.TaskCollaborator.associate(db);
 
 if (db.ChatSession.associate) db.ChatSession.associate(db);
+
+if (db.Transaction.associate) db.Transaction.associate(db);
+if (db.FinancialGoal.associate) db.FinancialGoal.associate(db);
+if (db.VidaScore.associate) db.VidaScore.associate(db);
+if (db.Alert.associate) db.Alert.associate(db);
 
 module.exports = db;

@@ -27,6 +27,8 @@ app.use('/api/task-collaborators', require('./routes/taskCollaborators.routes'))
 app.use('/api/task-attachments', require('./routes/taskAttachments.routes'));
 app.use('/api/ia', require('./routes/ia.routes'));
 
+app.use('/api/finance', require('./routes/finance.routes'));
+
 app.use('/api/chat-sessions', chatSessionRoutes);
 
 module.exports = app;
