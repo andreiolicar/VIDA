@@ -20,7 +20,6 @@ import TaskListDetails from '@/pages/TaskListDetails';
 import EditTaskList from '@/pages/EditTaskList';
 import TaskDetails from '@/pages/TaskDetails';
 import EditTask from '@/pages/EditTask';
-import Chatbot from './pages/Chatbot';
 import SettingsPage from '@/pages/Settings';
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
 import TermsOfUse from './pages/TermsOfUse.jsx';
@@ -28,6 +27,9 @@ import Partnerships from './pages/Partnerships.jsx';
 import Solution from '@/pages/Solution';
 import AboutUs from '@/pages/AboutUs';
 import Contact from '@/pages/Contact';
+import DashboardChatbot from './pages/DashboardChatbot';
+import NewChatSessionForm from './pages/NewChatSessionForm';
+import Chatbot from './pages/Chatbot';
 
 function App() {
   return (
@@ -59,15 +61,15 @@ function App() {
           <Route path="/dashboard/task-list/edit/:id" element={<EditTaskList />} />
           <Route path="/dashboard/task/:id" element={<TaskDetails />} />
           <Route path="/dashboard/task/edit/:id" element={<EditTask />} />
-          <Route path="/dashboard/chatbot" element={<Chatbot />} />
           <Route path="/dashboard/settings" element={<SettingsPage />} />
-
-          {/* Novas rotas para Trilhas de Estudos */}
           <Route path="/dashboard/study" element={<DashboardStudy />} />
           <Route path="/dashboard/study/new" element={<NewStudyRouteForm />} />
           <Route path="/dashboard/study/:id" element={<DashboardStudyDetail />} />
           <Route path="/dashboard/events/new" element={<NewEvent />} />
           <Route path="/dashboard/events/:id" element={<DashboardEventDetail />} />
+          <Route path="/dashboard/chatbot" element={<DashboardChatbot />} />
+          <Route path="/dashboard/chatbot/new" element={<NewChatSessionForm />} />
+          <Route path="/dashboard/chatbot/:id" element={<Chatbot />} />
         </Route>
       </Route>
     </Routes>
