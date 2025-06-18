@@ -1,5 +1,3 @@
-// routes/finance.routes.js
-
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth.middleware");
@@ -211,6 +209,26 @@ router.patch("/:userId/goals/:goalId", auth, financeController.updateGoalProgres
  *         description: V.I.D.A. Score retornado com sucesso
  */
 router.get("/:userId/vida-score", auth, financeController.getVidaScore);
+
+/**
+ * @swagger
+ * /finance/{userId}/vida-score/history:
+ *   get:
+ *     summary: Obter histórico do V.I.D.A. Score do usuário
+ *     tags: [Finanças]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Histórico do V.I.D.A. Score retornado com sucesso
+ */
+router.get("/:userId/vida-score/history", auth, financeController.getVidaScoreHistory);
 
 /**
  * @swagger

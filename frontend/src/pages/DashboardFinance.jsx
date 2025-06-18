@@ -52,7 +52,7 @@ export default function DashboardFinance() {
     Promise.all([fetchTransactions(), fetchGoals(), fetchVidaScore()]).finally(() => setLoading(false));
   }, []);
 
-  // Excluir transação (exemplo simples)
+  // Excluir transação
   const handleDeleteTransaction = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir esta transação?')) {
       try {
@@ -84,10 +84,20 @@ export default function DashboardFinance() {
 
       <div className="flex flex-1 flex-col px-12 py-8 overflow-y-auto">
         {/* V.I.D.A. Score */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold mb-2">V.I.D.A. Score</h1>
+        <div className="mb-8 p-6 bg-white/10 rounded-xl shadow flex flex-col items-start">
+          <h1 className="text-3xl font-semibold mb-1">V.I.D.A. Score</h1>
+          <p className="text-gray-300 mb-4 max-w-xl">
+            O V.I.D.A. Score é uma pontuação exclusiva que reflete sua saúde financeira, levando em conta seu saldo, progresso nas metas e hábitos de gastos. Acompanhe para evoluir suas finanças!
+          </p>
           {vidaScore !== null ? (
-            <div className="text-4xl font-bold text-green-400">{vidaScore.toFixed(1)}</div>
+            <div className="flex items-center gap-4 mb-4">
+              <span className="text-4xl font-bold text-green-400">{vidaScore.toFixed(1)}</span>
+              <Link to="/dashboard/finance/vida-score">
+                <button className="ml-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                  Ver detalhes
+                </button>
+              </Link>
+            </div>
           ) : (
             <p>Carregando score...</p>
           )}
@@ -113,7 +123,12 @@ export default function DashboardFinance() {
               {transactions.map((tx) => (
                 <div key={tx.id} className="p-4 bg-white/10 backdrop-blur rounded-xl shadow hover:shadow-lg transition flex flex-col justify-between">
                   <div>
-                    <h2 className="text-lg font-semibold mb-1">{tx.category}</h2>
+                    <Link
+                      to={`/dashboard/finance/transaction/${tx.id}`}
+                      className="text-lg font-semibold mb-1 hover:underline"
+                    >
+                      {tx.category}
+                    </Link>
                     <p className="text-sm text-gray-400 mb-2">{new Date(tx.date).toLocaleDateString('pt-BR')}</p>
                     <p className={`font-bold ${tx.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
                       {tx.type === 'income' ? '+' : '-'} R$ {tx.amount.toFixed(2)}
@@ -155,7 +170,12 @@ export default function DashboardFinance() {
                 return (
                   <div key={goal.id} className="p-4 bg-white/10 backdrop-blur rounded-xl shadow hover:shadow-lg transition flex flex-col justify-between">
                     <div>
-                      <h2 className="text-lg font-semibold mb-1">{goal.title}</h2>
+                      <Link
+                        to={`/dashboard/finance/goal/${goal.id}`}
+                        className="text-lg font-semibold mb-1 hover:underline"
+                      >
+                        {goal.title}
+                      </Link>
                       <p className="text-sm text-gray-400 mb-2">
                         Meta: R$ {goal.targetAmount.toFixed(2)}
                       </p>

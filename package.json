@@ -13,5 +13,8 @@
     "server": "cd backend && nodemon src/server.js",
     "client": "cd frontend && npm run dev",
     "setup": "cd backend && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all"
+  },
+  "dependencies": {
+    "recharts": "^2.15.3"
   }
 }

@@ -21,6 +21,7 @@ db.Transaction = require('./Transaction')(sequelize, Sequelize.DataTypes);
 db.FinancialGoal = require('./FinancialGoal')(sequelize, Sequelize.DataTypes);
 db.VidaScore = require('./VidaScore')(sequelize, Sequelize.DataTypes);
 db.Alert = require('./Alert')(sequelize, Sequelize.DataTypes);
+db.VidaScoreHistory = require('./VidaScoreHistory')(sequelize, Sequelize.DataTypes);
 
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
@@ -43,5 +44,6 @@ if (db.Transaction.associate) db.Transaction.associate(db);
 if (db.FinancialGoal.associate) db.FinancialGoal.associate(db);
 if (db.VidaScore.associate) db.VidaScore.associate(db);
 if (db.Alert.associate) db.Alert.associate(db);
+if (db.VidaScoreHistory.associate) db.VidaScoreHistory.associate(db);
 
 module.exports = db;

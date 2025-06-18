@@ -30,6 +30,13 @@ import Contact from '@/pages/Contact';
 import DashboardChatbot from './pages/DashboardChatbot';
 import NewChatSessionForm from './pages/NewChatSessionForm';
 import Chatbot from './pages/Chatbot';
+import NewGoal from '@/pages/NewGoal';
+import NewTransaction from '@/pages/NewTransaction';
+import VidaScoreDetails from '@/pages/VidaScoreDetails';
+import EditGoal from '@/pages/EditGoal';
+import EditTransaction from '@/pages/EditTransaction';
+import GoalDetails from '@/pages/GoalDetails';
+import TransactionDetails from '@/pages/TransactionDetails';
 
 function App() {
   return (
@@ -57,6 +64,13 @@ function App() {
           <Route path="/dashboard/newtask" element={<NewTask />} />
           <Route path="/dashboard/kanban" element={<KanBanTasks />} />
           <Route path="/dashboard/finance" element={<DashboardFinance />} />
+          <Route path="/dashboard/finance/new-goal" element={<NewGoal />} />
+          <Route path="/dashboard/finance/new-transaction" element={<NewTransaction />} />
+          <Route path="/dashboard/finance/vida-score" element={<VidaScoreDetails />} />
+          <Route path="/dashboard/finance/edit-goal/:id" element={<EditGoal />} />
+          <Route path="/dashboard/finance/edit-transaction/:id" element={<EditTransaction />} />
+          <Route path="/dashboard/finance/goal/:id" element={<GoalDetails />} />
+          <Route path="/dashboard/finance/transaction/:id" element={<TransactionDetails />} />
           <Route path="/dashboard/task-list/:id" element={<TaskListDetails />} />
           <Route path="/dashboard/task-list/edit/:id" element={<EditTaskList />} />
           <Route path="/dashboard/task/:id" element={<TaskDetails />} />
