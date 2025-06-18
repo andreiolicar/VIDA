@@ -10,24 +10,28 @@ export default function NewChatSessionForm() {
   const [area, setArea] = useState('');
   const [topics, setTopics] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!title.trim() || !area.trim() || !description.trim() || !topics.trim()) {
-      alert('Preencha todos os campos.');
+      setError('Preencha todos os campos.');
       return;
     }
 
-    const topicsArray = topics.split(',').map((t) => t.trim()).filter(Boolean);
+    const topicsArray = topics.split(',').map(t => t.trim()).filter(Boolean);
     if (topicsArray.length === 0) {
-      alert('Adicione ao menos um tópico.');
+      setError('Adicione ao menos um tópico.');
       return;
     }
 
+    setError('');
     setLoading(true);
+
     try {
       const res = await axios.post(
         '/chat-sessions',
@@ -35,95 +39,89 @@ export default function NewChatSessionForm() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       navigate(`/dashboard/chatbot/${res.data.route?.id || res.data.id}`);
-    } catch (error) {
-      console.error('Erro ao criar sessão:', error);
-      alert('Erro ao criar sessão');
+    } catch (err) {
+      console.error('Erro ao criar sessão:', err);
+      setError('Erro ao criar sessão. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
+    <div className="min-h-screen flex bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
       <Sidebar />
 
-      {/* Área principal alinhada à esquerda, com padding e overflow */}
-      <main className="flex flex-1 flex-col px-12 py-8 overflow-y-auto max-w-full">
-        <h1 className="text-3xl font-semibold mb-8">Nova Sessão de Chat</h1>
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-[#1f2937] rounded-xl p-6 sm:p-10 shadow-xl">
+            <h1 className="text-3xl font-bold mb-8 flex items-center justify-center gap-2">
+              {/* Ícone opcional */}
+              Nova Sessão de Chat
+            </h1>
 
-        {/* Formulário com largura máxima e alinhamento à esquerda */}
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-8 bg-[#1f2937] p-8 rounded-xl shadow-lg max-w-4xl w-full"
-        >
-          <div>
-            <label htmlFor="title" className="block mb-2 font-medium text-white">
-              Título
-            </label>
-            <input
-              id="title"
-              type="text"
-              className="w-full rounded-md p-3 bg-[#111827] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex: Planejamento de Estudos"
-              required
-            />
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {error && <p className="text-red-400 text-sm">{error}</p>}
+
+              <div>
+                <label className="block text-sm mb-1">Título</label>
+                <input
+                  type="text"
+                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 transition-all"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Ex: Planejamento de Estudos"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm mb-1">Área</label>
+                <input
+                  type="text"
+                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 transition-all"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  placeholder="Ex: Educação, Saúde, Finanças..."
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm mb-1">Descrição</label>
+                <textarea
+                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 transition-all resize-none"
+                  rows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Descreva o objetivo da sessão"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm mb-1">Tópicos (separados por vírgula)</label>
+                <input
+                  type="text"
+                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 transition-all"
+                  value={topics}
+                  onChange={(e) => setTopics(e.target.value)}
+                  placeholder="Ex: React, Node.js, IA"
+                  required
+                />
+              </div>
+
+              <div className="text-right">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Criando...' : 'Criar Sessão'}
+                </button>
+              </div>
+            </form>
           </div>
-
-          <div>
-            <label htmlFor="area" className="block mb-2 font-medium text-white">
-              Área
-            </label>
-            <input
-              id="area"
-              type="text"
-              className="w-full rounded-md p-3 bg-[#111827] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={area}
-              onChange={(e) => setArea(e.target.value)}
-              placeholder="Ex: Educação, Saúde, Finanças..."
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="description" className="block mb-2 font-medium text-white">
-              Descrição
-            </label>
-            <textarea
-              id="description"
-              rows={4}
-              className="w-full rounded-md p-3 bg-[#111827] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Descreva o objetivo da sessão"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="topics" className="block mb-2 font-medium text-white">
-              Tópicos (separados por vírgula)
-            </label>
-            <input
-              id="topics"
-              type="text"
-              className="w-full rounded-md p-3 bg-[#111827] border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={topics}
-              onChange={(e) => setTopics(e.target.value)}
-              placeholder="Ex: React, Node.js, IA"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg font-semibold transition disabled:opacity-50"
-          >
-            {loading ? 'Criando...' : 'Criar Sessão'}
-          </button>
-        </form>
+        </div>
       </main>
 
       <DashboardRightPanel />

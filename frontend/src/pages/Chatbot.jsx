@@ -2,18 +2,21 @@ import { useState, useEffect, useRef } from 'react';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import axios from '@/services/axios';
-import { chatWithIA } from '@/services/iaApi';
-import { Send, Loader2 } from 'lucide-react';
+import { chatWithIA, summarizeChat } from '@/services/iaApi';
+import { Send, Loader2, FileText } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 
 export default function Chatbot() {
-  const { id } = useParams(); // id da sessão de chat
+  const { id } = useParams();
   const [chat, setChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const [error, setError] = useState('');
+  const [showSummary, setShowSummary] = useState(false);
+  const [summary, setSummary] = useState('');
   const messagesEndRef = useRef(null);
-
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -24,8 +27,9 @@ export default function Chatbot() {
         });
         setChat(res.data);
         setMessages(res.data.messages || []);
-      } catch (error) {
-        console.error('Erro ao carregar sessão:', error);
+      } catch (err) {
+        console.error('Erro ao carregar sessão:', err);
+        setError('Erro ao carregar sessão.');
       }
     }
     if (id) fetchChat();
@@ -42,6 +46,7 @@ export default function Chatbot() {
     setMessages(newMessages);
     setInput('');
     setLoading(true);
+    setTyping(true);
 
     try {
       await axios.patch(`/chat-sessions/${id}`, { messages: newMessages });
@@ -52,37 +57,57 @@ export default function Chatbot() {
       setMessages(updatedMessages);
 
       await axios.patch(`/chat-sessions/${id}`, { messages: updatedMessages });
-    } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
-      alert('Erro ao enviar mensagem. Tente novamente.');
+    } catch (err) {
+      console.error('Erro ao enviar mensagem:', err);
+      setError('Erro ao enviar mensagem. Tente novamente.');
     } finally {
       setLoading(false);
+      setTyping(false);
     }
   };
 
-  // Função fake para simular resposta IA (substituir pela real)
-  async function fakeIAResponse(userText) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(`Resposta da IA para: "${userText}"`);
-      }, 1500);
-    });
-  }
+  const generateSummary = async () => {
+    setError('');
+    setSummary('');
+    setShowSummary(true);
+    try {
+      const chatText = messages.map(m => `${m.from === 'user' ? 'Usuário' : 'IA'}: ${m.text}`).join('\n');
+      const res = await summarizeChat(chatText);
+      setSummary(res);
+    } catch (err) {
+      console.error('Erro ao gerar resumo:', err);
+      setError('Erro ao gerar resumo.');
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
       <Sidebar />
 
       <main className="flex flex-1 flex-col p-6 md:p-10">
-        <header className="mb-6">
-          <h1 className="text-3xl font-semibold">{chat?.title || 'Carregando...'}</h1>
-          <p className="text-gray-400 max-w-3xl">{chat?.description}</p>
+        <header className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold">{chat?.title || 'Carregando...'}</h1>
+            <p className="text-gray-400 max-w-3xl">{chat?.description}</p>
+          </div>
+          <button
+            onClick={generateSummary}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition"
+            aria-label="Gerar resumo da conversa"
+            title="Gerar resumo da conversa"
+          >
+            <FileText className="w-5 h-5" />
+            Resumo
+          </button>
         </header>
 
-        <section className="flex flex-col flex-1 bg-[#1e293b] rounded-xl p-6 shadow-lg overflow-hidden">
+        {/* Container principal do chat - flex coluna */}
+        <section className="flex flex-col flex-1 bg-[#1e293b] rounded-xl shadow-lg overflow-hidden justify-between">
+
+          {/* Área das mensagens: ocupa todo espaço disponível, com scroll */}
           <div
-            className="flex-1 overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-transparent"
-            style={{ maxHeight: '65vh' }}
+            className="flex-1 overflow-y-auto px-6 pt-6 scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-transparent"
+            style={{ maxHeight: '72vh' }}
           >
             {messages.length === 0 && (
               <p className="text-gray-400 text-center mt-10">Nenhuma mensagem ainda.</p>
@@ -108,12 +133,20 @@ export default function Chatbot() {
             <div ref={messagesEndRef} />
           </div>
 
+          {typing && (
+            <div className="flex justify-start px-6 mb-2">
+              <div className="bg-gray-700 text-gray-300 px-4 py-2 rounded-2xl rounded-bl-none animate-pulse select-none">
+                IA está digitando...
+              </div>
+            </div>
+          )}
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
               sendMessage();
             }}
-            className="mt-4 flex gap-4"
+            className="flex gap-4 px-6 py-6"
           >
             <input
               type="text"
@@ -128,39 +161,41 @@ export default function Chatbot() {
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl px-6 py-3 transition"
+              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl px-6 py-3 transition flex items-center justify-center"
               aria-label="Enviar mensagem"
             >
-              {loading ? (
-                <svg
-                  className="animate-spin h-6 w-6 text-white mx-auto"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8H4z"
-                  />
-                </svg>
-              ) : (
-                'Enviar'
-              )}
+              {loading ? <Loader2 className="animate-spin w-6 h-6 text-white" /> : <Send className="w-6 h-6" />}
             </button>
           </form>
         </section>
+
       </main>
 
       <DashboardRightPanel />
+
+      {showSummary && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1f2937] rounded-xl max-w-2xl w-full p-6 shadow-lg overflow-y-auto max-h-[80vh]">
+            <h2 className="text-xl font-semibold mb-4">Resumo da Conversa</h2>
+            {error && <p className="text-red-400 mb-4">{error}</p>}
+            {summary ? (
+              <p className="whitespace-pre-wrap text-gray-300">{summary}</p>
+            ) : (
+              <p className="text-gray-400">Gerando resumo...</p>
+            )}
+            <button
+              onClick={() => {
+                setShowSummary(false);
+                setSummary('');
+                setError('');
+              }}
+              className="mt-6 bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold transition"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
