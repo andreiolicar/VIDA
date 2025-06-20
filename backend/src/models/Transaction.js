@@ -24,10 +24,21 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    comments: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    recurring: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   });
 
   Transaction.associate = (models) => {
     Transaction.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+    Transaction.hasMany(models.TransactionAttachment, { foreignKey: 'transactionId', as: 'attachments' });
+    Transaction.hasMany(models.TransactionHistory, { foreignKey: 'transactionId', as: 'history' });
   };
 
   return Transaction;

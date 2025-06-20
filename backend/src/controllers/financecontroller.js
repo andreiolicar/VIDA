@@ -1,11 +1,42 @@
 const db = require("../models");
-const { Transaction, FinancialGoal, VidaScore, Alert, VidaScoreHistory } = db;
+const {
+  Transaction,
+  FinancialGoal,
+  VidaScore,
+  Alert,
+  VidaScoreHistory,
+  TransactionAttachment,
+  TransactionHistory,
+} = db;
 const { Op } = require("sequelize");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+const uploadPath = path.join(process.cwd(), "uploads");
+
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const basename = path.basename(file.originalname, ext);
+    const filename = `${basename}-${Date.now()}${ext}`;
+    cb(null, filename);
+  },
+});
+
+const upload = multer({ storage });
 
 // Criar uma nova transação (receita ou despesa)
 const createTransaction = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
-  const { type, category, amount, date, description } = req.body;
+  const { type, category, amount, date, description, comments, recurring } = req.body;
 
   if (!userId || !type || !category || !amount || !date) {
     return res.status(400).json({ message: "Campos obrigatórios faltando." });
@@ -22,6 +53,8 @@ const createTransaction = async (req, res) => {
       amount,
       date,
       description,
+      comments: comments || null,
+      recurring: recurring || false,
     });
     res.status(201).json(transaction);
   } catch (error) {
@@ -57,6 +90,170 @@ const getTransactions = async (req, res) => {
       message: "Erro ao buscar transações.",
       error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
+  }
+};
+
+// Buscar detalhes de uma transação específica pelo ID
+const getTransactionById = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const transactionId = parseInt(req.params.id, 10);
+
+  if (!userId || !transactionId) {
+    return res.status(400).json({ message: "Parâmetros inválidos." });
+  }
+
+  try {
+    const transaction = await Transaction.findOne({ where: { id: transactionId, userId } });
+    if (!transaction) return res.status(404).json({ message: "Transação não encontrada." });
+    res.json(transaction);
+  } catch (error) {
+    console.error("Erro ao buscar transação:", error);
+    res.status(500).json({ message: "Erro ao buscar transação." });
+  }
+};
+
+// Duplicar uma transação existente
+const duplicateTransaction = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const transactionId = parseInt(req.params.id, 10);
+
+  if (!userId || !transactionId) {
+    return res.status(400).json({ message: "Parâmetros inválidos." });
+  }
+
+  try {
+    const original = await Transaction.findOne({ where: { id: transactionId, userId } });
+    if (!original) return res.status(404).json({ message: "Transação original não encontrada." });
+
+    const duplicate = await Transaction.create({
+      userId,
+      type: original.type,
+      category: original.category,
+      amount: original.amount,
+      date: new Date(),
+      description: original.description,
+      comments: original.comments,
+      recurring: original.recurring,
+    });
+
+    res.status(201).json(duplicate);
+  } catch (error) {
+    console.error("Erro ao duplicar transação:", error);
+    res.status(500).json({ message: "Erro ao duplicar transação." });
+  }
+};
+
+// Upload de anexos para uma transação
+const uploadAttachments = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const transactionId = parseInt(req.params.id, 10);
+
+  if (!userId || !transactionId) return res.status(400).json({ message: "Parâmetros inválidos." });
+  if (!req.files || req.files.length === 0) return res.status(400).json({ message: "Nenhum arquivo enviado." });
+
+  try {
+    const attachments = await Promise.all(
+      req.files.map((file) =>
+        TransactionAttachment.create({
+          transactionId,
+          fileName: file.originalname,
+          fileUrl: `/uploads/${file.filename}`,
+          fileType: file.mimetype,
+        })
+      )
+    );
+    res.status(201).json(attachments);
+  } catch (error) {
+    console.error("Erro ao enviar anexos:", error);
+    res.status(500).json({ message: "Erro ao enviar anexos." });
+  }
+};
+
+// Listar anexos de uma transação
+const getAttachments = async (req, res) => {
+  const transactionId = parseInt(req.params.id, 10);
+  try {
+    const attachments = await TransactionAttachment.findAll({ where: { transactionId } });
+    res.json(attachments);
+  } catch (error) {
+    console.error("Erro ao buscar anexos:", error);
+    res.status(500).json({ message: "Erro ao buscar anexos." });
+  }
+};
+
+// Excluir anexo de uma transação
+const deleteAttachment = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const transactionId = parseInt(req.params.transactionId, 10);
+  const attachmentId = parseInt(req.params.attachmentId, 10);
+
+  if (!userId || !transactionId || !attachmentId) {
+    return res.status(400).json({ message: "Parâmetros inválidos." });
+  }
+
+  try {
+    const attachment = await TransactionAttachment.findOne({
+      where: { id: attachmentId, transactionId },
+      include: [{
+        model: Transaction,
+        as: 'transaction',
+        where: { userId }
+      }]
+    });
+
+    if (!attachment) {
+      return res.status(404).json({ message: "Anexo não encontrado." });
+    }
+
+    const filePath = path.join(uploadPath, path.basename(attachment.fileUrl));
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    await attachment.destroy();
+
+    res.json({ message: "Anexo excluído com sucesso." });
+  } catch (error) {
+    console.error("Erro ao excluir anexo:", error);
+    res.status(500).json({ message: "Erro ao excluir anexo." });
+  }
+};
+
+// Buscar histórico de alterações de uma transação
+const getTransactionHistory = async (req, res) => {
+  const transactionId = parseInt(req.params.id, 10);
+  try {
+    const history = await TransactionHistory.findAll({
+      where: { transactionId },
+      order: [["changedAt", "DESC"]],
+    });
+    res.json(history);
+  } catch (error) {
+    console.error("Erro ao buscar histórico:", error);
+    res.status(500).json({ message: "Erro ao buscar histórico." });
+  }
+};
+
+// Atualizar comentários e recorrência de uma transação
+const updateCommentsAndRecurring = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const transactionId = parseInt(req.params.id, 10);
+  const { comments, recurring } = req.body;
+
+  if (!userId || !transactionId) return res.status(400).json({ message: "Parâmetros inválidos." });
+
+  try {
+    const transaction = await Transaction.findOne({ where: { id: transactionId, userId } });
+    if (!transaction) return res.status(404).json({ message: "Transação não encontrada." });
+
+    transaction.comments = comments !== undefined ? comments : transaction.comments;
+    transaction.recurring = recurring !== undefined ? recurring : transaction.recurring;
+
+    await transaction.save();
+    res.json(transaction);
+  } catch (error) {
+    console.error("Erro ao atualizar transação:", error);
+    res.status(500).json({ message: "Erro ao atualizar transação." });
   }
 };
 
@@ -295,6 +492,13 @@ const calculateVidaScore = async (userId) => {
 module.exports = {
   createTransaction,
   getTransactions,
+  getTransactionById,
+  duplicateTransaction,
+  uploadAttachments,
+  getAttachments,
+  deleteAttachment,
+  getTransactionHistory,
+  updateCommentsAndRecurring,
   createGoal,
   getGoals,
   updateGoalProgress,
@@ -302,4 +506,5 @@ module.exports = {
   getVidaScoreHistory,
   getFinancialReport,
   getAlerts,
+  upload,
 };

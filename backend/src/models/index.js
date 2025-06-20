@@ -18,6 +18,9 @@ db.TaskCollaborator = require('./TaskCollaborator')(sequelize, Sequelize.DataTyp
 db.ChatSession = require('./ChatSession')(sequelize, Sequelize.DataTypes);
 
 db.Transaction = require('./Transaction')(sequelize, Sequelize.DataTypes);
+db.TransactionAttachment = require('./TransactionAttachment')(sequelize, Sequelize.DataTypes); 
+db.TransactionHistory = require('./TransactionHistory')(sequelize, Sequelize.DataTypes);        
+
 db.FinancialGoal = require('./FinancialGoal')(sequelize, Sequelize.DataTypes);
 db.VidaScore = require('./VidaScore')(sequelize, Sequelize.DataTypes);
 db.Alert = require('./Alert')(sequelize, Sequelize.DataTypes);
@@ -41,6 +44,9 @@ if (db.TaskCollaborator.associate) db.TaskCollaborator.associate(db);
 if (db.ChatSession.associate) db.ChatSession.associate(db);
 
 if (db.Transaction.associate) db.Transaction.associate(db);
+if (db.TransactionAttachment.associate) db.TransactionAttachment.associate(db);
+if (db.TransactionHistory.associate) db.TransactionHistory.associate(db);
+
 if (db.FinancialGoal.associate) db.FinancialGoal.associate(db);
 if (db.VidaScore.associate) db.VidaScore.associate(db);
 if (db.Alert.associate) db.Alert.associate(db);

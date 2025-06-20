@@ -22,3 +22,6 @@ Thumbs.db
 /frontend/node_modules/
 /frontend/dist/
 /frontend/build/
+
+# Pasta uploads para arquivos de usuário (imagens, anexos, etc)
+uploads/

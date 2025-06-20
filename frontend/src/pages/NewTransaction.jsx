@@ -19,6 +19,8 @@ export default function NewTransaction() {
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState('');
   const [description, setDescription] = useState('');
+  const [comments, setComments] = useState(''); // novo campo
+  const [recurring, setRecurring] = useState(false); // novo campo
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -50,6 +52,8 @@ export default function NewTransaction() {
         amount: Number(amount),
         date: new Date(date).toISOString(),
         description: description.trim() || null,
+        comments: comments.trim() || null,       // envia comments
+        recurring,                               // envia recurring (boolean)
       };
 
       const response = await axios.post(`/finance/${userId}/transactions`, payload);
@@ -159,6 +163,31 @@ export default function NewTransaction() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
+              </div>
+
+              {/* Novo campo Comments */}
+              <div>
+                <label className="block text-sm mb-1">Comentários (Opcional)</label>
+                <textarea
+                  rows={3}
+                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-indigo-500"
+                  value={comments}
+                  onChange={(e) => setComments(e.target.value)}
+                />
+              </div>
+
+              {/* Novo campo Recorrente */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="recurring"
+                  checked={recurring}
+                  onChange={(e) => setRecurring(e.target.checked)}
+                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                />
+                <label htmlFor="recurring" className="select-none text-sm">
+                  Marcar como transação recorrente
+                </label>
               </div>
 
               <div className="text-right">

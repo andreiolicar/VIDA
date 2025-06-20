@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path'); 
 const eventsRoutes = require('./routes/events.routes');
 const swaggerConfig = require("./swagger");
 const chatSessionRoutes = require('./routes/chatSession.routes');
@@ -11,6 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 swaggerConfig(app); 
 
 // Rotas
