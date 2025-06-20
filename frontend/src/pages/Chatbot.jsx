@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import axios from '@/services/axios';
 import { chatWithIA, summarizeChat } from '@/services/iaApi';
 import { Send, Loader2, FileText } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import '@/components/scrollbar.css';
 
 export default function Chatbot() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [chat, setChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -86,9 +88,21 @@ export default function Chatbot() {
 
       <main className="flex flex-1 flex-col p-6 md:p-10">
         <header className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold">{chat?.title || 'Carregando...'}</h1>
-            <p className="text-gray-400 max-w-3xl">{chat?.description}</p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/dashboard/chatbot')}
+              className="flex items-center justify-center p-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition"
+              aria-label="Voltar para o Dashboard de IA"
+              title="Voltar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <div>
+              <h1 className="text-3xl font-semibold">{chat?.title || 'Carregando...'}</h1>
+              <p className="text-gray-400 max-w-3xl">{chat?.description}</p>
+            </div>
           </div>
           <button
             onClick={generateSummary}
@@ -106,7 +120,7 @@ export default function Chatbot() {
 
           {/* Área das mensagens: ocupa todo espaço disponível, com scroll */}
           <div
-            className="flex-1 overflow-y-auto px-6 pt-6 scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-transparent"
+            className="flex-1 overflow-y-auto px-6 pt-6 scrollbar-dark scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-transparent"
             style={{ maxHeight: '72vh' }}
           >
             {messages.length === 0 && (
@@ -168,7 +182,6 @@ export default function Chatbot() {
             </button>
           </form>
         </section>
-
       </main>
 
       <DashboardRightPanel />

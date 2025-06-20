@@ -2,7 +2,6 @@ const { ChatSession, User } = require('../models');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-// Função para extrair userId do token (adaptar conforme seu middleware)
 function getUserIdFromReq(req) {
     const authHeader = req.headers['authorization'];
     if (!authHeader) throw new Error('Token não fornecido');

@@ -4,19 +4,22 @@ require("dotenv").config();
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
 
-  // Divide o header no formato "Bearer <token>"
-  const [type, token] = authHeader.split(" ");
+  if (!authHeader) {
+    return res.status(401).json({ message: "Token não fornecido" });
+  }
 
-  // Valida se o tipo é Bearer e o token está presente
-  if (type !== "Bearer" || !token) {
+  const parts = authHeader.split(" ");
+  if (parts.length !== 2 || parts[0] !== "Bearer") {
     return res.status(401).json({ message: "Formato de token inválido" });
   }
+
+  const token = parts[1];
 
   try {
     jwt.verify(token, process.env.JWT_SECRET);
     return next();
   } catch (error) {
-    return res.status(401).json({ message: "Token não fornecido" });
+    return res.status(401).json({ message: "Token inválido" });
   }
 };
 

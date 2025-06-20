@@ -83,3 +83,55 @@ exports.chatWithGemini = async (req, res) => {
     res.status(500).json({ error: "Erro ao conversar com Gemini API." });
   }
 };
+
+exports.summarizeWithGemini = async (req, res) => {
+  const { text } = req.body;
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!text) {
+    return res.status(400).json({ error: "Texto para resumo é obrigatório." });
+  }
+
+  const hasForbidden = forbiddenWords.some((word) =>
+    text.toLowerCase().includes(word)
+  );
+
+  if (hasForbidden) {
+    return res.json({
+      summary:
+        "Desculpe, não posso processar textos com conteúdo ofensivo, impróprio ou ilegal.",
+    });
+  }
+
+  try {
+    const promptText = `${systemPrompt}\n\nResuma a seguinte conversa de forma clara e concisa:\n\n${text}`;
+
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+      {
+        contents: [
+          {
+            parts: [{ text: promptText }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.3,
+          candidateCount: 1,
+          maxOutputTokens: 200,
+        },
+      }
+    );
+
+    const summary =
+      response.data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "Não consegui gerar o resumo.";
+
+    res.json({ summary });
+  } catch (error) {
+    console.error(
+      "Erro ao gerar resumo com Gemini:",
+      error?.response?.data || error.message
+    );
+    res.status(500).json({ error: "Erro ao gerar resumo com Gemini API." });
+  }
+};
