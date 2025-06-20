@@ -387,7 +387,7 @@ const getVidaScore = async (req, res) => {
   }
 };
 
-// Buscar histórico do V.I.D.A. Score
+// Buscar histórico do V.I.D.A. Score (corrigido para tratamento de data)
 const getVidaScoreHistory = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   if (!userId) return res.status(400).json({ message: "UserId obrigatório." });
@@ -396,13 +396,16 @@ const getVidaScoreHistory = async (req, res) => {
     const history = await VidaScoreHistory.findAll({
       where: { userId },
       order: [["recordedAt", "ASC"]],
-      attributes: ["score", ["recordedAt", "date"]],
+      attributes: ["score", "recordedAt"],
     });
 
-    const formatted = history.map((entry) => ({
-      date: entry.date.toISOString().split("T")[0],
-      score: entry.score,
-    }));
+    const formatted = history.map((entry) => {
+      const dateObj = new Date(entry.recordedAt);
+      return {
+        date: !isNaN(dateObj) ? dateObj.toISOString().split("T")[0] : null,
+        score: entry.score,
+      };
+    }).filter(item => item.date !== null);
 
     res.json(formatted);
   } catch (error) {

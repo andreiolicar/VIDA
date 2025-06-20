@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "multer": "^2.0.1",
+    "p-limit": "^6.2.0",
     "recharts": "^2.15.3"
   }
 }
