@@ -13,6 +13,18 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      description: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      area: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      topics: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
       messages: {
         type: Sequelize.TEXT('long'),
         allowNull: false,

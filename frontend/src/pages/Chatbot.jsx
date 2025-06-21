@@ -21,21 +21,35 @@ export default function Chatbot() {
   const messagesEndRef = useRef(null);
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    async function fetchChat() {
-      try {
-        const res = await axios.get(`/chat-sessions/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setChat(res.data);
-        setMessages(res.data.messages || []);
-      } catch (err) {
-        console.error('Erro ao carregar sessão:', err);
-        setError('Erro ao carregar sessão.');
+useEffect(() => {
+  async function fetchChat() {
+    try {
+      const res = await axios.get(`/chat-sessions/${id}`);
+      setChat(res.data);
+
+      let initialMessages = res.data.messages || [];
+
+      const welcomeMessage = `Olá! Sou a inteligência artificial personalizada VIDA! Estou aqui para ajudar você a organizar sua vida nas áreas de Finanças, Estudos, Saúde Física e Mental, e Pequenas Tarefas. Este chat é dedicado à área "${res.data.area || 'Não informada'}" e os tópicos principais são: ${(res.data.topics || []).join(', ')}. Como posso ajudar você hoje?`;
+
+      if (initialMessages.length === 0) {
+        const newMessages = [
+          { from: 'bot', text: welcomeMessage }
+        ];
+
+        setMessages(newMessages);
+
+        await axios.patch(`/chat-sessions/${id}`, { messages: newMessages });
+      } else {
+        setMessages(initialMessages);
       }
+    } catch (err) {
+      console.error('Erro ao carregar sessão:', err);
+      setError('Erro ao carregar sessão.');
     }
-    if (id) fetchChat();
-  }, [id, token]);
+  }
+
+  if (id) fetchChat();
+}, [id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

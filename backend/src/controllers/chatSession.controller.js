@@ -1,6 +1,7 @@
 const { ChatSession, User } = require('../models');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const { Sequelize } = require('sequelize');
 
 function getUserIdFromReq(req) {
     const authHeader = req.headers['authorization'];
@@ -19,7 +20,12 @@ module.exports = {
                 where: { userId },
                 order: [['updatedAt', 'DESC']],
                 limit: 6,
-                attributes: ['id', 'title', 'updatedAt'],
+                attributes: [
+                    'id',
+                    'title',
+                    'updatedAt',
+                    [Sequelize.fn('JSON_LENGTH', Sequelize.col('messages')), 'messageCount']
+                ],
             });
             res.json(chats);
         } catch (error) {
@@ -31,7 +37,7 @@ module.exports = {
     createChat: async (req, res) => {
         try {
             const userId = getUserIdFromReq(req);
-            const { title, messages = [] } = req.body;
+            const { title, description, area, topics = [], messages = [] } = req.body;
 
             if (!title) {
                 return res.status(400).json({ message: 'Título é obrigatório' });
@@ -40,6 +46,9 @@ module.exports = {
             const chat = await ChatSession.create({
                 userId,
                 title,
+                description,
+                area,
+                topics,
                 messages,
             });
 

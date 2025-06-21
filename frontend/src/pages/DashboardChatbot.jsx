@@ -49,9 +49,10 @@ export default function DashboardChatbot() {
 
             // Calcula estatísticas rápidas
             const totalMessages = res.data.reduce(
-                (acc, chat) => acc + (chat.messages ? chat.messages.length : 0),
+                (acc, chat) => acc + (chat.messageCount || 0),
                 0
             );
+
             const lastChat = res.data.reduce((prev, current) => {
                 const prevDate = prev?.updatedAt ? new Date(prev.updatedAt) : new Date(0);
                 const currDate = current?.updatedAt ? new Date(current.updatedAt) : new Date(0);
@@ -224,7 +225,9 @@ export default function DashboardChatbot() {
                                     >
                                         <div>
                                             <h3 className="text-lg font-semibold mb-2">{session.title || 'Sem título'}</h3>
-                                            <p className="text-gray-400 text-sm truncate">{session.description || 'Sem descrição'}</p>
+                                            <p className="text-green-400 text-xs font-semibold mb-1">
+                                                Mensagens: {session.messageCount || 0}
+                                            </p>
                                         </div>
                                         <p className="text-gray-500 text-xs mt-4">
                                             Última atualização:{' '}
@@ -268,8 +271,8 @@ export default function DashboardChatbot() {
                                             onKeyDown={(e) => e.key === 'Enter' && goToChatbot(session.id)}
                                         >
                                             <h2 className="text-lg font-semibold">{session.title || 'Sem título'}</h2>
-                                            <p className="text-gray-400 text-sm truncate max-w-md">
-                                                {session.description || 'Sem descrição'}
+                                            <p className="text-green-400 text-xs font-semibold mb-1">
+                                                Mensagens: {session.messageCount || 0}
                                             </p>
                                         </div>
                                         <button
