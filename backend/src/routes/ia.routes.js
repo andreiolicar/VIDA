@@ -13,7 +13,7 @@ const { chatWithGemini } = require('../controllers/iaController');
  * @swagger
  * /ia/chat:
  *   post:
- *     summary: Envia uma mensagem para a IA (Gemini)
+ *     summary: Enviar mensagem para a IA (Gemini) e receber resposta
  *     tags: [IA]
  *     requestBody:
  *       required: true
@@ -27,9 +27,9 @@ const { chatWithGemini } = require('../controllers/iaController');
  *                 example: Qual a capital da França?
  *     responses:
  *       200:
- *         description: Resposta da IA
+ *         description: Resposta gerada pela IA
  *       500:
- *         description: Erro interno
+ *         description: Erro interno do servidor
  */
 router.post('/chat', chatWithGemini);
 

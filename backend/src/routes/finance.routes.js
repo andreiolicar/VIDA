@@ -1,15 +1,17 @@
-const express = require("express");
-const router = express.Router();
-const auth = require("../middleware/auth.middleware");
-const financeController = require("../controllers/financecontroller");
-const { upload } = require("../controllers/financecontroller"); // importa o multer configurado
-
 /**
  * @swagger
  * tags:
  *   name: Finanças
  *   description: Gerenciamento financeiro do usuário
  */
+
+const express = require("express");
+const router = express.Router();
+const auth = require("../middleware/auth.middleware");
+const financeController = require("../controllers/financecontroller");
+const { upload } = require("../controllers/financecontroller");
+
+// ROTAS DE TRANSAÇÕES
 
 /**
  * @swagger
@@ -23,9 +25,9 @@ const { upload } = require("../controllers/financecontroller"); // importa o mul
  *       - in: path
  *         name: userId
  *         required: true
+ *         description: ID do usuário
  *         schema:
  *           type: integer
- *         description: ID do usuário
  *     requestBody:
  *       required: true
  *       content:
@@ -40,16 +42,20 @@ const { upload } = require("../controllers/financecontroller"); // importa o mul
  *             properties:
  *               type:
  *                 type: string
- *                 description: Tipo da transação ('income' ou 'expense')
+ *                 example: income
  *               category:
  *                 type: string
+ *                 example: alimentação
  *               amount:
  *                 type: number
+ *                 example: 150.75
  *               date:
  *                 type: string
  *                 format: date-time
+ *                 example: 2025-06-21T14:00:00Z
  *               description:
  *                 type: string
+ *                 example: almoço com amigos
  *     responses:
  *       201:
  *         description: Transação criada com sucesso
@@ -68,19 +74,20 @@ router.post("/:userId/transactions", auth, financeController.createTransaction);
  *       - in: path
  *         name: userId
  *         required: true
+ *         description: ID do usuário
  *         schema:
  *           type: integer
  *       - in: query
  *         name: startDate
  *         schema:
  *           type: string
- *           format: date-time
+ *           format: date
  *         description: Data inicial para filtro
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
- *           format: date-time
+ *           format: date
  *         description: Data final para filtro
  *       - in: query
  *         name: category
@@ -91,7 +98,8 @@ router.post("/:userId/transactions", auth, financeController.createTransaction);
  *         name: type
  *         schema:
  *           type: string
- *         description: Tipo da transação ('income' ou 'expense')
+ *           enum: [income, expense]
+ *         description: Tipo da transação
  *     responses:
  *       200:
  *         description: Lista de transações retornada com sucesso
@@ -110,14 +118,15 @@ router.get("/:userId/transactions", auth, financeController.getTransactions);
  *       - in: path
  *         name: userId
  *         required: true
+ *         description: ID do usuário
  *         schema:
  *           type: integer
  *       - in: path
  *         name: id
  *         required: true
+ *         description: ID da transação
  *         schema:
  *           type: integer
- *         description: ID da transação
  *     responses:
  *       200:
  *         description: Detalhes da transação retornados com sucesso
@@ -136,25 +145,28 @@ router.get("/:userId/transactions/:id", auth, financeController.getTransactionBy
  *       - in: path
  *         name: userId
  *         required: true
+ *         description: ID do usuário
  *         schema:
  *           type: integer
  *       - in: path
  *         name: id
  *         required: true
+ *         description: ID da transação
  *         schema:
  *           type: integer
- *         description: ID da transação a ser duplicada
  *     responses:
  *       201:
  *         description: Transação duplicada com sucesso
  */
 router.post("/:userId/transactions/:id/duplicate", auth, financeController.duplicateTransaction);
 
+// ANEXOS
+
 /**
  * @swagger
  * /finance/{userId}/transactions/{id}/attachments:
  *   post:
- *     summary: Upload de anexos para uma transação
+ *     summary: Fazer upload de anexos para uma transação
  *     tags: [Finanças]
  *     security:
  *       - bearerAuth: []
@@ -164,22 +176,26 @@ router.post("/:userId/transactions/:id/duplicate", auth, financeController.dupli
  *       - in: path
  *         name: userId
  *         required: true
+ *         description: ID do usuário
  *         schema:
  *           type: integer
  *       - in: path
  *         name: id
  *         required: true
+ *         description: ID da transação
  *         schema:
  *           type: integer
- *         description: ID da transação
- *       - in: formData
- *         name: files
- *         type: array
- *         items:
- *           type: string
- *           format: binary
- *         description: Arquivos para upload
- *         required: true
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               files:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
  *     responses:
  *       201:
  *         description: Anexos enviados com sucesso
@@ -203,14 +219,15 @@ router.post(
  *       - in: path
  *         name: userId
  *         required: true
+ *         description: ID do usuário
  *         schema:
  *           type: integer
  *       - in: path
  *         name: id
  *         required: true
+ *         description: ID da transação
  *         schema:
  *           type: integer
- *         description: ID da transação
  *     responses:
  *       200:
  *         description: Lista de anexos retornada com sucesso
@@ -253,6 +270,8 @@ router.delete(
   financeController.deleteAttachment
 );
 
+// OUTRAS ROTAS FINANCEIRAS
+
 /**
  * @swagger
  * /finance/{userId}/transactions/{id}/history:
@@ -272,7 +291,6 @@ router.delete(
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID da transação
  *     responses:
  *       200:
  *         description: Histórico retornado com sucesso
@@ -299,7 +317,6 @@ router.get("/:userId/transactions/:id/history", auth, financeController.getTrans
  *         schema:
  *           type: integer
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -330,7 +347,6 @@ router.patch("/:userId/transactions/:id", auth, financeController.updateComments
  *         schema:
  *           type: integer
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -345,10 +361,10 @@ router.patch("/:userId/transactions/:id", auth, financeController.updateComments
  *                 type: number
  *               deadline:
  *                 type: string
- *                 format: date-time
+ *                 format: date
  *     responses:
  *       201:
- *         description: Meta financeira criada com sucesso
+ *         description: Meta criada com sucesso
  */
 router.post("/:userId/goals", auth, financeController.createGoal);
 
@@ -376,7 +392,7 @@ router.get("/:userId/goals", auth, financeController.getGoals);
  * @swagger
  * /finance/{userId}/goals/{goalId}:
  *   patch:
- *     summary: Atualizar progresso de uma meta financeira
+ *     summary: Atualizar progresso de uma meta
  *     tags: [Finanças]
  *     security:
  *       - bearerAuth: []
@@ -392,7 +408,6 @@ router.get("/:userId/goals", auth, financeController.getGoals);
  *         schema:
  *           type: integer
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -404,7 +419,7 @@ router.get("/:userId/goals", auth, financeController.getGoals);
  *                 type: number
  *     responses:
  *       200:
- *         description: Meta financeira atualizada com sucesso
+ *         description: Progresso da meta atualizado com sucesso
  */
 router.patch("/:userId/goals/:goalId", auth, financeController.updateGoalProgress);
 
@@ -432,7 +447,7 @@ router.get("/:userId/vida-score", auth, financeController.getVidaScore);
  * @swagger
  * /finance/{userId}/vida-score/history:
  *   get:
- *     summary: Obter histórico do V.I.D.A. Score do usuário
+ *     summary: Obter histórico do V.I.D.A. Score
  *     tags: [Finanças]
  *     security:
  *       - bearerAuth: []
@@ -466,17 +481,17 @@ router.get("/:userId/vida-score/history", auth, financeController.getVidaScoreHi
  *         name: startDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Data inicial para filtro
+ *           format: date
+ *         description: Data inicial
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Data final para filtro
+ *           format: date
+ *         description: Data final
  *     responses:
  *       200:
- *         description: Relatório financeiro retornado com sucesso
+ *         description: Relatório retornado com sucesso
  */
 router.get("/:userId/reports", auth, financeController.getFinancialReport);
 
@@ -496,7 +511,7 @@ router.get("/:userId/reports", auth, financeController.getFinancialReport);
  *           type: integer
  *     responses:
  *       200:
- *         description: Alertas financeiros retornados com sucesso
+ *         description: Alertas retornados com sucesso
  */
 router.get("/:userId/alerts", auth, financeController.getAlerts);
 
