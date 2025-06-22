@@ -90,13 +90,13 @@ VITE_API_URL=http://localhost:5000/api
 
 #### Raiz
 ```bash
-npm install-all
+npm run install-all
 ```
 
 ### 4. Rode as Migrations e Seeders
 
 ```bash
-npm setup
+npm run setup
 ```
 
 ### 5. Rode o Swagger UI (Documentação)
