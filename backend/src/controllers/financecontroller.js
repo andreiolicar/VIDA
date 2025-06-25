@@ -143,6 +143,31 @@ const duplicateTransaction = async (req, res) => {
   }
 };
 
+// Excluir uma transação específica
+const deleteTransaction = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const transactionId = parseInt(req.params.id, 10);
+
+  if (!userId || !transactionId) {
+    return res.status(400).json({ message: "Parâmetros inválidos." });
+  }
+
+  try {
+    const transaction = await Transaction.findOne({ where: { id: transactionId, userId } });
+
+    if (!transaction) {
+      return res.status(404).json({ message: "Transação não encontrada." });
+    }
+
+    await transaction.destroy();
+
+    res.status(200).json({ message: "Transação excluída com sucesso." });
+  } catch (error) {
+    console.error("Erro ao excluir transação:", error);
+    res.status(500).json({ message: "Erro ao excluir transação." });
+  }
+};
+
 // Upload de anexos para uma transação
 const uploadAttachments = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
@@ -497,6 +522,7 @@ module.exports = {
   getTransactions,
   getTransactionById,
   duplicateTransaction,
+  deleteTransaction, 
   uploadAttachments,
   getAttachments,
   deleteAttachment,

@@ -515,4 +515,34 @@ router.get("/:userId/reports", auth, financeController.getFinancialReport);
  */
 router.get("/:userId/alerts", auth, financeController.getAlerts);
 
+/**
+ * @swagger
+ * /finance/{userId}/transactions/{id}:
+ *   delete:
+ *     summary: Excluir uma transação específica
+ *     tags: [Finanças]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: ID do usuário
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID da transação
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Transação excluída com sucesso
+ *       404:
+ *         description: Transação não encontrada
+ */
+router.delete("/:userId/transactions/:id", auth, financeController.deleteTransaction);
+
+
 module.exports = router;

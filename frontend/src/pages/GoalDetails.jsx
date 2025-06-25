@@ -1,10 +1,36 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Edit3, Trash2, PlusCircle } from 'lucide-react';
+import { Edit3, Trash2, PlusCircle, MinusCircle } from 'lucide-react';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import axios from '@/services/axios';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from 'recharts';
+
+const formatCurrency = (value) => {
+  const num = Number(value);
+  if (isNaN(num)) return 'R$ 0,00';
+  return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+};
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#1f2937] p-2 rounded shadow-lg text-white">
+        <p className="font-semibold">{label}</p>
+        <p>{formatCurrency(payload[0].value)}</p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function GoalDetails() {
   const userId = localStorage.getItem('user');
@@ -15,17 +41,25 @@ export default function GoalDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newAmount, setNewAmount] = useState('');
+  const [removingAmount, setRemovingAmount] = useState('');
   const [adding, setAdding] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
-  // Histórico simulado de aportes (pode ser adaptado para buscar do backend)
   const [history, setHistory] = useState([]);
 
+  // Função para atualizar status baseado no valor atual e meta
+  const updateStatus = (currentAmount, targetAmount) => {
+    return currentAmount >= targetAmount ? 'completed' : 'active';
+  };
+
+  // Busca meta e histórico completos do backend
   useEffect(() => {
-    async function fetchGoal() {
+    async function fetchGoalAndHistory() {
       try {
         setLoading(true);
-        const res = await axios.get(`/finance/${userId}/goals`);
-        const found = res.data.find((g) => g.id === Number(id));
+        // Busca a meta
+        const resGoal = await axios.get(`/finance/${userId}/goals/${id}`);
+        const found = resGoal.data;
         if (!found) {
           setError('Meta financeira não encontrada.');
           setLoading(false);
@@ -33,40 +67,63 @@ export default function GoalDetails() {
         }
         setGoal(found);
 
-        // Simular histórico de aportes (ou buscar de API específica)
-        // Exemplo: [{date: '2025-06-01', amount: 100}, ...]
-        setHistory([
-          { date: '2025-06-01', amount: found.currentAmount * 0.3 },
-          { date: '2025-06-10', amount: found.currentAmount * 0.7 },
-        ]);
-      } catch {
+        // Busca histórico completo (supondo rota específica)
+        const resHistory = await axios.get(`/finance/${userId}/goals/${id}/history`);
+        const hist = Array.isArray(resHistory.data) ? resHistory.data : [];
+        setHistory(hist);
+      } catch (err) {
+        console.error(err);
         setError('Erro ao carregar meta financeira.');
       } finally {
         setLoading(false);
       }
     }
-    fetchGoal();
+    fetchGoalAndHistory();
   }, [id, userId]);
 
   const progressPercent = goal ? Math.min((goal.currentAmount / goal.targetAmount) * 100, 100) : 0;
+
+  // Atualiza meta e histórico após adicionar/remover aporte
+  const refreshData = async () => {
+    try {
+      const resGoal = await axios.get(`/finance/${userId}/goals/${id}`);
+      setGoal(resGoal.data);
+      const resHistory = await axios.get(`/finance/${userId}/goals/${id}/history`);
+      setHistory(Array.isArray(resHistory.data) ? resHistory.data : []);
+    } catch (err) {
+      console.error('Erro ao atualizar dados:', err);
+    }
+  };
 
   const handleAddAmount = async () => {
     if (!newAmount || isNaN(Number(newAmount)) || Number(newAmount) <= 0) return;
     setAdding(true);
     try {
       await axios.patch(`/finance/${userId}/goals/${id}`, { amountToAdd: Number(newAmount) });
-      // Atualizar dados localmente
-      setGoal((g) => ({
-        ...g,
-        currentAmount: g.currentAmount + Number(newAmount),
-        status: g.currentAmount + Number(newAmount) >= g.targetAmount ? 'completed' : g.status,
-      }));
-      setHistory((h) => [...h, { date: new Date().toISOString().split('T')[0], amount: Number(newAmount) }]);
+      await refreshData();
       setNewAmount('');
     } catch {
       alert('Erro ao adicionar valor.');
     } finally {
       setAdding(false);
+    }
+  };
+
+  const handleRemoveAmount = async () => {
+    if (!removingAmount || isNaN(Number(removingAmount)) || Number(removingAmount) <= 0) return;
+    if (Number(removingAmount) > (goal?.currentAmount || 0)) {
+      alert('Não é possível remover um valor maior que o valor atual.');
+      return;
+    }
+    setRemoving(true);
+    try {
+      await axios.patch(`/finance/${userId}/goals/${id}`, { amountToAdd: -Number(removingAmount) });
+      await refreshData();
+      setRemovingAmount('');
+    } catch {
+      alert('Erro ao remover valor.');
+    } finally {
+      setRemoving(false);
     }
   };
 
@@ -80,7 +137,10 @@ export default function GoalDetails() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">{goal.title}</h1>
           <div className="flex gap-3">
-            <Link to={`/dashboard/finance/edit-goal/${goal.id}`} className="btn-green flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-green-700 transition">
+            <Link
+              to={`/dashboard/finance/edit-goal/${goal.id}`}
+              className="btn-green flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-green-700 transition"
+            >
               <Edit3 size={18} /> Editar
             </Link>
             <button
@@ -97,13 +157,13 @@ export default function GoalDetails() {
         </div>
 
         <div className="mb-6">
-          <p><strong>Valor Meta:</strong> R$ {goal.targetAmount.toFixed(2)}</p>
-          <p><strong>Valor Atual:</strong> R$ {goal.currentAmount.toFixed(2)}</p>
+          <p><strong>Valor Meta:</strong> {formatCurrency(goal.targetAmount)}</p>
+          <p><strong>Valor Atual:</strong> {formatCurrency(goal.currentAmount)}</p>
           <p><strong>Prazo:</strong> {goal.deadline ? new Date(goal.deadline).toLocaleDateString() : 'Sem prazo'}</p>
           <p>
             <strong>Status:</strong>{' '}
-            <span className={`font-semibold ${goal.status === 'completed' ? 'text-green-400' : 'text-yellow-400'}`}>
-              {goal.status.charAt(0).toUpperCase() + goal.status.slice(1)}
+            <span className={`font-semibold ${updateStatus(goal.currentAmount, goal.targetAmount) === 'completed' ? 'text-green-400' : 'text-yellow-400'}`}>
+              {updateStatus(goal.currentAmount, goal.targetAmount).charAt(0).toUpperCase() + updateStatus(goal.currentAmount, goal.targetAmount).slice(1)}
             </span>
           </p>
 
@@ -119,15 +179,40 @@ export default function GoalDetails() {
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-3">Histórico de Aportes</h2>
           {history.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={history} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="date" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
-                <Tooltip />
-                <Line type="monotone" dataKey="amount" stroke="#22c55e" strokeWidth={3} dot />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="overflow-x-auto">
+              <ResponsiveContainer width={Math.max(history.length * 80, 300)} height={250}>
+                <LineChart data={history} margin={{ top: 10, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis
+                    dataKey="date"
+                    stroke="#94a3b8"
+                    tick={{ fontSize: 12 }}
+                    padding={{ left: 20, right: 20 }}
+                    tickFormatter={(date) => {
+                      const d = new Date(date);
+                      return d.toLocaleDateString('pt-BR');
+                    }}
+                  />
+                  <YAxis
+                    stroke="#94a3b8"
+                    tickFormatter={formatCurrency}
+                    width={80}
+                    domain={['auto', 'auto']}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="#22c55e"
+                    strokeWidth={3}
+                    dot={{ r: 6, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }}
+                    activeDot={{ r: 8, fill: '#22c55e', stroke: '#fff', strokeWidth: 3 }}
+                    isAnimationActive={true}
+                    animationDuration={500}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <p>Nenhum aporte registrado ainda.</p>
           )}
@@ -156,6 +241,33 @@ export default function GoalDetails() {
               disabled={adding || !newAmount || Number(newAmount) <= 0}
             >
               {adding ? 'Adicionando...' : 'Adicionar'}
+            </button>
+          </div>
+        </section>
+
+        <section className="mb-8 max-w-sm">
+          <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+            <MinusCircle size={20} /> Remover Aporte
+          </h2>
+          <div className="flex gap-2">
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              placeholder="Valor em R$"
+              className="flex-1 bg-[#111827] rounded-lg px-4 py-3 text-white outline-none focus:ring-2 ring-red-500"
+              value={removingAmount}
+              onChange={(e) => setRemovingAmount(e.target.value)}
+              disabled={removing}
+            />
+            <button
+              className={`bg-red-600 px-4 py-3 rounded-lg hover:bg-red-700 transition text-white font-semibold ${
+                removing ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              onClick={handleRemoveAmount}
+              disabled={removing || !removingAmount || Number(removingAmount) <= 0}
+            >
+              {removing ? 'Removendo...' : 'Remover'}
             </button>
           </div>
         </section>

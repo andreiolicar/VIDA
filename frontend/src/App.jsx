@@ -35,9 +35,12 @@ import NewTransaction from '@/pages/NewTransaction';
 import VidaScoreDetails from '@/pages/VidaScoreDetails';
 import EditGoal from '@/pages/EditGoal';
 import EditTransaction from '@/pages/EditTransaction';
+import GoalsPage from '@/pages/GoalsPage';
 import GoalDetails from '@/pages/GoalDetails';
 import TransactionDetails from '@/pages/TransactionDetails';
 import DashboardCommunity from './pages/DashboardCommunity';
+import IncomePage from './pages/IncomePage';
+import ExpensePage from './pages/ExpensePage';
 
 function App() {
   return (
@@ -68,10 +71,13 @@ function App() {
           <Route path="/dashboard/finance/new-goal" element={<NewGoal />} />
           <Route path="/dashboard/finance/new-transaction" element={<NewTransaction />} />
           <Route path="/dashboard/finance/vida-score" element={<VidaScoreDetails />} />
+          <Route path="/dashboard/finance/goals" element={<GoalsPage />} />
           <Route path="/dashboard/finance/edit-goal/:id" element={<EditGoal />} />
           <Route path="/dashboard/finance/edit-transaction/:id" element={<EditTransaction />} />
           <Route path="/dashboard/finance/goal/:id" element={<GoalDetails />} />
           <Route path="/dashboard/finance/transaction/:id" element={<TransactionDetails />} />
+          <Route path="/dashboard/finance/incomes" element={<IncomePage />} />
+          <Route path="/dashboard/finance/expenses" element={<ExpensePage />} />
           <Route path="/dashboard/task-list/:id" element={<TaskListDetails />} />
           <Route path="/dashboard/task-list/edit/:id" element={<EditTaskList />} />
           <Route path="/dashboard/task/:id" element={<TaskDetails />} />
