@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Menu,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '@/context/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -34,6 +35,7 @@ export default function Sidebar() {
     { label: 'Saúde', icon: HeartPlus, path: '/dashboard/health' },
     { label: 'Tarefas', icon: CheckCircle, path: '/dashboard/tasks' },
     { label: 'Assistente IA', icon: Bot, path: '/dashboard/chatbot' },
+    { label: 'Comunidade', icon: Users, path: '/dashboard/community' },
   ];
 
   // Fecha o menu ao navegar
@@ -80,9 +82,8 @@ export default function Sidebar() {
               <button
                 key={item.label}
                 onClick={() => handleNavigate(item.path)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition text-left ${
-                  location.pathname === item.path ? 'bg-white/10 text-white' : 'hover:bg-white/5'
-                }`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition text-left ${location.pathname === item.path ? 'bg-white/10 text-white' : 'hover:bg-white/5'
+                  }`}
               >
                 <item.icon size={18} />
                 <span>{item.label}</span>

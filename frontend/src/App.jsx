@@ -41,6 +41,7 @@ import TransactionDetails from '@/pages/TransactionDetails';
 import DashboardCommunity from './pages/DashboardCommunity';
 import IncomePage from './pages/IncomePage';
 import ExpensePage from './pages/ExpensePage';
+import Health from './pages/Health.jsx';
 
 function App() {
   return (
@@ -92,6 +93,7 @@ function App() {
           <Route path="/dashboard/chatbot/new" element={<NewChatSessionForm />} />
           <Route path="/dashboard/chatbot/:id" element={<Chatbot />} />
           <Route path="/dashboard/community" element={<DashboardCommunity />} />
+          <Route path="/dashboard/health" element={<Health />} />
         </Route>
       </Route>
     </Routes>
