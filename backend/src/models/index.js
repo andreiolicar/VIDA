@@ -26,6 +26,9 @@ db.VidaScore = require('./VidaScore')(sequelize, Sequelize.DataTypes);
 db.Alert = require('./Alert')(sequelize, Sequelize.DataTypes);
 db.VidaScoreHistory = require('./VidaScoreHistory')(sequelize, Sequelize.DataTypes);
 
+db.Friend = require('./Friend')(sequelize, Sequelize.DataTypes);
+db.FriendRequest = require('./FriendRequest')(sequelize, Sequelize.DataTypes);
+
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
@@ -51,5 +54,8 @@ if (db.FinancialGoal.associate) db.FinancialGoal.associate(db);
 if (db.VidaScore.associate) db.VidaScore.associate(db);
 if (db.Alert.associate) db.Alert.associate(db);
 if (db.VidaScoreHistory.associate) db.VidaScoreHistory.associate(db);
+
+if (db.Friend.associate) db.Friend.associate(db);
+if (db.FriendRequest.associate) db.FriendRequest.associate(db);
 
 module.exports = db;
