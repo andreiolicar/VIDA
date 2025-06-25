@@ -37,6 +37,7 @@ import EditGoal from '@/pages/EditGoal';
 import EditTransaction from '@/pages/EditTransaction';
 import GoalDetails from '@/pages/GoalDetails';
 import TransactionDetails from '@/pages/TransactionDetails';
+import DashboardCommunity from './pages/DashboardCommunity';
 
 function App() {
   return (
@@ -84,6 +85,7 @@ function App() {
           <Route path="/dashboard/chatbot" element={<DashboardChatbot />} />
           <Route path="/dashboard/chatbot/new" element={<NewChatSessionForm />} />
           <Route path="/dashboard/chatbot/:id" element={<Chatbot />} />
+          <Route path="/dashboard/community" element={<DashboardCommunity />} />
         </Route>
       </Route>
     </Routes>
