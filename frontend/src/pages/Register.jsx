@@ -48,8 +48,8 @@ function Register() {
       if (!res.ok) throw new Error(data.message || 'Erro ao registrar');
 
       console.log('[REGISTER] Registro bem-sucedido. Dados:', data.user);
-      localStorage.setItem('token', data.user.token);
-      login(data.user.id); // Salva no contexto
+      localStorage.setItem('token', data.token);    // Aqui o token direto de data.token
+      login(data.user);                             // Passa o usuário completo para o contexto
       navigate('/dashboard');
     } catch (err) {
       console.error('[REGISTER] Erro ao registrar:', err.message);
@@ -75,6 +75,7 @@ function Register() {
           <p className="text-white/80">Preencha os dados para começar a usar o V.I.D.A.</p>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
+            {/* ... todos os inputs aqui sem mudanças ... */}
             <div>
               <label className="block mb-1 text-sm font-medium text-white/80">Nome completo</label>
               <input
