@@ -80,7 +80,7 @@ export default function NewGoal() {
               {error && <p className="text-red-400 text-sm">{error}</p>}
 
               <div>
-                <label className="block text-sm mb-1">Título *</label>
+                <label className="block text-sm mb-1">Título </label>
                 <input
                   type="text"
                   className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-green-500"
@@ -91,7 +91,7 @@ export default function NewGoal() {
               </div>
 
               <div>
-                <label className="block text-sm mb-1">Valor Meta (R$) *</label>
+                <label className="block text-sm mb-1">Valor Meta (R$) </label>
                 <input
                   type="number"
                   min="0.01"

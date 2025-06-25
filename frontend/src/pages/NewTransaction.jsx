@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { AlertCircle, Plus } from 'lucide-react';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
@@ -13,16 +13,27 @@ const TYPES = [
 export default function NewTransaction() {
   const userId = localStorage.getItem('user');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const [type, setType] = useState('');
+  // Lê o tipo da query string (?type=income ou ?type=expense)
+  const fixedType = searchParams.get('type'); // 'income' ou 'expense' ou null
+
+  // Se vier da query string, já preenche o campo tipo
+  const [type, setType] = useState(fixedType || '');
+
   const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState('');
   const [description, setDescription] = useState('');
-  const [comments, setComments] = useState(''); // novo campo
-  const [recurring, setRecurring] = useState(false); // novo campo
+  const [comments, setComments] = useState('');
+  const [recurring, setRecurring] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Sempre que fixedType mudar, atualiza o state type
+  useEffect(() => {
+    if (fixedType) setType(fixedType);
+  }, [fixedType]);
 
   const isFormValid = () => {
     return (
@@ -52,8 +63,8 @@ export default function NewTransaction() {
         amount: Number(amount),
         date: new Date(date).toISOString(),
         description: description.trim() || null,
-        comments: comments.trim() || null,       // envia comments
-        recurring,                               // envia recurring (boolean)
+        comments: comments.trim() || null,
+        recurring,
       };
 
       const response = await axios.post(`/finance/${userId}/transactions`, payload);
@@ -100,24 +111,34 @@ export default function NewTransaction() {
               {error && <p className="text-red-400 text-sm">{error}</p>}
 
               <div>
-                <label className="block text-sm mb-1">Tipo *</label>
-                <select
-                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-indigo-500"
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                >
-                  <option value="">Selecione o tipo</option>
-                  {TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
+                <label className="block text-sm mb-1">Tipo </label>
+                {fixedType ? (
+                  // Campo fixo, desabilitado e já preenchido
+                  <input
+                    type="text"
+                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none"
+                    value={fixedType === 'income' ? 'Receita' : 'Despesa'}
+                    disabled
+                  />
+                ) : (
+                  <select
+                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-indigo-500"
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                  >
+                    <option value="">Selecione o tipo</option>
+                    {TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 {type === '' && <p className="text-red-400 text-xs mt-1">Tipo é obrigatório.</p>}
               </div>
 
               <div>
-                <label className="block text-sm mb-1">Categoria *</label>
+                <label className="block text-sm mb-1">Categoria </label>
                 <input
                   type="text"
                   className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-indigo-500"
@@ -130,7 +151,7 @@ export default function NewTransaction() {
               </div>
 
               <div>
-                <label className="block text-sm mb-1">Valor (R$) *</label>
+                <label className="block text-sm mb-1">Valor (R$) </label>
                 <input
                   type="number"
                   min="0.01"
@@ -145,7 +166,7 @@ export default function NewTransaction() {
               </div>
 
               <div>
-                <label className="block text-sm mb-1">Data *</label>
+                <label className="block text-sm mb-1">Data </label>
                 <input
                   type="date"
                   className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-indigo-500"
@@ -165,7 +186,6 @@ export default function NewTransaction() {
                 />
               </div>
 
-              {/* Novo campo Comments */}
               <div>
                 <label className="block text-sm mb-1">Comentários (Opcional)</label>
                 <textarea
@@ -176,7 +196,6 @@ export default function NewTransaction() {
                 />
               </div>
 
-              {/* Novo campo Recorrente */}
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"

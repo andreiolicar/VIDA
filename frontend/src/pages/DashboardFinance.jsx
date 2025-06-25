@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from '@/services/axios'; // supondo que você tenha axios configurado com baseURL
+import { useNavigate } from 'react-router-dom';
+import axios from '@/services/axios'; 
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
@@ -27,15 +27,15 @@ function formatTimer(seconds) {
 
 function Card({ title, icon, value, to, className }) {
   return (
-    <Link
-      to={to}
+    <a
+      href={to}
       className={`bg-[#1f2937] rounded-xl p-6 shadow-lg flex flex-col items-center hover:bg-opacity-80 transition group focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
       style={{ minWidth: 220 }}
     >
       <div className="mb-3">{icon}</div>
       <h3 className="text-lg font-semibold mb-1">{title}</h3>
       <p className="text-gray-300 text-2xl group-hover:text-white transition">{value}</p>
-    </Link>
+    </a>
   );
 }
 
@@ -96,7 +96,6 @@ async function fetchDollarHistoryAwesomeAPI(days = 5) {
 }
 
 export default function DashboardFinance() {
-  // Extrai userId do localStorage, tratando JSON ou string simples
   const rawUser = localStorage.getItem('user');
   let userId = null;
   try {
@@ -339,13 +338,13 @@ export default function DashboardFinance() {
       title: 'Receitas',
       value: formatCurrency(income),
       icon: <DollarSign className="w-10 h-10 text-green-400" />,
-      to: '/dashboard/finance/income',
+      to: '/dashboard/finance/incomes',
     },
     {
       title: 'Despesas',
       value: formatCurrency(expense),
       icon: <TrendingDown className="w-10 h-10 text-red-400" />,
-      to: '/dashboard/finance/expense',
+      to: '/dashboard/finance/expenses',
     },
   ];
 
@@ -360,6 +359,17 @@ export default function DashboardFinance() {
             <Card key={i} {...card} />
           ))}
         </section>
+
+        {/* Botão para Metas logo abaixo dos cards */}
+        <div className="max-w-[1280px] mx-auto px-2 mb-8 flex justify-center">
+          <button
+            onClick={() => navigate('/dashboard/finance/goals')}
+            className="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-lg font-semibold transition shadow-md"
+            aria-label="Ir para Metas Financeiras"
+          >
+            Ver Metas Financeiras
+          </button>
+        </div>
 
         {/* Título do Saldo alinhado à esquerda */}
         <h2 className="text-xl font-semibold mb-4 max-w-[1280px] mx-auto px-2 w-full text-left">Saldo</h2>
@@ -383,10 +393,11 @@ export default function DashboardFinance() {
               <p className="text-sm text-gray-400 mt-1">Saldo em USD</p>
             </div>
 
-            {/* Botão editar */}
+            {/* Botão editar redireciona para nova transação */}
             <button
               className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold whitespace-nowrap ml-4"
-              onClick={() => navigate('/dashboard/finance/edit-balance')}
+              onClick={() => navigate('/dashboard/finance/new-transaction')}
+              aria-label="Adicionar nova transação"
             >
               Editar
             </button>
