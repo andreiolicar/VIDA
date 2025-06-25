@@ -4,6 +4,7 @@ const path = require('path');
 const eventsRoutes = require('./routes/events.routes');
 const swaggerConfig = require("./swagger");
 const chatSessionRoutes = require('./routes/chatSession.routes');
+const friendsRoutes = require('./routes/friends.routes');
 
 require('dotenv').config();
 
@@ -32,5 +33,7 @@ app.use('/api/ia', require('./routes/ia.routes'));
 app.use('/api/finance', require('./routes/finance.routes'));
 
 app.use('/api/chat-sessions', chatSessionRoutes);
+
+app.use('/api/friends', friendsRoutes);
 
 module.exports = app;
