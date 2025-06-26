@@ -29,6 +29,8 @@ db.VidaScoreHistory = require('./VidaScoreHistory')(sequelize, Sequelize.DataTyp
 db.Friend = require('./Friend')(sequelize, Sequelize.DataTypes);
 db.FriendRequest = require('./FriendRequest')(sequelize, Sequelize.DataTypes);
 
+db.PrivateMessage = require('./PrivateMessage')(sequelize, Sequelize.DataTypes);
+
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
@@ -57,5 +59,7 @@ if (db.VidaScoreHistory.associate) db.VidaScoreHistory.associate(db);
 
 if (db.Friend.associate) db.Friend.associate(db);
 if (db.FriendRequest.associate) db.FriendRequest.associate(db);
+
+if (db.PrivateMessage.associate) db.PrivateMessage.associate(db);
 
 module.exports = db;
