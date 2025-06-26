@@ -8,8 +8,8 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth.middleware");
-const financeController = require("../controllers/financecontroller");
-const { upload } = require("../controllers/financecontroller");
+const financeController = require("../controllers/finance.controller");
+const { upload } = require("../controllers/finance.controller");
 
 // ROTAS DE TRANSAÇÕES
 

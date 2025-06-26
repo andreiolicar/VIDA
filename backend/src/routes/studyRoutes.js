@@ -14,7 +14,7 @@
 
 const express = require("express");
 const router = express.Router();
-const StudyRouteController = require("../controllers/StudyRouteController");
+const StudyRouteController = require("../controllers/studyRoute.controller");
 const auth = require("../middleware/auth.middleware");
 
 /**

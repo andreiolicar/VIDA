@@ -14,7 +14,7 @@
 
 const express = require("express");
 const router = express.Router();
-const HealthController = require("../controllers/healthcontroller");
+const healthController = require("../controllers/health.controller");
 const auth = require("../middleware/auth.middleware");
 
 /**
@@ -78,7 +78,7 @@ const auth = require("../middleware/auth.middleware");
  *       201:
  *         description: Registro de saúde criado com sucesso
  */
-router.post("/:userId", auth, healthcontroller.createHealthRecord);
+router.post("/:userId", auth, healthController.createHealthRecord);
 
 /**
  * @swagger
@@ -99,7 +99,7 @@ router.post("/:userId", auth, healthcontroller.createHealthRecord);
  *       200:
  *         description: Lista de registros retornada com sucesso
  */
-router.get("/:userId", auth, healthcontroller.getAllHealthRecords);
+router.get("/:userId", auth, healthController.getAllHealthRecords);
 
 /**
  * @swagger
@@ -122,7 +122,7 @@ router.get("/:userId", auth, healthcontroller.getAllHealthRecords);
  *       404:
  *         description: Registro não encontrado
  */
-router.get("/getone/:id", auth, healthcontroller.getHealthRecordById);
+router.get("/getone/:id", auth, healthController.getHealthRecordById);
 
 /**
  * @swagger
@@ -174,7 +174,7 @@ router.get("/getone/:id", auth, healthcontroller.getHealthRecordById);
  *       404:
  *         description: Registro não encontrado
  */
-router.patch("/:id", auth, healthcontroller.updateHealthRecord);
+router.patch("/:id", auth, healthController.updateHealthRecord);
 
 /**
  * @swagger
@@ -195,6 +195,6 @@ router.patch("/:id", auth, healthcontroller.updateHealthRecord);
  *       200:
  *         description: Registro deletado com sucesso
  */
-router.delete("/:id", auth, healthcontroller.deleteHealthRecord);
+router.delete("/:id", auth, healthController.deleteHealthRecord);
 
 module.exports = router;

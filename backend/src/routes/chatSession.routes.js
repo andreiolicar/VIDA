@@ -16,7 +16,7 @@ const express = require('express');
 const router = express.Router();
 
 const chatSessionController = require('../controllers/chatSession.controller');
-const { summarizeWithGemini } = require('../controllers/iaController');
+const { summarizeWithGemini } = require('../controllers/ia.controller');
 const verifyToken = require('../middleware/auth.middleware');
 
 router.use(verifyToken);

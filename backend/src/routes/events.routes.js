@@ -15,7 +15,7 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth.middleware");
-const EventController = require("../controllers/EventController");
+const eventController = require("../controllers/event.controller");
 
 /**
  * @swagger
@@ -58,7 +58,7 @@ const EventController = require("../controllers/EventController");
  *       400:
  *         description: Dados inválidos
  */
-router.post("/:userId", auth, EventController.createEvent);
+router.post("/:userId", auth, eventController.createEvent);
 
 /**
  * @swagger
@@ -81,7 +81,7 @@ router.post("/:userId", auth, EventController.createEvent);
  *       401:
  *         description: Não autorizado
  */
-router.get("/:userId", auth, EventController.getAllEvents);
+router.get("/:userId", auth, eventController.getAllEvents);
 
 /**
  * @swagger
@@ -110,7 +110,7 @@ router.get("/:userId", auth, EventController.getAllEvents);
  *       404:
  *         description: Evento não encontrado
  */
-router.get("/:userId/:id", auth, EventController.getEventById);
+router.get("/:userId/:id", auth, eventController.getEventById);
 
 /**
  * @swagger
@@ -150,7 +150,7 @@ router.get("/:userId/:id", auth, EventController.getEventById);
  *       400:
  *         description: Dados inválidos
  */
-router.patch("/:id", auth, EventController.updateEvent);
+router.patch("/:id", auth, eventController.updateEvent);
 
 /**
  * @swagger
@@ -173,6 +173,6 @@ router.patch("/:id", auth, EventController.updateEvent);
  *       404:
  *         description: Evento não encontrado
  */
-router.delete("/:id", auth, EventController.deleteEvent);
+router.delete("/:id", auth, eventController.deleteEvent);
 
 module.exports = router;
