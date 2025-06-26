@@ -479,7 +479,7 @@ const getAlerts = async (req, res) => {
   if (!userId) return res.status(400).json({ message: "UserId obrigatório." });
 
   try {
-    const alerts = await Alert.findAll({ where: { userId }, order: [["createdAt", "DESC"]] });
+    const alerts = await alert.findAll({ where: { userId }, order: [["createdAt", "DESC"]] });
     res.json(alerts);
   } catch (error) {
     console.error("Erro ao buscar alertas:", error);

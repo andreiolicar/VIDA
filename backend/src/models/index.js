@@ -3,33 +3,33 @@ const sequelize = require('../config/database');
 
 const db = {};
 
-db.User = require('./User')(sequelize, Sequelize.DataTypes);
+db.User = require('./user')(sequelize, Sequelize.DataTypes);
 db.StudyRoute = require('./StudyRoute')(sequelize, Sequelize.DataTypes);
 db.StudyTopic = require('./StudyTopics')(sequelize, Sequelize.DataTypes);
 db.Event = require('./Event')(sequelize, Sequelize.DataTypes);
 
-db.Task = require('./Task')(sequelize, Sequelize.DataTypes);
-db.Subtask = require('./Subtask')(sequelize, Sequelize.DataTypes);
+db.Task = require('./task')(sequelize, Sequelize.DataTypes);
+db.Subtask = require('./subtask')(sequelize, Sequelize.DataTypes);
 db.TaskList = require('./TaskList')(sequelize, Sequelize.DataTypes);
 db.TaskAttachment = require('./TaskAttachment')(sequelize, Sequelize.DataTypes);
 db.TaskReminder = require('./TaskReminder')(sequelize, Sequelize.DataTypes);
 db.TaskCollaborator = require('./TaskCollaborator')(sequelize, Sequelize.DataTypes);
 
-db.ChatSession = require('./ChatSession')(sequelize, Sequelize.DataTypes);
+db.ChatSession = require('./chatSession')(sequelize, Sequelize.DataTypes);
 
-db.Transaction = require('./Transaction')(sequelize, Sequelize.DataTypes);
-db.TransactionAttachment = require('./TransactionAttachment')(sequelize, Sequelize.DataTypes); 
-db.TransactionHistory = require('./TransactionHistory')(sequelize, Sequelize.DataTypes);        
+db.Transaction = require('./transaction')(sequelize, Sequelize.DataTypes);
+db.TransactionAttachment = require('./transactionAttachment')(sequelize, Sequelize.DataTypes); 
+db.TransactionHistory = require('./transactionHistory')(sequelize, Sequelize.DataTypes);        
 
-db.FinancialGoal = require('./FinancialGoal')(sequelize, Sequelize.DataTypes);
-db.VidaScore = require('./VidaScore')(sequelize, Sequelize.DataTypes);
-db.Alert = require('./Alert')(sequelize, Sequelize.DataTypes);
-db.VidaScoreHistory = require('./VidaScoreHistory')(sequelize, Sequelize.DataTypes);
+db.FinancialGoal = require('./financialGoal')(sequelize, Sequelize.DataTypes);
+db.VidaScore = require('./vidaScore')(sequelize, Sequelize.DataTypes);
+db.Alert = require('./alert')(sequelize, Sequelize.DataTypes);
+db.VidaScoreHistory = require('./vidaScoreHistory')(sequelize, Sequelize.DataTypes);
 
-db.Friend = require('./Friend')(sequelize, Sequelize.DataTypes);
-db.FriendRequest = require('./FriendRequest')(sequelize, Sequelize.DataTypes);
+db.Friend = require('./friend')(sequelize, Sequelize.DataTypes);
+db.FriendRequest = require('./friendRequest')(sequelize, Sequelize.DataTypes);
 
-db.PrivateMessage = require('./PrivateMessage')(sequelize, Sequelize.DataTypes);
+db.PrivateMessage = require('./privateMessage')(sequelize, Sequelize.DataTypes);
 
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
