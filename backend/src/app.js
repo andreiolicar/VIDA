@@ -37,6 +37,6 @@ app.use('/api/chat-sessions', chatSessionRoutes);
 
 app.use('/api/friends', friendsRoutes);
 
-app.use('/messages', messagesRoutes);
+app.use('/api/messages', messagesRoutes);
 
 module.exports = app;
