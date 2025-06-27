@@ -1,95 +1,56 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
-const { User } = require("../models");
-require("dotenv").config();
+// Importa funções do service responsáveis por login e regisro
+const { registerUser, loginUser } = require("../services/auth.service");
 
+// Define uma função assíncrona que trata a rota de cadastro
 const register = async (req, res) => {
+  // Extrai os dados enviados pelo frontend
   try {
     const { name, email, phone, password } = req.body;
-
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser)
-      return res.status(400).json({ message: "Usuário já cadastrado" });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await User.create({
-      name,
-      email,
-      phone,
-      password: hashedPassword,
-    });
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    const mailOptions = {
-      from: '"Vida Notificações" <vida.app@gmail.com>',
-      to: email,
-      subject: "🎉 Bem-vindo à nossa plataforma!",
-      html: `
-                <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                    <h2 style="color:rgba(10, 37, 136, 0.86);">Olá, ${name}!</h2>
-                    <p>Obrigado por se cadastrar no <strong>VIDA</strong>! Estamos muito felizes em ter você conosco.</p>
-                    <p>Explore nossa plataforma e aproveite todos os recursos que preparamos especialmente para você.</p>
-                    <p style="margin-top: 20px;">Qualquer dúvida, estamos à disposição.</p>
-                    <p>Abraços,<br><strong>Equipe VIDA</strong></p>
-                </div>
-            `,
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        return res.status(500).json({
-          message: "Erro ao enviar e-mail de boas-vindas",
-          error: error.message,
-        });
-      }
-      console.log("E-mail de boas-vindas enviado:", info.response);
-    });
-
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "2h",
-    });
-
+    // Chama a função do service para registrar o usuário
+    const result = await registerUser({ name, email, phone, password });
+    // Envia a resposta de sucesso
     res.status(201).json({
       message: "Usuário criado com sucesso",
-      user: { id: user.id, token: token },
+      user: result,
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Erro ao registrar usuário", error: err.message });
+    // Captura erros vindos do service
+    const msg = err.message || "Erro ao registrar usuário";
+    // Define o HTTP com base na mensagem de erro conhecida
+    const status = msg === "Usuário já cadastrado" ? 400 : 500;
+    // Loga o erro no console
+    console.error("Erro em register:", msg);
+    // Retorna a mensagem de erro com status
+    res.status(status).json({ message: msg });
   }
 };
 
+// Função assíncrona que trata a rota de login de usuário
 const login = async (req, res) => {
   try {
+    // Extrai email e senha do corpo da requisição
     const { email, password } = req.body;
+    // Chama o service para autenticar o usuário
+    const result = await loginUser({ email, password });
 
-    const user = await User.findOne({ where: { email } });
-    if (!user)
-      return res.status(400).json({ message: "Usuário não encontrado" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Senha incorreta" });
-
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "2h",
+    // Envia resposta de sucesso com token JWT e id do usuário
+    res.json({
+      message: "Login realizado com sucesso",
+      token: result.token,
+      user: result.id,
     });
-
-    res.json({ token: token, user: user.id });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Erro ao fazer login", error: err.message });
+    // Captura erros lançados no loginUser
+    const msg = err.message || "Erro ao fazer login";
+    // Define status com base em mensagens conhecidas
+    const status = msg === "Usuário não encontrado" || msg === "Senha incorreta" ? 400 : 500;
+
+    // Loga o erro no console 
+    console.error("Erro em login:", msg);
+    // Retorna a mensagem de erro com status
+    res.status(status).json({ message: msg });
   }
 };
 
+// Exporta funções
 module.exports = { register, login };

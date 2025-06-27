@@ -13,12 +13,17 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd backend && nodemon src/server.js",
     "client": "cd frontend && npm run dev",
-    "setup": "cd backend && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all"
+    "setup": "cd backend && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all",
+    "drop-db": "cd backend && npx sequelize-cli db:drop"
+
   },
   "dependencies": {
+    "chart.js": "^4.5.0",
+    "lucide-react": "^0.523.0",
     "multer": "^2.0.1",
     "mysql2": "^3.14.1",
     "p-limit": "^6.2.0",
+    "react-chartjs-2": "^5.3.0",
     "recharts": "^2.15.3",
     "sequelize": "^6.37.7"
   }
