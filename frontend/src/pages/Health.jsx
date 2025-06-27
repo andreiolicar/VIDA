@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "@/services/axios";
 import Sidebar from "@/components/dashboard/Sidebar";
 import DashboardRightPanel from "@/components/dashboard/DashboardRightPanel";
-import { Heart, CalendarCheck, Activity, AlertTriangle, Stethoscope, FlaskConical } from "lucide-react";
+import {
+  Heart,
+  CalendarCheck,
+  Activity,
+  AlertTriangle,
+  Stethoscope,
+  FlaskConical,
+} from "lucide-react";
 
 function formatDateTime(dateStr) {
   const d = new Date(dateStr);
@@ -32,60 +38,43 @@ function Card({ title, icon, description, to }) {
 }
 
 export default function DashboardHealth() {
-  const rawUser = localStorage.getItem("user");
-  let userId = null;
-  try {
-    userId = JSON.parse(rawUser)?.id ?? rawUser;
-  } catch {
-    userId = rawUser;
-  }
-
   const navigate = useNavigate();
 
   const [appointments, setAppointments] = useState([]);
-  const [healthScore, setHealthScore] = useState(null);
-  const [checkInToday, setCheckInToday] = useState(null);
   const [wellnessHabits, setWellnessHabits] = useState([]);
   const [manualRecords, setManualRecords] = useState([]);
   const [alerts, setAlerts] = useState([]);
 
   useEffect(() => {
-    if (!userId) return;
+    const savedAppointments = localStorage.getItem("appointments");
+    if (savedAppointments) setAppointments(JSON.parse(savedAppointments));
 
-    async function fetchHealthData() {
-      try {
-        const scoreRes = await axios.get(`/health/${userId}/score`);
-        setHealthScore(scoreRes.data.score ?? null);
+    const savedWellnessHabits = localStorage.getItem("wellnessHabits");
+    if (savedWellnessHabits) setWellnessHabits(JSON.parse(savedWellnessHabits));
 
-        const appointmentsRes = await axios.get(`/health/appointments/${userId}`);
-        setAppointments(appointmentsRes.data ?? []);
+    const savedManualRecords = localStorage.getItem("manualRecords");
+    if (savedManualRecords) setManualRecords(JSON.parse(savedManualRecords));
 
-        const checkInRes = await axios.get(`/health/${userId}/checkin/today`);
-        setCheckInToday(checkInRes.data ?? null);
-
-        const habitsRes = await axios.get(`/health/${userId}/habits`);
-        setWellnessHabits(habitsRes.data ?? []);
-
-        const recordsRes = await axios.get(`/health/${userId}/manual-records`);
-        setManualRecords(recordsRes.data ?? []);
-
-        const alertsRes = await axios.get(`/health/${userId}/alerts`);
-        setAlerts(alertsRes.data ?? []);
-      } catch (error) {
-        console.error("Erro ao buscar dados da saúde:", error);
-      }
-    }
-
-    fetchHealthData();
-  }, [userId]);
+    const savedAlerts = localStorage.getItem("alerts");
+    if (savedAlerts) setAlerts(JSON.parse(savedAlerts));
+  }, []);
 
   function renderAppointments() {
     if (!appointments.length)
       return <p className="text-gray-400 mt-2">Nenhuma consulta ou exame agendado.</p>;
+
     return appointments.map((item) => (
       <div
         key={item.id}
-        className="bg-[#2a3748] rounded p-4 mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center"
+        className="bg-[#2a3748] rounded p-4 mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center cursor-pointer hover:bg-[#324057] transition"
+        onClick={() =>
+          navigate(
+            item.type === "consulta"
+              ? "/dashboard/health/score"
+              : "/dashboard/health/score"
+          )
+        }
+        title={`${item.title} - ${item.description || ""}`}
       >
         <div className="flex items-center gap-3">
           {item.type === "consulta" ? (
@@ -95,11 +84,16 @@ export default function DashboardHealth() {
           )}
           <div>
             <h4 className="font-semibold">{item.title}</h4>
-            <p className="text-gray-400 text-sm">{item.description}</p>
+            {item.description && (
+              <p className="text-gray-400 text-sm">{item.description}</p>
+            )}
+            {item.location && (
+              <p className="text-gray-500 text-xs">Local: {item.location}</p>
+            )}
           </div>
         </div>
         <div className="mt-2 sm:mt-0 text-sm text-gray-300">
-          {formatDateTime(item.datetime)}
+          {formatDateTime(item.dateTime)}
         </div>
       </div>
     ));
@@ -108,10 +102,13 @@ export default function DashboardHealth() {
   function renderWellnessHabits() {
     if (!wellnessHabits.length)
       return <p className="text-gray-400 mt-2">Nenhum hábito registrado.</p>;
+
     return wellnessHabits.map((habit) => (
       <div
         key={habit.id}
-        className="bg-[#2a3748] rounded p-4 mb-3 flex flex-col sm:flex-row items-center justify-between"
+        className="bg-[#2a3748] rounded p-4 mb-3 flex flex-col sm:flex-row items-center justify-between cursor-pointer hover:bg-[#324057] transition"
+        onClick={() => navigate("/dashboard/health/habits")}
+        title={`Meta: ${habit.target} | Atual: ${habit.currentValue} ${habit.unit}`}
       >
         <div>
           <h4 className="font-semibold">{habit.name}</h4>
@@ -130,6 +127,7 @@ export default function DashboardHealth() {
   function renderManualRecords() {
     if (!manualRecords.length)
       return <p className="text-gray-400 mt-2">Nenhum registro manual.</p>;
+
     return (
       <table className="w-full text-left border-collapse text-sm">
         <thead>
@@ -145,13 +143,15 @@ export default function DashboardHealth() {
             <tr
               key={record.id}
               className="border-b border-gray-700 hover:bg-gray-800 cursor-pointer"
+              onClick={() => navigate("/dashboard/health/manual-records")}
+              title={`${record.type} - ${record.notes || ""}`}
             >
               <td className="p-2">{new Date(record.date).toLocaleDateString("pt-BR")}</td>
-              <td className="p-2">{record.type}</td>
+              <td className="p-2 capitalize">{record.type}</td>
               <td className="p-2 font-semibold">
                 {record.value} {record.unit}
               </td>
-              <td className="p-2">{record.notes || "-"}</td>
+              <td className="p-2 truncate max-w-xs">{record.notes || "-"}</td>
             </tr>
           ))}
         </tbody>
@@ -162,10 +162,17 @@ export default function DashboardHealth() {
   function renderAlerts() {
     if (!alerts.length)
       return <p className="text-gray-400 mt-2">Nenhum alerta no momento.</p>;
+
     return alerts.map((alert) => (
       <div
         key={alert.id}
-        className="bg-red-700 rounded p-3 mb-2 flex items-center gap-3 cursor-pointer hover:bg-red-800 transition"
+        className={`rounded p-3 mb-2 flex items-center gap-3 cursor-pointer transition ${
+          alert.priority === "alta"
+            ? "bg-red-700 hover:bg-red-800"
+            : alert.priority === "média"
+            ? "bg-yellow-700 hover:bg-yellow-800"
+            : "bg-gray-700 hover:bg-gray-800"
+        }`}
         title={alert.details}
         onClick={() => alert.userAction && navigate(alert.userAction)}
       >
@@ -173,6 +180,9 @@ export default function DashboardHealth() {
         <div>
           <p className="font-semibold">{alert.title}</p>
           <p className="text-sm text-gray-200">{alert.summary}</p>
+          <p className="text-xs text-gray-400">
+            Prioridade: {alert.priority || "média"} - {new Date(alert.date).toLocaleDateString("pt-BR")}
+          </p>
         </div>
       </div>
     ));
@@ -185,48 +195,80 @@ export default function DashboardHealth() {
       <main className="flex-1 flex flex-col px-4 md:px-10 py-8 max-w-[1440px] mx-auto overflow-y-auto">
         <section className="w-full flex flex-nowrap justify-between gap-6 mb-8 overflow-x-auto">
           <Card
-            title="Health Score"
+            title="Consultas e Exames"
             icon={<Heart className="w-12 h-12 text-red-400" />}
-            description="Agende e visualize exames e consultas médicas"
-            to="/health/score"
+            description="Gerencie seus agendamentos"
+            to="/dashboard/health/score"
           />
           <Card
             title="Check-in Emocional"
             icon={<CalendarCheck className="w-12 h-12 text-yellow-400" />}
-            description="Como você se sente hoje?"
-            to="/health/checkin"
+            description="Como você está se sentindo?"
+            to="/dashboard/health/checkin"
           />
           <Card
             title="Hábitos de Bem-estar"
             icon={<Activity className="w-12 h-12 text-green-400" />}
-            description="Sono, alimentação, exercícios e mais"
-            to="/health/habits"
+            description="Sono, alimentação, exercícios..."
+            to="/dashboard/health/habits"
           />
           <Card
-            title="Alertas Ativos"
+            title="Alertas"
             icon={<AlertTriangle className="w-12 h-12 text-red-600" />}
-            description="Atenção para sua saúde"
-            to="/health/alerts"
+            description="Verifique recomendações"
+            to="/dashboard/health/alerts"
           />
         </section>
 
         <section className="mb-10">
-          <h2 className="text-xl font-semibold mb-3">Consultas e Exames Agendados</h2>
+          <h2 className="text-xl font-semibold mb-3 flex justify-between items-center">
+            Consultas e Exames Agendados
+            <Link
+              to="/dashboard/health/score"
+              className="text-green-400 hover:underline text-sm"
+            >
+              Ver todos
+            </Link>
+          </h2>
           {renderAppointments()}
         </section>
 
         <section className="mb-10">
-          <h2 className="text-xl font-semibold mb-3">Resumo de Hábitos</h2>
+          <h2 className="text-xl font-semibold mb-3 flex justify-between items-center">
+            Resumo de Hábitos
+            <Link
+              to="/dashboard/health/habits"
+              className="text-green-400 hover:underline text-sm"
+            >
+              Gerenciar hábitos
+            </Link>
+          </h2>
           {renderWellnessHabits()}
         </section>
 
         <section className="mb-10">
-          <h2 className="text-xl font-semibold mb-3">Registros Manuais de Saúde Física</h2>
+          <h2 className="text-xl font-semibold mb-3 flex justify-between items-center">
+            Registros Manuais de Saúde Física
+            <Link
+              to="/dashboard/health/manual-records"
+              className="text-green-400 hover:underline text-sm"
+            >
+              Ver registros
+            </Link>
+          </h2>
           {renderManualRecords()}
         </section>
 
         <section className="mb-20">
-          <h2 className="text-xl font-semibold mb-3">Alertas e Recomendações</h2>
+          <h2 className="text-xl font-semibold mb-3 flex justify-between items-center">
+            Alertas e Recomendações
+            <Link
+              to="/dashboard/health/alerts"
+              className="text-green-400 hover:underline text-sm"
+            >
+              Ver alertas
+            </Link>
+          </h2>
           {renderAlerts()}
         </section>
       </main>
