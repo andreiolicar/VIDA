@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   Stethoscope,
   FlaskConical,
+  Edit2,
 } from "lucide-react";
 
 function formatDateTime(dateStr) {
@@ -42,8 +43,17 @@ export default function DashboardHealth() {
 
   const [appointments, setAppointments] = useState([]);
   const [wellnessHabits, setWellnessHabits] = useState([]);
-  const [manualRecords, setManualRecords] = useState([]);
   const [alerts, setAlerts] = useState([]);
+  const [healthRecord, setHealthRecord] = useState(null);
+  const [showHealthForm, setShowHealthForm] = useState(false);
+
+  // Campos do formulário de saúde física
+  const [gender, setGender] = useState("");
+  const [age, setAge] = useState("");
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+  const [pains, setPains] = useState("");
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     const savedAppointments = localStorage.getItem("appointments");
@@ -52,12 +62,46 @@ export default function DashboardHealth() {
     const savedWellnessHabits = localStorage.getItem("wellnessHabits");
     if (savedWellnessHabits) setWellnessHabits(JSON.parse(savedWellnessHabits));
 
-    const savedManualRecords = localStorage.getItem("manualRecords");
-    if (savedManualRecords) setManualRecords(JSON.parse(savedManualRecords));
-
     const savedAlerts = localStorage.getItem("alerts");
     if (savedAlerts) setAlerts(JSON.parse(savedAlerts));
+
+    const savedHealth = localStorage.getItem("healthRecord");
+    if (savedHealth) setHealthRecord(JSON.parse(savedHealth));
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("healthRecord", JSON.stringify(healthRecord));
+  }, [healthRecord]);
+
+  function handleHealthSubmit(e) {
+    e.preventDefault();
+    const record = {
+      gender,
+      age,
+      weight,
+      height,
+      pains,
+      notes,
+      date: new Date().toISOString(),
+    };
+    setHealthRecord(record);
+    setShowHealthForm(false);
+  }
+
+  function calculateIMC() {
+    if (!weight || !height) return "";
+    const imc = weight / Math.pow(height / 100, 2);
+    return imc.toFixed(1);
+  }
+
+  function imcCategory() {
+    const imc = parseFloat(calculateIMC());
+    if (!imc) return "-";
+    if (imc < 18.5) return "Abaixo do peso";
+    if (imc < 24.9) return "Peso ideal";
+    if (imc < 29.9) return "Sobrepeso";
+    return "Obesidade";
+  }
 
   function renderAppointments() {
     if (!appointments.length)
@@ -67,13 +111,7 @@ export default function DashboardHealth() {
       <div
         key={item.id}
         className="bg-[#2a3748] rounded p-4 mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center cursor-pointer hover:bg-[#324057] transition"
-        onClick={() =>
-          navigate(
-            item.type === "consulta"
-              ? "/dashboard/health/score"
-              : "/dashboard/health/score"
-          )
-        }
+        onClick={() => navigate("/dashboard/health/score")}
         title={`${item.title} - ${item.description || ""}`}
       >
         <div className="flex items-center gap-3">
@@ -122,41 +160,6 @@ export default function DashboardHealth() {
         </div>
       </div>
     ));
-  }
-
-  function renderManualRecords() {
-    if (!manualRecords.length)
-      return <p className="text-gray-400 mt-2">Nenhum registro manual.</p>;
-
-    return (
-      <table className="w-full text-left border-collapse text-sm">
-        <thead>
-          <tr className="border-b border-gray-600">
-            <th className="p-2">Data</th>
-            <th className="p-2">Tipo</th>
-            <th className="p-2">Valor</th>
-            <th className="p-2">Notas</th>
-          </tr>
-        </thead>
-        <tbody>
-          {manualRecords.map((record) => (
-            <tr
-              key={record.id}
-              className="border-b border-gray-700 hover:bg-gray-800 cursor-pointer"
-              onClick={() => navigate("/dashboard/health/manual-records")}
-              title={`${record.type} - ${record.notes || ""}`}
-            >
-              <td className="p-2">{new Date(record.date).toLocaleDateString("pt-BR")}</td>
-              <td className="p-2 capitalize">{record.type}</td>
-              <td className="p-2 font-semibold">
-                {record.value} {record.unit}
-              </td>
-              <td className="p-2 truncate max-w-xs">{record.notes || "-"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
   }
 
   function renderAlerts() {
@@ -220,6 +223,117 @@ export default function DashboardHealth() {
           />
         </section>
 
+        {/* Formulário de Saúde Física */}
+        <section className="mb-10">
+          <h2 className="text-xl font-semibold mb-3 flex justify-between items-center">
+            Formulário de Saúde Física
+            {!showHealthForm && (
+              <button
+                onClick={() => {
+                  if (healthRecord) {
+                    setGender(healthRecord.gender);
+                    setAge(healthRecord.age);
+                    setWeight(healthRecord.weight);
+                    setHeight(healthRecord.height);
+                    setPains(healthRecord.pains);
+                    setNotes(healthRecord.notes);
+                  }
+                  setShowHealthForm(true);
+                }}
+                className="text-green-400 flex items-center gap-1"
+              >
+                <Edit2 className="w-4 h-4" />
+                {healthRecord ? "Editar Registro" : "Novo Registro"}
+              </button>
+            )}
+          </h2>
+          {showHealthForm && (
+            <form onSubmit={handleHealthSubmit} className="bg-[#1f2937] p-6 rounded-lg max-w-2xl">
+              <div className="mb-4">
+                <label className="block mb-1">Sexo</label>
+                <select
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="w-full rounded px-3 py-2 bg-[#111827]"
+                  required
+                >
+                  <option value="">Selecione</option>
+                  <option value="homem">Homem</option>
+                  <option value="mulher">Mulher</option>
+                  <option value="outro">Outro</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block mb-1">Idade</label>
+                  <input
+                    type="number"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    className="w-full rounded px-3 py-2 bg-[#111827]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1">Peso (kg)</label>
+                  <input
+                    type="number"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    className="w-full rounded px-3 py-2 bg-[#111827]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1">Altura (cm)</label>
+                  <input
+                    type="number"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    className="w-full rounded px-3 py-2 bg-[#111827]"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="mb-4">
+                <label className="block mb-1">Dores ou desconfortos frequentes</label>
+                <textarea
+                  value={pains}
+                  onChange={(e) => setPains(e.target.value)}
+                  rows={2}
+                  className="w-full rounded px-3 py-2 bg-[#111827]"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block mb-1">Notas adicionais</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={2}
+                  className="w-full rounded px-3 py-2 bg-[#111827]"
+                />
+              </div>
+              <button
+                type="submit"
+                className="bg-green-600 w-full py-2 rounded hover:bg-green-700"
+              >
+                Salvar
+              </button>
+            </form>
+          )}
+          {!showHealthForm && healthRecord && (
+            <div className="bg-[#1f2937] p-4 rounded">
+              <p><strong>Sexo:</strong> {healthRecord.gender}</p>
+              <p><strong>Idade:</strong> {healthRecord.age}</p>
+              <p><strong>Peso:</strong> {healthRecord.weight} kg</p>
+              <p><strong>Altura:</strong> {healthRecord.height} cm</p>
+              <p><strong>IMC:</strong> {calculateIMC()} ({imcCategory()})</p>
+              {healthRecord.pains && <p><strong>Dores:</strong> {healthRecord.pains}</p>}
+              {healthRecord.notes && <p><strong>Notas:</strong> {healthRecord.notes}</p>}
+            </div>
+          )}
+        </section>
+
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3 flex justify-between items-center">
             Consultas e Exames Agendados
@@ -244,19 +358,6 @@ export default function DashboardHealth() {
             </Link>
           </h2>
           {renderWellnessHabits()}
-        </section>
-
-        <section className="mb-10">
-          <h2 className="text-xl font-semibold mb-3 flex justify-between items-center">
-            Registros Manuais de Saúde Física
-            <Link
-              to="/dashboard/health/manual-records"
-              className="text-green-400 hover:underline text-sm"
-            >
-              Ver registros
-            </Link>
-          </h2>
-          {renderManualRecords()}
         </section>
 
         <section className="mb-20">
