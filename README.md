@@ -227,7 +227,7 @@ node src/server.js
 
 ## Apoie o Projeto
 
-Este README fornece uma visão geral do projeto V.I.D.A. e sua estrutura. Para detalhes específicos sobre cada módulo e funcionalidade, consulte a documentação dentro das pastas correspondentes. Se você curtiu, deixe uma ⭐ estrela no repositório para mostrar seu apoio!
+Este README fornece uma visão geral do projeto VIDA e sua estrutura. Para detalhes específicos sobre cada módulo e funcionalidade, consulte a documentação dentro das pastas correspondentes. Se você curtiu, deixe uma ⭐ estrela no repositório para mostrar seu apoio!
 
 ---
 
