@@ -34,16 +34,28 @@ export default function CommunityDashboard() {
       case 'mensagens':
         return <MessagesSection />;
       default:
+        const activeItem = menuItems.find((item) => item.key === activeTab);
         return (
-          <section className="h-full flex items-center justify-center">
-            <div className="text-center px-4">
-              <div className="text-6xl mb-4 select-none">🚧</div>
-              <p className="text-xl text-gray-400">Seção em desenvolvimento</p>
-              <p className="text-gray-500 mt-2">
-                A seção "
-                {menuItems.find((item) => item.key === activeTab)?.label}
-                " será implementada em breve.
+          <section className="h-full flex items-center justify-center p-4">
+            <div className="text-center max-w-md mx-auto">
+              <div className="relative mb-8">
+                <div className="w-24 h-24 mx-auto bg-gradient-to-br from-gray-700 to-gray-800 rounded-3xl flex items-center justify-center shadow-2xl">
+                  {activeItem && <activeItem.icon className="w-12 h-12 text-gray-400" />}
+                </div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                  <span className="text-lg">🚧</span>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-200 mb-3">
+                {activeItem?.label}
+              </h3>
+              <p className="text-gray-400 mb-4">
+                Esta seção está sendo desenvolvida com muito carinho para você!
               </p>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-900/20 border border-blue-700/30 rounded-full text-blue-400 text-sm">
+                <Calendar className="w-4 h-4" />
+                Em breve disponível
+              </div>
             </div>
           </section>
         );
@@ -68,9 +80,9 @@ export default function CommunityDashboard() {
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`flex flex-shrink-0 items-center justify-center gap-2 px-3 py-1.5 rounded-lg font-semibold transition min-w-[90px] max-w-[160px] ${activeTab === key
-                  ? 'bg-blue-700 text-white shadow-blue-900/50'
-                  : 'text-gray-400 hover:text-white hover:bg-blue-900'
+              className={`flex flex-shrink-0 items-center justify-center mr-5 gap-2 px-3 py-1.5 rounded-lg font-semibold transition min-w-[90px] max-w-[160px] ${activeTab === key
+                ? 'bg-blue-700 text-white shadow-blue-900/50'
+                : 'text-gray-400 hover:text-white hover:bg-blue-900'
                 }`}
               aria-current={activeTab === key ? 'page' : undefined}
               type="button"

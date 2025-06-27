@@ -1,42 +1,38 @@
 import React from 'react';
+import { UserPlus, Users } from 'lucide-react';
 import { useFriends } from '@/hooks/community/useFriends';
+import NotificationModal from '@/components/community/NotificationModal';
+import LoadingNotification from '@/components/community/LoadingNotification';
 
 export default function FriendsSection() {
   const {
+    // Estados principais
     search,
     setSearch,
     searchResults,
     friendRequests,
     friends,
+
+    // Estados de loading
     loadingSearch,
     loadingRequests,
     loadingFriends,
-    error,
+
+    // Estados de notificação
+    notification,
+
+    // Handlers
     handleSearch,
     handleSearchKeyDown,
-    acceptRequest,
-    rejectRequest,
-    sendFriendRequest,
-    clearError,
+    handleSendFriendRequest,
+    handleAcceptRequest,
+    handleRejectRequest,
+    closeNotification,
   } = useFriends();
 
   return (
-    <section className="h-full overflow-y-auto pr-2 px-2 sm:px-4 md:px-6 lg:px-8">
+    <section className="h-full overflow-y-auto">
       <h2 className="text-2xl font-bold mb-6 text-center sm:text-left">Amigos</h2>
-
-      {/* Exibir erro se houver */}
-      {error && (
-        <div className="mb-4 p-4 bg-red-900/50 border border-red-700 rounded-xl text-red-200 max-w-xl mx-auto sm:mx-0">
-          <p>{error}</p>
-          <button
-            onClick={clearError}
-            className="mt-2 text-sm underline hover:no-underline"
-            aria-label="Fechar mensagem de erro"
-          >
-            Fechar
-          </button>
-        </div>
-      )}
 
       {/* Busca de usuários */}
       <div className="flex flex-col sm:flex-row gap-4 mb-12 max-w-xl mx-auto sm:mx-0">
@@ -75,7 +71,7 @@ export default function FriendsSection() {
                   <p className="text-sm text-gray-400 mb-4 truncate">{user.email}</p>
                 </div>
                 <button
-                  onClick={() => sendFriendRequest(user.id)}
+                  onClick={() => handleSendFriendRequest(user.id, user.name)}
                   className="self-start bg-green-600 px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition shadow-green-900/60"
                   aria-label={`Enviar solicitação para ${user.name}`}
                 >
@@ -90,19 +86,20 @@ export default function FriendsSection() {
       {/* Solicitações pendentes */}
       <div className="mb-12 max-w-7xl mx-auto sm:mx-0">
         <h3 className="text-xl font-semibold mb-4">Solicitações Recebidas</h3>
-        {loadingRequests ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-2">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="text-gray-400">Carregando...</span>
+        {friendRequests.length === 0 ? (
+          <div className="bg-[#1f2937]/50 border border-gray-700/50 rounded-2xl p-8 text-center">
+            <UserPlus className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+            <p className="text-gray-400 italic">Nenhuma solicitação pendente.</p>
+            <p className="text-gray-500 text-sm mt-2">
+              Quando alguém enviar uma solicitação, ela aparecerá aqui.
+            </p>
           </div>
-        ) : friendRequests.length === 0 ? (
-          <p className="text-gray-400 italic text-center">Nenhuma solicitação pendente.</p>
         ) : (
           <div className="space-y-6 max-w-xl mx-auto sm:mx-0">
             {friendRequests.map((req) => (
               <div
                 key={req.id}
-                className="bg-[#1f2937] rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4"
+                className="bg-[#1f2937] rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 border border-blue-700/30 shadow-lg"
               >
                 <div className="flex-1 min-w-0 text-center sm:text-left">
                   <p className="text-lg font-semibold truncate">{req.requester?.name || 'Usuário desconhecido'}</p>
@@ -110,14 +107,14 @@ export default function FriendsSection() {
                 </div>
                 <div className="flex gap-4">
                   <button
-                    onClick={() => acceptRequest(req.id)}
-                    className="bg-blue-600 px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow-blue-900/50"
+                    onClick={() => handleAcceptRequest(req.id, req.requester?.name)}
+                    className="bg-green-600 px-5 py-2 rounded-lg font-semibold hover:bg-green-700 transition shadow-green-900/50"
                     aria-label={`Aceitar solicitação de ${req.requester?.name || 'usuário'}`}
                   >
                     Aceitar
                   </button>
                   <button
-                    onClick={() => rejectRequest(req.id)}
+                    onClick={() => handleRejectRequest(req.id, req.requester?.name)}
                     className="bg-red-600 px-5 py-2 rounded-lg font-semibold hover:bg-red-700 transition shadow-red-900/50"
                     aria-label={`Recusar solicitação de ${req.requester?.name || 'usuário'}`}
                   >
@@ -133,19 +130,20 @@ export default function FriendsSection() {
       {/* Lista de amigos */}
       <div className="max-w-7xl mx-auto sm:mx-0">
         <h3 className="text-xl font-semibold mb-4">Seus Amigos</h3>
-        {loadingFriends ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-2">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="text-gray-400">Carregando...</span>
+        {friends.length === 0 ? (
+          <div className="bg-[#1f2937]/50 border border-gray-700/50 rounded-2xl p-8 text-center">
+            <Users className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+            <p className="text-gray-400 italic">Você ainda não tem amigos.</p>
+            <p className="text-gray-500 text-sm mt-2">
+              Use a busca acima para encontrar pessoas e enviar solicitações de amizade.
+            </p>
           </div>
-        ) : friends.length === 0 ? (
-          <p className="text-gray-400 italic text-center">Você ainda não tem amigos.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {friends.map((friend) => (
               <div
                 key={friend.id}
-                className="bg-[#1f2937] rounded-3xl p-6 shadow-blue-700/80 hover:shadow-blue-700/100 flex flex-col items-center text-center cursor-pointer transition transform"
+                className="bg-[#1f2937] rounded-3xl p-6 shadow-blue-700/80 hover:shadow-blue-700/100 flex flex-col items-center text-center cursor-pointer transition transform hover:scale-105"
                 tabIndex={0}
                 role="button"
                 aria-label={`Amigo ${friend.name}`}
@@ -159,6 +157,24 @@ export default function FriendsSection() {
           </div>
         )}
       </div>
+
+      {/* Notificações */}
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={closeNotification}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+        actions={notification.actions}
+        autoClose={notification.autoClose}
+        autoCloseDelay={notification.autoCloseDelay}
+      />
+
+      {/* Loading overlay para operações */}
+      <LoadingNotification
+        isOpen={loadingRequests || loadingFriends}
+        message={loadingRequests ? "Carregando solicitações..." : "Carregando amigos..."}
+      />
     </section>
   );
 }
