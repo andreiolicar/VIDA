@@ -38,10 +38,16 @@ import EditTransaction from '@/pages/EditTransaction';
 import GoalsPage from '@/pages/GoalsPage';
 import GoalDetails from '@/pages/GoalDetails';
 import TransactionDetails from '@/pages/TransactionDetails';
-import DashboardCommunity from './pages/DashboardCommunity';
-import IncomePage from './pages/IncomePage';
-import ExpensePage from './pages/ExpensePage';
+import DashboardCommunity from '@/pages/DashboardCommunity';
+import IncomePage from '@/pages/IncomePage';
+import ExpensePage from '@/pages/ExpensePage';
 import Health from './pages/Health.jsx';
+
+// IMPORTANDO OS DASHBOARDS DE SAÚDE
+import DashboardHealthScore from './pages/DashboardHealthScore.jsx';
+import DashboardCheckin from './pages/DashboardCheckin.jsx';
+import DashboardWellnessHabit from './pages/DashboardWellnessHabit.jsx';
+import DashboardHealthAlert from './pages/DashboardHealthAlert.jsx';
 
 function App() {
   return (
@@ -94,6 +100,12 @@ function App() {
           <Route path="/dashboard/chatbot/:id" element={<Chatbot />} />
           <Route path="/dashboard/community" element={<DashboardCommunity />} />
           <Route path="/dashboard/health" element={<Health />} />
+
+          {/* ROTAS DOS DASHBOARDS DE SAÚDE */}
+          <Route path="/health/score" element={<DashboardHealthScore />} />
+          <Route path="/health/checkin" element={<DashboardCheckin />} />
+          <Route path="/health/habits" element={<DashboardWellnessHabit />} />
+          <Route path="/health/alerts" element={<DashboardHealthAlert />} />
         </Route>
       </Route>
     </Routes>
