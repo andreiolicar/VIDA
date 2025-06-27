@@ -160,8 +160,6 @@ router.get("/:userId/transactions/:id", auth, financeController.getTransactionBy
  */
 router.post("/:userId/transactions/:id/duplicate", auth, financeController.duplicateTransaction);
 
-// ANEXOS
-
 /**
  * @swagger
  * /finance/{userId}/transactions/{id}/attachments:
@@ -270,8 +268,6 @@ router.delete(
   financeController.deleteAttachment
 );
 
-// OUTRAS ROTAS FINANCEIRAS
-
 /**
  * @swagger
  * /finance/{userId}/transactions/{id}/history:
@@ -331,6 +327,8 @@ router.get("/:userId/transactions/:id/history", auth, financeController.getTrans
  *         description: Transação atualizada com sucesso
  */
 router.patch("/:userId/transactions/:id", auth, financeController.updateCommentsAndRecurring);
+
+// ROTAS DE METAS FINANCEIRAS
 
 /**
  * @swagger
@@ -392,7 +390,7 @@ router.get("/:userId/goals", auth, financeController.getGoals);
  * @swagger
  * /finance/{userId}/goals/{goalId}:
  *   patch:
- *     summary: Atualizar progresso de uma meta
+ *     summary: Atualizar progresso de uma meta financeira
  *     tags: [Finanças]
  *     security:
  *       - bearerAuth: []
@@ -408,6 +406,7 @@ router.get("/:userId/goals", auth, financeController.getGoals);
  *         schema:
  *           type: integer
  *     requestBody:
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -422,6 +421,51 @@ router.get("/:userId/goals", auth, financeController.getGoals);
  *         description: Progresso da meta atualizado com sucesso
  */
 router.patch("/:userId/goals/:goalId", auth, financeController.updateGoalProgress);
+
+/**
+ * @swagger
+ * /finance/{userId}/goals/{goalId}/history:
+ *   get:
+ *     summary: Obter histórico completo de aportes e remoções de uma meta financeira
+ *     tags: [Finanças]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: goalId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Histórico da meta financeira retornado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   goalId:
+ *                     type: integer
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                   amount:
+ *                     type: number
+ *                   cumulativeAmount:
+ *                     type: number
+ */
+router.get("/:userId/goals/:goalId/history", auth, financeController.getGoalHistory);
+
+// OUTRAS ROTAS
 
 /**
  * @swagger
@@ -543,6 +587,191 @@ router.get("/:userId/alerts", auth, financeController.getAlerts);
  *         description: Transação não encontrada
  */
 router.delete("/:userId/transactions/:id", auth, financeController.deleteTransaction);
+
+/**
+ * @swagger
+ * /finance/{userId}/goals/{goalId}:
+ *   get:
+ *     summary: Buscar detalhes de uma meta financeira específica
+ *     tags: [Finanças]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: ID do usuário
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: goalId
+ *         required: true
+ *         description: ID da meta financeira
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Detalhes da meta retornados com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 title:
+ *                   type: string
+ *                 targetAmount:
+ *                   type: number
+ *                 currentAmount:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 deadline:
+ *                   type: string
+ *                   format: date
+ *       404:
+ *         description: Meta não encontrada
+ */
+router.get("/:userId/goals/:goalId", auth, financeController.getGoalById);
+
+/**
+ * @swagger
+ * /finance/{userId}/goals/{goalId}/remove:
+ *   patch:
+ *     summary: Remover aporte de uma meta financeira
+ *     tags: [Finanças]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: ID do usuário
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: goalId
+ *         required: true
+ *         description: ID da meta financeira
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amountToRemove
+ *             properties:
+ *               amountToRemove:
+ *                 type: number
+ *                 example: 100.50
+ *     responses:
+ *       200:
+ *         description: Aporte removido e saldo atualizado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/FinancialGoal'
+ *       400:
+ *         description: Erro de validação (ex: valor inválido ou maior que aporte atual)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Não é possível remover mais do que o valor atual da meta.
+ *       404:
+ *         description: Meta financeira não encontrada
+ */
+router.patch("/:userId/goals/:goalId/remove", auth, financeController.removeGoalProgress);
+
+/**
+ * @swagger
+ * /finance/{userId}/goals/{goalId}:
+ *   patch:
+ *     summary: Editar uma meta financeira (título, valor, prazo)
+ *     tags: [Finanças]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: ID do usuário
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: goalId
+ *         required: true
+ *         description: ID da meta financeira
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: Nova meta financeira
+ *               targetAmount:
+ *                 type: number
+ *                 example: 5000
+ *               deadline:
+ *                 type: string
+ *                 format: date
+ *                 example: 2025-12-31
+ *     responses:
+ *       200:
+ *         description: Meta financeira atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/FinancialGoal'
+ *       400:
+ *         description: Parâmetros inválidos
+ *       404:
+ *         description: Meta financeira não encontrada
+ */
+router.patch("/:userId/goals/:goalId", auth, financeController.updateGoal);
+
+/**
+ * @swagger
+ * /finance/{userId}/goals/{goalId}:
+ *   delete:
+ *     summary: Excluir uma meta financeira
+ *     tags: [Finanças]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: ID do usuário
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: goalId
+ *         required: true
+ *         description: ID da meta financeira
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Meta financeira excluída com sucesso
+ *       400:
+ *         description: Parâmetros inválidos
+ *       404:
+ *         description: Meta financeira não encontrada
+ */
+router.delete("/:userId/goals/:goalId", auth, financeController.deleteGoal);
+
 
 
 module.exports = router;

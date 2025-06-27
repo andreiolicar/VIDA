@@ -22,6 +22,8 @@ db.TransactionAttachment = require('./transactionAttachment')(sequelize, Sequeli
 db.TransactionHistory = require('./transactionHistory')(sequelize, Sequelize.DataTypes);        
 
 db.FinancialGoal = require('./financialGoal')(sequelize, Sequelize.DataTypes);
+db.FinancialGoalHistory = require('./FinancialGoalHistory')(sequelize, Sequelize.DataTypes); 
+
 db.VidaScore = require('./vidaScore')(sequelize, Sequelize.DataTypes);
 db.Alert = require('./alert')(sequelize, Sequelize.DataTypes);
 db.VidaScoreHistory = require('./vidaScoreHistory')(sequelize, Sequelize.DataTypes);
@@ -34,6 +36,7 @@ db.PrivateMessage = require('./privateMessage')(sequelize, Sequelize.DataTypes);
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
+// Associações
 if (db.User.associate) db.User.associate(db);
 if (db.StudyRoute.associate) db.StudyRoute.associate(db);
 if (db.StudyTopic.associate) db.StudyTopic.associate(db);
@@ -53,6 +56,8 @@ if (db.TransactionAttachment.associate) db.TransactionAttachment.associate(db);
 if (db.TransactionHistory.associate) db.TransactionHistory.associate(db);
 
 if (db.FinancialGoal.associate) db.FinancialGoal.associate(db);
+if (db.FinancialGoalHistory.associate) db.FinancialGoalHistory.associate(db); 
+
 if (db.VidaScore.associate) db.VidaScore.associate(db);
 if (db.Alert.associate) db.Alert.associate(db);
 if (db.VidaScoreHistory.associate) db.VidaScoreHistory.associate(db);

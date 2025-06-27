@@ -2,6 +2,7 @@ const db = require("../models");
 const {
   Transaction,
   FinancialGoal,
+  FinancialGoalHistory,
   VidaScore,
   Alert,
   VidaScoreHistory,
@@ -33,7 +34,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Criar uma nova transação (receita ou despesa)
+// --- TRANSAÇÕES ---
+
 const createTransaction = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const { type, category, amount, date, description, comments, recurring } = req.body;
@@ -66,7 +68,6 @@ const createTransaction = async (req, res) => {
   }
 };
 
-// Listar transações do usuário com filtros opcionais (data, categoria, tipo)
 const getTransactions = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const { startDate, endDate, category, type } = req.query;
@@ -93,7 +94,6 @@ const getTransactions = async (req, res) => {
   }
 };
 
-// Buscar detalhes de uma transação específica pelo ID
 const getTransactionById = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const transactionId = parseInt(req.params.id, 10);
@@ -112,7 +112,6 @@ const getTransactionById = async (req, res) => {
   }
 };
 
-// Duplicar uma transação existente
 const duplicateTransaction = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const transactionId = parseInt(req.params.id, 10);
@@ -143,7 +142,6 @@ const duplicateTransaction = async (req, res) => {
   }
 };
 
-// Excluir uma transação específica
 const deleteTransaction = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const transactionId = parseInt(req.params.id, 10);
@@ -168,7 +166,6 @@ const deleteTransaction = async (req, res) => {
   }
 };
 
-// Upload de anexos para uma transação
 const uploadAttachments = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const transactionId = parseInt(req.params.id, 10);
@@ -194,7 +191,6 @@ const uploadAttachments = async (req, res) => {
   }
 };
 
-// Listar anexos de uma transação
 const getAttachments = async (req, res) => {
   const transactionId = parseInt(req.params.id, 10);
   try {
@@ -206,7 +202,6 @@ const getAttachments = async (req, res) => {
   }
 };
 
-// Excluir anexo de uma transação
 const deleteAttachment = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const transactionId = parseInt(req.params.transactionId, 10);
@@ -244,7 +239,6 @@ const deleteAttachment = async (req, res) => {
   }
 };
 
-// Buscar histórico de alterações de uma transação
 const getTransactionHistory = async (req, res) => {
   const transactionId = parseInt(req.params.id, 10);
   try {
@@ -259,7 +253,6 @@ const getTransactionHistory = async (req, res) => {
   }
 };
 
-// Atualizar comentários e recorrência de uma transação
 const updateCommentsAndRecurring = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const transactionId = parseInt(req.params.id, 10);
@@ -282,7 +275,8 @@ const updateCommentsAndRecurring = async (req, res) => {
   }
 };
 
-// Criar nova meta financeira
+// --- METAS FINANCEIRAS ---
+
 const createGoal = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const { title, targetAmount, deadline } = req.body;
@@ -313,7 +307,6 @@ const createGoal = async (req, res) => {
   }
 };
 
-// Listar metas financeiras do usuário
 const getGoals = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
 
@@ -331,7 +324,71 @@ const getGoals = async (req, res) => {
   }
 };
 
-// Atualizar progresso da meta financeira (ex: adicionar valor poupado)
+const getGoalById = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const goalId = parseInt(req.params.goalId, 10);
+
+  if (!userId || !goalId) {
+    return res.status(400).json({ message: "Parâmetros inválidos." });
+  }
+
+  try {
+    const goal = await FinancialGoal.findOne({ where: { id: goalId, userId } });
+    if (!goal) return res.status(404).json({ message: "Meta não encontrada." });
+    res.json(goal);
+  } catch (error) {
+    console.error("Erro ao buscar meta financeira:", error);
+    res.status(500).json({ message: "Erro ao buscar meta financeira." });
+  }
+};
+
+// Atualizar meta financeira (edição de título, valor, prazo)
+const updateGoal = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const goalId = parseInt(req.params.goalId, 10);
+  const { title, targetAmount, deadline } = req.body;
+
+  if (!userId || !goalId) return res.status(400).json({ message: "Parâmetros inválidos." });
+  if (targetAmount !== undefined && (isNaN(targetAmount) || targetAmount <= 0)) {
+    return res.status(400).json({ message: "Valor inválido para targetAmount." });
+  }
+
+  try {
+    const goal = await FinancialGoal.findOne({ where: { id: goalId, userId } });
+    if (!goal) return res.status(404).json({ message: "Meta não encontrada." });
+
+    if (title !== undefined) goal.title = title;
+    if (targetAmount !== undefined) goal.targetAmount = targetAmount;
+    if (deadline !== undefined) goal.deadline = deadline;
+
+    await goal.save();
+    res.json(goal);
+  } catch (error) {
+    console.error("Erro ao atualizar meta financeira:", error);
+    res.status(500).json({ message: "Erro ao atualizar meta financeira." });
+  }
+};
+
+// Excluir meta financeira
+const deleteGoal = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const goalId = parseInt(req.params.goalId, 10);
+
+  if (!userId || !goalId) return res.status(400).json({ message: "Parâmetros inválidos." });
+
+  try {
+    const goal = await FinancialGoal.findOne({ where: { id: goalId, userId } });
+    if (!goal) return res.status(404).json({ message: "Meta não encontrada." });
+
+    await goal.destroy();
+    res.status(200).json({ message: "Meta excluída com sucesso." });
+  } catch (error) {
+    console.error("Erro ao excluir meta financeira:", error);
+    res.status(500).json({ message: "Erro ao excluir meta financeira." });
+  }
+};
+
+// Atualizar progresso da meta financeira e registrar histórico (adicionar aporte como despesa)
 const updateGoalProgress = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const goalId = parseInt(req.params.goalId, 10);
@@ -340,7 +397,7 @@ const updateGoalProgress = async (req, res) => {
   if (!userId || !goalId || amountToAdd === undefined) {
     return res.status(400).json({ message: "Campos obrigatórios faltando." });
   }
-  if (isNaN(amountToAdd)) {
+  if (isNaN(amountToAdd) || amountToAdd <= 0) {
     return res.status(400).json({ message: "Valor inválido para amountToAdd." });
   }
 
@@ -348,13 +405,58 @@ const updateGoalProgress = async (req, res) => {
     const goal = await FinancialGoal.findOne({ where: { id: goalId, userId } });
     if (!goal) return res.status(404).json({ message: "Meta não encontrada." });
 
-    goal.currentAmount += parseFloat(amountToAdd);
+    const incomeSum = await Transaction.sum('amount', { where: { userId, type: 'income' } }) || 0;
+    const expenseSum = await Transaction.sum('amount', { where: { userId, type: 'expense' } }) || 0;
+    const saldoDisponivel = incomeSum - expenseSum;
 
-    if (goal.currentAmount >= goal.targetAmount) {
-      goal.status = "completed";
+    if (amountToAdd > saldoDisponivel) {
+      return res.status(400).json({
+        message: `Aporte maior que saldo disponível. Saldo atual: R$ ${saldoDisponivel.toFixed(2)}`
+      });
     }
 
-    await goal.save();
+    const newCurrentAmount = goal.currentAmount + parseFloat(amountToAdd);
+    if (newCurrentAmount > goal.targetAmount) {
+      return res.status(400).json({
+        message: `Aporte ultrapassa o saldo restante da meta. Saldo disponível para a meta: R$ ${(goal.targetAmount - goal.currentAmount).toFixed(2)}`
+      });
+    }
+
+    // Atualiza a meta
+    const newStatus = newCurrentAmount >= goal.targetAmount ? "completed" : "active";
+
+    await goal.update({
+      currentAmount: newCurrentAmount,
+      status: newStatus,
+    });
+
+    // Cria transação do tipo despesa para contabilizar o aporte
+    await Transaction.create({
+      userId,
+      type: 'expense',
+      category: 'Aporte em meta financeira',
+      amount: amountToAdd,
+      date: new Date(),
+      description: `Aporte para meta: ${goal.title}`,
+      comments: null,
+      recurring: false,
+    });
+
+    // Atualiza histórico da meta
+    const lastHistory = await FinancialGoalHistory.findOne({
+      where: { goalId },
+      order: [["date", "DESC"], ["id", "DESC"]],
+    });
+    const lastCumulative = lastHistory ? lastHistory.cumulativeAmount : 0;
+    const newCumulative = lastCumulative + parseFloat(amountToAdd);
+
+    await FinancialGoalHistory.create({
+      goalId,
+      date: new Date(),
+      amount: parseFloat(amountToAdd),
+      cumulativeAmount: newCumulative,
+    });
+
     res.json(goal);
   } catch (error) {
     console.error("Erro ao atualizar meta:", error);
@@ -365,7 +467,98 @@ const updateGoalProgress = async (req, res) => {
   }
 };
 
-// Calcular e retornar o V.I.D.A. Score do usuário
+// Remover aporte da meta, atualizar saldo criando transação income e histórico negativo
+const removeGoalProgress = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const goalId = parseInt(req.params.goalId, 10);
+  const { amountToRemove } = req.body;
+
+  if (!userId || !goalId || amountToRemove === undefined) {
+    return res.status(400).json({ message: "Campos obrigatórios faltando." });
+  }
+  if (isNaN(amountToRemove) || amountToRemove <= 0) {
+    return res.status(400).json({ message: "Valor inválido para amountToRemove." });
+  }
+
+  try {
+    const goal = await FinancialGoal.findOne({ where: { id: goalId, userId } });
+    if (!goal) return res.status(404).json({ message: "Meta não encontrada." });
+
+    if (amountToRemove > goal.currentAmount) {
+      return res.status(400).json({ message: "Não é possível remover mais do que o valor atual da meta." });
+    }
+
+    const newCurrentAmount = goal.currentAmount - amountToRemove;
+    const newStatus = newCurrentAmount >= goal.targetAmount ? "completed" : "active";
+
+    await goal.update({
+      currentAmount: newCurrentAmount,
+      status: newStatus,
+    });
+
+    // Cria transação de receita para devolver o valor ao saldo geral
+    await Transaction.create({
+      userId,
+      type: 'income',
+      category: 'Reembolso de aporte',
+      amount: amountToRemove,
+      date: new Date(),
+      description: `Remoção de aporte da meta ${goal.title}`,
+      comments: null,
+      recurring: false,
+    });
+
+    // Atualiza histórico da meta com valor negativo
+    const lastHistory = await FinancialGoalHistory.findOne({
+      where: { goalId },
+      order: [["date", "DESC"], ["id", "DESC"]],
+    });
+    const lastCumulative = lastHistory ? lastHistory.cumulativeAmount : 0;
+    const newCumulative = lastCumulative - amountToRemove;
+
+    await FinancialGoalHistory.create({
+      goalId,
+      date: new Date(),
+      amount: -amountToRemove,
+      cumulativeAmount: newCumulative,
+    });
+
+    res.json(goal);
+  } catch (error) {
+    console.error("Erro ao remover aporte da meta:", error);
+    res.status(500).json({
+      message: "Erro ao remover aporte da meta.",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+const getGoalHistory = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const goalId = parseInt(req.params.goalId, 10);
+
+  if (!userId || !goalId) {
+    return res.status(400).json({ message: "Parâmetros inválidos." });
+  }
+
+  try {
+    const goal = await FinancialGoal.findOne({ where: { id: goalId, userId } });
+    if (!goal) return res.status(404).json({ message: "Meta não encontrada." });
+
+    const history = await FinancialGoalHistory.findAll({
+      where: { goalId },
+      order: [["date", "ASC"], ["id", "ASC"]],
+    });
+
+    res.json(history);
+  } catch (error) {
+    console.error("Erro ao buscar histórico da meta:", error);
+    res.status(500).json({ message: "Erro ao buscar histórico da meta." });
+  }
+};
+
+// --- VIDA SCORE ---
+
 const getVidaScore = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   if (!userId) return res.status(400).json({ message: "UserId obrigatório." });
@@ -412,7 +605,6 @@ const getVidaScore = async (req, res) => {
   }
 };
 
-// Buscar histórico do V.I.D.A. Score (corrigido para tratamento de data)
 const getVidaScoreHistory = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   if (!userId) return res.status(400).json({ message: "UserId obrigatório." });
@@ -442,7 +634,8 @@ const getVidaScoreHistory = async (req, res) => {
   }
 };
 
-// Gerar relatório financeiro resumido para gráficos
+// --- RELATÓRIOS E ALERTAS ---
+
 const getFinancialReport = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const { startDate, endDate } = req.query;
@@ -473,13 +666,12 @@ const getFinancialReport = async (req, res) => {
   }
 };
 
-// Listar alertas financeiros do usuário
 const getAlerts = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   if (!userId) return res.status(400).json({ message: "UserId obrigatório." });
 
   try {
-    const alerts = await alert.findAll({ where: { userId }, order: [["createdAt", "DESC"]] });
+    const alerts = await Alert.findAll({ where: { userId }, order: [["createdAt", "DESC"]] });
     res.json(alerts);
   } catch (error) {
     console.error("Erro ao buscar alertas:", error);
@@ -490,7 +682,8 @@ const getAlerts = async (req, res) => {
   }
 };
 
-// Função para calcular o V.I.D.A. Score (exemplo simplificado)
+// --- FUNÇÃO AUXILIAR ---
+
 const calculateVidaScore = async (userId) => {
   const transactions = await Transaction.findAll({ where: { userId } });
   const goals = await FinancialGoal.findAll({ where: { userId } });
@@ -522,7 +715,7 @@ module.exports = {
   getTransactions,
   getTransactionById,
   duplicateTransaction,
-  deleteTransaction, 
+  deleteTransaction,
   uploadAttachments,
   getAttachments,
   deleteAttachment,
@@ -530,7 +723,12 @@ module.exports = {
   updateCommentsAndRecurring,
   createGoal,
   getGoals,
+  getGoalById,
+  updateGoal,
+  deleteGoal,
   updateGoalProgress,
+  removeGoalProgress,
+  getGoalHistory,
   getVidaScore,
   getVidaScoreHistory,
   getFinancialReport,
