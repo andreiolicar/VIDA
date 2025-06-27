@@ -2,11 +2,10 @@
 <img src="frontend/src/assets/azul-vida.png" alt="VIDA logo" width="250px">
 </div>
 
-# V.I.D.A. - Vetor Inteligente de Decisão Assistida
+# VIDA - Vetor Inteligente de Decisão Assistida
 
-> V.I.D.A. é um sistema inteligente de auto-organização assistida, com IA para otimizar decisões rotineiras em áreas como finanças, saúde, estudos e tarefas diárias.
+> VIDA é um sistema inteligente de auto-organização assistida, com IA para otimizar decisões rotineiras em áreas como finanças, saúde, estudos e tarefas diárias.
 
-> Pitch VIDA: https://drive.google.com/drive/folders/16RLG5eRIuv2RW-AOCX-Nwk5-Xn0Ac5cs?usp=drive_link
 
 ## Visão Geral do Projeto
 
@@ -200,28 +199,24 @@ node src/server.js
       <a href="https://github.com/andreiolicar">
         <img src="https://avatars.githubusercontent.com/u/166918480?v=4" width="100px;" alt="Andrei"/><br />
         <b>Andrei</b><br />
-        <sub>Frontend, Backend e Banco de Dados</sub>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/joaoxaviersilva">
         <img src="https://avatars.githubusercontent.com/u/166918086?v=4" width="100px;" alt="João"/><br />
         <b>João</b><br />
-        <sub>Frontend, Backend e Banco de Dados</sub>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/nsmillena">
         <img src="https://avatars.githubusercontent.com/u/166918300?v=4" width="100px;" alt="Millena"/><br />
         <b>Millena</b><br />
-        <sub>Frontend, Backend e Banco de Dados</sub>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/sofismoura">
         <img src="https://avatars.githubusercontent.com/u/166918518?s=400&u=76c54fc8d9ef41bfda8dcfada372d9fba0ee8954&v=4" width="100px;" alt="Sofia"/><br />
         <b>Sofia</b><br />
-        <sub>Documentação</sub>
       </a>
     </td>
   </tr>
