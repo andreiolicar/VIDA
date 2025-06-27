@@ -38,7 +38,7 @@ import EditTransaction from '@/pages/EditTransaction';
 import GoalsPage from '@/pages/GoalsPage';
 import GoalDetails from '@/pages/GoalDetails';
 import TransactionDetails from '@/pages/TransactionDetails';
-import DashboardCommunity from './pages/DashboardCommunity';
+import DashboardCommunity from './pages/community/DashboardCommunity';
 import IncomePage from './pages/IncomePage';
 import ExpensePage from './pages/ExpensePage';
 import Health from './pages/Health.jsx';
