@@ -2,8 +2,23 @@ const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
+const { GroupMember } = require('./models'); // ajuste o caminho conforme seu projeto
+
 let io;
 const onlineUsers = new Map(); // userId → Set<socketId>
+
+async function joinUserGroupsRooms(userId, socket) {
+  try {
+    const memberships = await GroupMember.findAll({ where: { userId } });
+    memberships.forEach(({ groupId }) => {
+      const roomName = `group:${groupId}`;
+      socket.join(roomName);
+      console.log(`Socket ${socket.id} entrou na sala ${roomName}`);
+    });
+  } catch (err) {
+    console.error('Erro ao entrar nas salas dos grupos:', err);
+  }
+}
 
 function init(server) {
   io = new Server(server, {
@@ -31,7 +46,7 @@ function init(server) {
     }
   });
 
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     const userId = socket.userId;
     console.log(`Usuário conectado: ${userId} (socketId: ${socket.id})`);
 
@@ -41,7 +56,10 @@ function init(server) {
     }
     onlineUsers.get(userId).add(socket.id);
 
-    // Evento para enviar mensagem via socket (opcional)
+    // Entrar nas salas dos grupos que o usuário participa
+    await joinUserGroupsRooms(userId, socket);
+
+    // Evento para enviar mensagem privada (existente)
     socket.on('private message', ({ toUserId, content }) => {
       const receiverSockets = onlineUsers.get(toUserId);
       if (receiverSockets) {
@@ -54,6 +72,20 @@ function init(server) {
         });
       }
     });
+
+    // Evento para enviar mensagem em grupo
+    socket.on('group message', ({ groupId, content }) => {
+      const roomName = `group:${groupId}`;
+      // Emite para todos na sala, incluindo o remetente
+      io.to(roomName).emit('group message', {
+        groupId,
+        senderUserId: userId,
+        content,
+        timestamp: new Date(),
+      });
+    });
+
+    // Outros eventos de grupo podem ser adicionados aqui (ex: membro entrou, saiu, grupo atualizado)
 
     socket.on('disconnect', () => {
       console.log(`Usuário desconectado: ${userId} (socketId: ${socket.id})`);

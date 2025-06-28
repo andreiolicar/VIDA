@@ -3,6 +3,7 @@ import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import FriendsSection from '@/pages/community/FriendsSection';
 import MessagesSection from '@/pages/community/MessagesSection';
+import GroupsSection from '@/pages/community/GroupsSection';
 import {
   Users,
   MessageSquare,
@@ -20,7 +21,7 @@ export default function CommunityDashboard() {
   const menuItems = [
     { key: 'amigos', icon: Users, label: 'Amigos' },
     { key: 'mensagens', icon: MessageSquare, label: 'Mensagens' },
-    { key: 'grupos', icon: Users2, label: 'Grupos' },
+    { key: 'grupos', icon: Users2, label: 'Grupos' }, // Item grupos
     { key: 'conteudo', icon: FileText, label: 'Conteúdos' },
     { key: 'notificacoes', icon: Bell, label: 'Notificações' },
     { key: 'eventos', icon: Calendar, label: 'Eventos' },
@@ -33,6 +34,8 @@ export default function CommunityDashboard() {
         return <FriendsSection />;
       case 'mensagens':
         return <MessagesSection />;
+      case 'grupos':
+        return <GroupsSection />; // Renderiza a seção de grupos
       default:
         const activeItem = menuItems.find((item) => item.key === activeTab);
         return (

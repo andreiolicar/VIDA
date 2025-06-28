@@ -1,11 +1,12 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path'); 
+const path = require('path');
 const eventsRoutes = require('./routes/events.routes');
 const swaggerConfig = require("./swagger");
 const chatSessionRoutes = require('./routes/chatSession.routes');
 const friendsRoutes = require('./routes/friends.routes');
 const messagesRoutes = require('./routes/messages.routes');
+const groupsRoutes = require('./routes/groups.routes');
 
 require('dotenv').config();
 
@@ -15,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-swaggerConfig(app); 
+swaggerConfig(app);
 
 // Rotas
 app.use('/api/auth', require('./routes/auth.routes'));
@@ -38,5 +39,7 @@ app.use('/api/chat-sessions', chatSessionRoutes);
 app.use('/api/friends', friendsRoutes);
 
 app.use('/api/messages', messagesRoutes);
+
+app.use('/api/groups', groupsRoutes);
 
 module.exports = app;

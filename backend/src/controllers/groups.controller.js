@@ -1,0 +1,326 @@
+const { Group, GroupMember, GroupMessage, User } = require('../models');
+const { getIO } = require('../socket');
+
+class GroupsController {
+    // Helper: verifica se usuário é owner ou admin do grupo
+    async _isOwnerOrAdmin(groupId, userId) {
+        const member = await GroupMember.findOne({
+            where: { groupId, userId },
+        });
+        if (!member) return false;
+        return ['owner', 'admin'].includes(member.role);
+    }
+
+    // Criar grupo
+    async createGroup(req, res) {
+        const userId = req.user.id;
+        const { name, description, imageUrl } = req.body;
+
+        if (!name) {
+            return res.status(400).json({ error: 'O nome do grupo é obrigatório' });
+        }
+
+        try {
+            const group = await Group.create({ name, description, imageUrl, ownerUserId: userId });
+
+            // Adiciona o criador como membro com papel owner
+            await GroupMember.create({ groupId: group.id, userId, role: 'owner' });
+
+            return res.status(201).json(group);
+        } catch (error) {
+            console.error('Erro ao criar grupo:', error);
+            return res.status(500).json({ error: 'Erro ao criar grupo' });
+        }
+    }
+
+    // Listar grupos do usuário
+    async listUserGroups(req, res) {
+        const userId = req.user.id;
+        try {
+            const groups = await Group.findAll({
+                include: [{
+                    model: GroupMember,
+                    as: 'members', // alias obrigatório
+                    where: { userId },
+                    attributes: [],
+                }],
+            });
+            return res.json(groups);
+        } catch (error) {
+            console.error('Erro ao listar grupos:', error);
+            return res.status(500).json({ error: 'Erro ao listar grupos' });
+        }
+    }
+
+    // Obter detalhes do grupo (incluindo membros)
+    async getGroupDetails(req, res) {
+        const { groupId } = req.params;
+        try {
+            const group = await Group.findByPk(groupId, {
+                include: [{
+                    model: GroupMember,
+                    as: 'members',
+                    include: [{ model: User, attributes: ['id', 'name', 'email'] }],
+                }],
+            });
+            if (!group) return res.status(404).json({ error: 'Grupo não encontrado' });
+            return res.json(group);
+        } catch (error) {
+            console.error('Erro ao obter detalhes do grupo:', error);
+            return res.status(500).json({ error: 'Erro ao obter detalhes do grupo' });
+        }
+    }
+
+    // Atualizar grupo (somente owner/admin)
+    async updateGroup(req, res) {
+        const { groupId } = req.params;
+        const { name, description, imageUrl } = req.body;
+        const userId = req.user.id;
+
+        try {
+            const group = await Group.findByPk(groupId);
+            if (!group) return res.status(404).json({ error: 'Grupo não encontrado' });
+
+            const authorized = await this._isOwnerOrAdmin(groupId, userId);
+            if (!authorized) return res.status(403).json({ error: 'Acesso negado' });
+
+            if (name) group.name = name;
+            if (description !== undefined) group.description = description;
+            if (imageUrl !== undefined) group.imageUrl = imageUrl;
+
+            await group.save();
+
+            // Emitir evento de grupo atualizado via socket
+            const io = getIO();
+            io.to(`group:${groupId}`).emit('group updated', {
+                groupId,
+                name: group.name,
+                description: group.description,
+                imageUrl: group.imageUrl,
+            });
+
+            return res.json(group);
+        } catch (error) {
+            console.error('Erro ao atualizar grupo:', error);
+            return res.status(500).json({ error: 'Erro ao atualizar grupo' });
+        }
+    }
+
+    // Deletar grupo (somente owner)
+    async deleteGroup(req, res) {
+        const { groupId } = req.params;
+        const userId = req.user.id;
+
+        try {
+            const group = await Group.findByPk(groupId);
+            if (!group) return res.status(404).json({ error: 'Grupo não encontrado' });
+
+            // Somente owner pode deletar
+            const member = await GroupMember.findOne({ where: { groupId, userId } });
+            if (!member || member.role !== 'owner') return res.status(403).json({ error: 'Acesso negado' });
+
+            await group.destroy();
+
+            // Emitir evento para membros que grupo foi deletado
+            const io = getIO();
+            io.to(`group:${groupId}`).emit('group deleted', { groupId });
+
+            return res.json({ message: 'Grupo deletado com sucesso' });
+        } catch (error) {
+            console.error('Erro ao deletar grupo:', error);
+            return res.status(500).json({ error: 'Erro ao deletar grupo' });
+        }
+    }
+
+    // Adicionar membro (owner/admin)
+    async addMember(req, res) {
+        const { groupId } = req.params;
+        const { userId } = req.body;
+        const requesterId = req.user.id;
+
+        if (!userId) return res.status(400).json({ error: 'userId é obrigatório' });
+
+        try {
+            const authorized = await this._isOwnerOrAdmin(groupId, requesterId);
+            if (!authorized) return res.status(403).json({ error: 'Acesso negado' });
+
+            // Verifica se já é membro
+            const exists = await GroupMember.findOne({ where: { groupId, userId } });
+            if (exists) return res.status(400).json({ error: 'Usuário já é membro do grupo' });
+
+            const member = await GroupMember.create({ groupId, userId, role: 'member' });
+
+            // Emitir evento membro entrou no grupo
+            const io = getIO();
+            io.to(`group:${groupId}`).emit('group member joined', {
+                groupId,
+                userId,
+                role: member.role,
+            });
+
+            return res.status(201).json(member);
+        } catch (error) {
+            console.error('Erro ao adicionar membro:', error);
+            return res.status(500).json({ error: 'Erro ao adicionar membro' });
+        }
+    }
+
+    // Remover membro (owner/admin)
+    async removeMember(req, res) {
+        const { groupId, userId } = req.params;
+        const requesterId = req.user.id;
+
+        try {
+            const authorized = await this._isOwnerOrAdmin(groupId, requesterId);
+            if (!authorized) return res.status(403).json({ error: 'Acesso negado' });
+
+            const member = await GroupMember.findOne({ where: { groupId, userId } });
+            if (!member) return res.status(404).json({ error: 'Membro não encontrado' });
+
+            await member.destroy();
+
+            // Emitir evento membro saiu do grupo
+            const io = getIO();
+            io.to(`group:${groupId}`).emit('group member left', {
+                groupId,
+                userId,
+            });
+
+            return res.json({ message: 'Membro removido com sucesso' });
+        } catch (error) {
+            console.error('Erro ao remover membro:', error);
+            return res.status(500).json({ error: 'Erro ao remover membro' });
+        }
+    }
+
+    // Listar membros do grupo
+    async listMembers(req, res) {
+        const { groupId } = req.params;
+        try {
+            const members = await GroupMember.findAll({
+                where: { groupId },
+                include: [{ model: User, as: 'user', attributes: ['id', 'name', 'email'] }],
+            });
+            return res.json(members);
+        } catch (error) {
+            console.error('Erro ao listar membros:', error);
+            return res.status(500).json({ error: 'Erro ao listar membros' });
+        }
+    }
+
+    // Alterar papel do membro (owner/admin)
+    async changeMemberRole(req, res) {
+        const { groupId, userId } = req.params;
+        const { role } = req.body;
+        const requesterId = req.user.id;
+        const validRoles = ['owner', 'admin', 'member'];
+
+        if (!validRoles.includes(role)) {
+            return res.status(400).json({ error: 'Papel inválido' });
+        }
+
+        try {
+            const authorized = await this._isOwnerOrAdmin(groupId, requesterId);
+            if (!authorized) return res.status(403).json({ error: 'Acesso negado' });
+
+            const member = await GroupMember.findOne({ where: { groupId, userId } });
+            if (!member) return res.status(404).json({ error: 'Membro não encontrado' });
+
+            member.role = role;
+            await member.save();
+
+            // Emitir evento alteração de papel
+            const io = getIO();
+            io.to(`group:${groupId}`).emit('group member updated', {
+                groupId,
+                userId,
+                role,
+            });
+
+            return res.json(member);
+        } catch (error) {
+            console.error('Erro ao alterar papel:', error);
+            return res.status(500).json({ error: 'Erro ao alterar papel do membro' });
+        }
+    }
+
+    // Enviar mensagem no grupo
+    async sendMessage(req, res) {
+        const senderUserId = req.user.id;
+        const { groupId } = req.params;
+        const { content } = req.body;
+
+        if (!content) return res.status(400).json({ error: 'Conteúdo da mensagem é obrigatório' });
+
+        try {
+            // Verifica se usuário é membro do grupo
+            const member = await GroupMember.findOne({ where: { groupId, userId: senderUserId } });
+            if (!member) return res.status(403).json({ error: 'Você não é membro deste grupo' });
+
+            const message = await GroupMessage.create({ groupId, senderUserId, content, read: false });
+
+            // Emitir evento socket para membros do grupo
+            const io = getIO();
+            io.to(`group:${groupId}`).emit('group message', {
+                id: message.id,
+                groupId,
+                senderUserId,
+                content: message.content,
+                timestamp: message.timestamp,
+                read: message.read,
+            });
+
+            return res.status(201).json(message);
+        } catch (error) {
+            console.error('Erro ao enviar mensagem:', error);
+            return res.status(500).json({ error: 'Erro ao enviar mensagem' });
+        }
+    }
+
+    // Obter histórico de mensagens do grupo
+    async getMessages(req, res) {
+        const userId = req.user.id;
+        const { groupId } = req.params;
+
+        try {
+            // Verifica se usuário é membro
+            const member = await GroupMember.findOne({ where: { groupId, userId } });
+            if (!member) return res.status(403).json({ error: 'Você não é membro deste grupo' });
+
+            const messages = await GroupMessage.findAll({
+                where: { groupId },
+                order: [['timestamp', 'ASC']],
+            });
+
+            return res.json(messages);
+        } catch (error) {
+            console.error('Erro ao obter mensagens:', error);
+            return res.status(500).json({ error: 'Erro ao obter mensagens' });
+        }
+    }
+
+    // Marcar mensagem como lida (opcional)
+    async markMessageRead(req, res) {
+        const userId = req.user.id;
+        const { groupId, messageId } = req.params;
+
+        try {
+            // Verifica se usuário é membro
+            const member = await GroupMember.findOne({ where: { groupId, userId } });
+            if (!member) return res.status(403).json({ error: 'Você não é membro deste grupo' });
+
+            const message = await GroupMessage.findOne({ where: { id: messageId, groupId } });
+            if (!message) return res.status(404).json({ error: 'Mensagem não encontrada' });
+
+            message.read = true;
+            await message.save();
+
+            return res.json({ message: 'Mensagem marcada como lida' });
+        } catch (error) {
+            console.error('Erro ao marcar mensagem como lida:', error);
+            return res.status(500).json({ error: 'Erro ao marcar mensagem como lida' });
+        }
+    }
+}
+
+module.exports = new GroupsController();

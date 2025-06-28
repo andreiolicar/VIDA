@@ -18,11 +18,11 @@ db.TaskCollaborator = require('./TaskCollaborator')(sequelize, Sequelize.DataTyp
 db.ChatSession = require('./chatSession')(sequelize, Sequelize.DataTypes);
 
 db.Transaction = require('./transaction')(sequelize, Sequelize.DataTypes);
-db.TransactionAttachment = require('./transactionAttachment')(sequelize, Sequelize.DataTypes); 
-db.TransactionHistory = require('./transactionHistory')(sequelize, Sequelize.DataTypes);        
+db.TransactionAttachment = require('./transactionAttachment')(sequelize, Sequelize.DataTypes);
+db.TransactionHistory = require('./transactionHistory')(sequelize, Sequelize.DataTypes);
 
 db.FinancialGoal = require('./financialGoal')(sequelize, Sequelize.DataTypes);
-db.FinancialGoalHistory = require('./FinancialGoalHistory')(sequelize, Sequelize.DataTypes); 
+db.FinancialGoalHistory = require('./FinancialGoalHistory')(sequelize, Sequelize.DataTypes);
 
 db.VidaScore = require('./vidaScore')(sequelize, Sequelize.DataTypes);
 db.Alert = require('./alert')(sequelize, Sequelize.DataTypes);
@@ -32,6 +32,10 @@ db.Friend = require('./friend')(sequelize, Sequelize.DataTypes);
 db.FriendRequest = require('./friendRequest')(sequelize, Sequelize.DataTypes);
 
 db.PrivateMessage = require('./privateMessage')(sequelize, Sequelize.DataTypes);
+
+db.Group = require('./Group')(sequelize, Sequelize.DataTypes);
+db.GroupMember = require('./GroupMember')(sequelize, Sequelize.DataTypes);
+db.GroupMessage = require('./GroupMessage')(sequelize, Sequelize.DataTypes);
 
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
@@ -56,7 +60,7 @@ if (db.TransactionAttachment.associate) db.TransactionAttachment.associate(db);
 if (db.TransactionHistory.associate) db.TransactionHistory.associate(db);
 
 if (db.FinancialGoal.associate) db.FinancialGoal.associate(db);
-if (db.FinancialGoalHistory.associate) db.FinancialGoalHistory.associate(db); 
+if (db.FinancialGoalHistory.associate) db.FinancialGoalHistory.associate(db);
 
 if (db.VidaScore.associate) db.VidaScore.associate(db);
 if (db.Alert.associate) db.Alert.associate(db);
@@ -66,5 +70,9 @@ if (db.Friend.associate) db.Friend.associate(db);
 if (db.FriendRequest.associate) db.FriendRequest.associate(db);
 
 if (db.PrivateMessage.associate) db.PrivateMessage.associate(db);
+
+if (db.Group.associate) db.Group.associate(db);
+if (db.GroupMember.associate) db.GroupMember.associate(db);
+if (db.GroupMessage.associate) db.GroupMessage.associate(db);
 
 module.exports = db;
