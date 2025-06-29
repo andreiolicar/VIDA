@@ -11,7 +11,7 @@
     "install-backend": "cd backend && npm install",
     "install-frontend": "cd frontend && npm install",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "cd backend && nodemon src/server.js",
+    "server": "cd backend && npm run server",
     "client": "cd frontend && npm run dev",
     "setup": "cd backend && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all",
     "drop-db": "cd backend && npx sequelize-cli db:drop"
