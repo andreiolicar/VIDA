@@ -23,20 +23,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.INTEGER,
                 allowNull: false,
             },
-            createdAt: {
-                type: DataTypes.DATE,
-                allowNull: false,
-                defaultValue: DataTypes.NOW,
-            },
-            updatedAt: {
-                type: DataTypes.DATE,
-                allowNull: false,
-                defaultValue: DataTypes.NOW,
-            },
         },
         {
-            tableName: 'Groups',
-            timestamps: false, // Usamos campos explícitos createdAt e updatedAt
+            tableName: 'groups',
+            timestamps: true,
         }
     );
 

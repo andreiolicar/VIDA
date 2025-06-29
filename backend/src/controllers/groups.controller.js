@@ -2,15 +2,6 @@ const { Group, GroupMember, GroupMessage, User } = require('../models');
 const { getIO } = require('../socket');
 
 class GroupsController {
-    // Helper: verifica se usuário é owner ou admin do grupo
-    async _isOwnerOrAdmin(groupId, userId) {
-        const member = await GroupMember.findOne({
-            where: { groupId, userId },
-        });
-        if (!member) return false;
-        return ['owner', 'admin'].includes(member.role);
-    }
-
     // Criar grupo
     async createGroup(req, res) {
         const userId = req.user.id;
@@ -38,12 +29,19 @@ class GroupsController {
         const userId = req.user.id;
         try {
             const groups = await Group.findAll({
-                include: [{
-                    model: GroupMember,
-                    as: 'members', // alias obrigatório
-                    where: { userId },
-                    attributes: [],
-                }],
+                include: [
+                    {
+                        model: GroupMember,
+                        as: 'members',
+                        where: { userId },
+                        attributes: []
+                    },
+                    {
+                        model: User,
+                        as: 'owner',
+                        attributes: ['id', 'name', 'email']
+                    }
+                ]
             });
             return res.json(groups);
         } catch (error) {
@@ -57,11 +55,7 @@ class GroupsController {
         const { groupId } = req.params;
         try {
             const group = await Group.findByPk(groupId, {
-                include: [{
-                    model: GroupMember,
-                    as: 'members',
-                    include: [{ model: User, attributes: ['id', 'name', 'email'] }],
-                }],
+                include: [{ model: User, as: 'user', attributes: ['id', 'name', 'email'] }]
             });
             if (!group) return res.status(404).json({ error: 'Grupo não encontrado' });
             return res.json(group);
@@ -80,9 +74,6 @@ class GroupsController {
         try {
             const group = await Group.findByPk(groupId);
             if (!group) return res.status(404).json({ error: 'Grupo não encontrado' });
-
-            const authorized = await this._isOwnerOrAdmin(groupId, userId);
-            if (!authorized) return res.status(403).json({ error: 'Acesso negado' });
 
             if (name) group.name = name;
             if (description !== undefined) group.description = description;
@@ -109,15 +100,10 @@ class GroupsController {
     // Deletar grupo (somente owner)
     async deleteGroup(req, res) {
         const { groupId } = req.params;
-        const userId = req.user.id;
 
         try {
             const group = await Group.findByPk(groupId);
             if (!group) return res.status(404).json({ error: 'Grupo não encontrado' });
-
-            // Somente owner pode deletar
-            const member = await GroupMember.findOne({ where: { groupId, userId } });
-            if (!member || member.role !== 'owner') return res.status(403).json({ error: 'Acesso negado' });
 
             await group.destroy();
 
@@ -136,14 +122,10 @@ class GroupsController {
     async addMember(req, res) {
         const { groupId } = req.params;
         const { userId } = req.body;
-        const requesterId = req.user.id;
 
         if (!userId) return res.status(400).json({ error: 'userId é obrigatório' });
 
         try {
-            const authorized = await this._isOwnerOrAdmin(groupId, requesterId);
-            if (!authorized) return res.status(403).json({ error: 'Acesso negado' });
-
             // Verifica se já é membro
             const exists = await GroupMember.findOne({ where: { groupId, userId } });
             if (exists) return res.status(400).json({ error: 'Usuário já é membro do grupo' });
@@ -168,12 +150,8 @@ class GroupsController {
     // Remover membro (owner/admin)
     async removeMember(req, res) {
         const { groupId, userId } = req.params;
-        const requesterId = req.user.id;
 
         try {
-            const authorized = await this._isOwnerOrAdmin(groupId, requesterId);
-            if (!authorized) return res.status(403).json({ error: 'Acesso negado' });
-
             const member = await GroupMember.findOne({ where: { groupId, userId } });
             if (!member) return res.status(404).json({ error: 'Membro não encontrado' });
 
@@ -199,7 +177,7 @@ class GroupsController {
         try {
             const members = await GroupMember.findAll({
                 where: { groupId },
-                include: [{ model: User, as: 'user', attributes: ['id', 'name', 'email'] }],
+                include: [{ model: User, as: 'user', attributes: ['id', 'name', 'email'] }]
             });
             return res.json(members);
         } catch (error) {
@@ -212,7 +190,6 @@ class GroupsController {
     async changeMemberRole(req, res) {
         const { groupId, userId } = req.params;
         const { role } = req.body;
-        const requesterId = req.user.id;
         const validRoles = ['owner', 'admin', 'member'];
 
         if (!validRoles.includes(role)) {
@@ -220,9 +197,6 @@ class GroupsController {
         }
 
         try {
-            const authorized = await this._isOwnerOrAdmin(groupId, requesterId);
-            if (!authorized) return res.status(403).json({ error: 'Acesso negado' });
-
             const member = await GroupMember.findOne({ where: { groupId, userId } });
             if (!member) return res.status(404).json({ error: 'Membro não encontrado' });
 
@@ -321,6 +295,33 @@ class GroupsController {
             return res.status(500).json({ error: 'Erro ao marcar mensagem como lida' });
         }
     }
+
+    exports.search = async (req, res) => {
+        const { q } = req.query;
+        const userId = req.user.id;
+
+        if (!q || q.trim() === '') {
+            return res.status(400).json({ error: 'Parâmetro de busca inválido' });
+        }
+
+        try {
+            const users = await User.findAll({
+                where: {
+                    id: { [Op.ne]: userId },
+                    [Op.or]: [
+                        { name: { [Op.like]: `%${q}%` } },
+                        { email: { [Op.like]: `%${q}%` } },
+                    ],
+                },
+                attributes: ['id', 'name', 'email'],
+                limit: 20,
+            });
+            res.json(users);
+        } catch (error) {
+            console.error('Erro ao buscar usuários:', error);
+            res.status(500).json({ error: 'Erro ao buscar usuários' });
+        }
+    };
 }
 
 module.exports = new GroupsController();

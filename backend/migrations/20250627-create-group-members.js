@@ -1,6 +1,6 @@
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        await queryInterface.createTable('GroupMembers', {
+        await queryInterface.createTable('group_members', {
             id: {
                 type: Sequelize.INTEGER,
                 primaryKey: true,
@@ -11,7 +11,7 @@ module.exports = {
                 type: Sequelize.INTEGER,
                 allowNull: false,
                 references: {
-                    model: 'Groups',
+                    model: 'groups',
                     key: 'id',
                 },
                 onDelete: 'CASCADE',
@@ -21,7 +21,7 @@ module.exports = {
                 type: Sequelize.INTEGER,
                 allowNull: false,
                 references: {
-                    model: 'Users',
+                    model: 'users',
                     key: 'id',
                 },
                 onDelete: 'CASCADE',
@@ -46,7 +46,6 @@ module.exports = {
     },
 
     down: async (queryInterface) => {
-        await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_GroupMembers_role";');
-        await queryInterface.dropTable('GroupMembers');
+        await queryInterface.dropTable('group_members');
     },
 };

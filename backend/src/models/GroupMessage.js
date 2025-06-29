@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
     const GroupMessage = sequelize.define(
-        'GroupMessage',
+        'group_messages',
         {
             id: {
                 type: DataTypes.INTEGER,
@@ -31,8 +31,8 @@ module.exports = (sequelize, DataTypes) => {
             },
         },
         {
-            tableName: 'GroupMessages',
-            timestamps: false,
+            tableName: 'group_messages',
+            timestamps: true,
         }
     );
 

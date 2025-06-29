@@ -1,5 +1,3 @@
-// src/models/User.js
-
 module.exports = (sequelize, DataTypes) => {
     const User = sequelize.define('User', {
         name: {
@@ -26,6 +24,11 @@ module.exports = (sequelize, DataTypes) => {
 
     User.associate = (models) => {
         User.hasMany(models.StudyRoute, { foreignKey: 'userId', as: 'routes' });
+
+        // Associações para Groups
+        User.hasMany(models.Group, { foreignKey: 'ownerUserId', as: 'ownedGroups' });
+        User.hasMany(models.GroupMember, { foreignKey: 'userId', as: 'groupMemberships' });
+        User.hasMany(models.GroupMessage, { foreignKey: 'senderUserId', as: 'sentMessages' });
     };
 
     return User;

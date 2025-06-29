@@ -20,20 +20,10 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
                 defaultValue: 'member',
             },
-            createdAt: {
-                type: DataTypes.DATE,
-                allowNull: false,
-                defaultValue: DataTypes.NOW,
-            },
-            updatedAt: {
-                type: DataTypes.DATE,
-                allowNull: false,
-                defaultValue: DataTypes.NOW,
-            },
         },
         {
-            tableName: 'GroupMembers',
-            timestamps: false,
+            tableName: 'group_members',
+            timestamps: true,
         }
     );
 
