@@ -1,7 +1,8 @@
 const { Group, GroupMember, GroupMessage, User } = require('../models');
-const { getIO } = require('../socket');
+const { getIO, addUserToGroupRoom, removeUserFromGroupRoom } = require('../socket');
 
 class GroupsController {
+
     // Criar grupo
     async createGroup(req, res) {
         const userId = req.user.id;
@@ -132,8 +133,10 @@ class GroupsController {
 
             const member = await GroupMember.create({ groupId, userId, role: 'member' });
 
-            // Emitir evento membro entrou no grupo
+            // Atualiza rooms no socket
             const io = getIO();
+            await addUserToGroupRoom(userId, groupId);
+
             io.to(`group:${groupId}`).emit('group member joined', {
                 groupId,
                 userId,
@@ -157,8 +160,10 @@ class GroupsController {
 
             await member.destroy();
 
-            // Emitir evento membro saiu do grupo
+            // Atualiza rooms no socket
             const io = getIO();
+            await removeUserFromGroupRoom(userId, groupId);
+
             io.to(`group:${groupId}`).emit('group member left', {
                 groupId,
                 userId,

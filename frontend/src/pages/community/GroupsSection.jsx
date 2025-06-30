@@ -4,7 +4,7 @@ import { useAuth } from '@/context/useAuth';
 import GroupModal from '@/components/community/GroupModal';
 
 export default function GroupsSection() {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const messagesEndRef = useRef(null);
 
     const {
@@ -100,8 +100,8 @@ export default function GroupsSection() {
                             <li
                                 key={group.id}
                                 className={`cursor-pointer p-3 rounded transition ${selectedGroup?.id === group.id
-                                        ? 'bg-blue-700 text-white'
-                                        : 'hover:bg-blue-600 text-gray-300'
+                                    ? 'bg-blue-700 text-white'
+                                    : 'hover:bg-blue-600 text-gray-300'
                                     }`}
                             >
                                 <div onClick={() => setSelectedGroup(group)}>
@@ -159,7 +159,7 @@ export default function GroupsSection() {
                                 {messages.map((msg) => (
                                     <div
                                         key={msg.id}
-                                        className={`max-w-[80%] p-3 rounded-lg shadow-sm break-words whitespace-pre-wrap ${msg.senderUserId === msg.currentUserId
+                                        className={`max-w-[80%] p-3 rounded-lg shadow-sm break-words whitespace-pre-wrap ${msg.senderUserId === user.id
                                                 ? 'bg-blue-600 text-white self-end rounded-br-md ml-auto'
                                                 : 'bg-gray-700 text-white self-start rounded-bl-md'
                                             }`}

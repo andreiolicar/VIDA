@@ -111,4 +111,48 @@ function getOnlineUsers() {
   return onlineUsers;
 }
 
-module.exports = { init, getIO, getOnlineUsers };
+// Função para adicionar todos os sockets de um usuário a uma room de grupo
+async function addUserToGroupRoom(userId, groupId) {
+  if (!io) {
+    console.error('Socket.io não inicializado!');
+    return;
+  }
+
+  const sockets = onlineUsers.get(userId);
+  if (sockets) {
+    sockets.forEach(socketId => {
+      const socketInstance = io.sockets.sockets.get(socketId);
+      if (socketInstance) {
+        socketInstance.join(`group:${groupId}`);
+        console.log(`Socket ${socketId} entrou na sala group:${groupId} via addUserToGroupRoom`);
+      }
+    });
+  }
+}
+
+// Função para remover todos os sockets de um usuário de uma room de grupo
+async function removeUserFromGroupRoom(userId, groupId) {
+  if (!io) {
+    console.error('Socket.io não inicializado!');
+    return;
+  }
+
+  const sockets = onlineUsers.get(userId);
+  if (sockets) {
+    sockets.forEach(socketId => {
+      const socketInstance = io.sockets.sockets.get(socketId);
+      if (socketInstance) {
+        socketInstance.leave(`group:${groupId}`);
+        console.log(`Socket ${socketId} saiu da sala group:${groupId}`);
+      }
+    });
+  }
+}
+
+module.exports = {
+  init,
+  getIO,
+  getOnlineUsers,
+  addUserToGroupRoom,
+  removeUserFromGroupRoom,
+};
