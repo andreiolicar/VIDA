@@ -27,20 +27,7 @@ export function useGroups(token) {
     const [newMessage, setNewMessage] = useState('');
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [userQuery, setUserQuery] = useState('');
-    const [filteredUsers, setFilteredUsers] = useState([]);
-
-    // Filtrar usuários
-    useEffect(() => {
-        if (!userQuery.trim()) {
-            setFilteredUsers(users);
-            return;
-        }
-        const lowerQuery = userQuery.toLowerCase();
-        setFilteredUsers(users.filter(user =>
-            (user.name?.toLowerCase().includes(lowerQuery)) ||
-            (user.email?.toLowerCase().includes(lowerQuery))
-        ));
-    }, [userQuery, users]);
+    const [filteredUsers] = useState([]);
 
     // Fetch functions
     const fetchGroups = useCallback(async () => {

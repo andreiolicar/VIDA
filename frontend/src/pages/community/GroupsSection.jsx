@@ -2,10 +2,12 @@ import React, { useRef, useEffect } from 'react';
 import { useGroups } from '@/hooks/community/useGroups';
 import { useAuth } from '@/context/useAuth';
 import GroupModal from '@/components/community/GroupModal';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function GroupsSection() {
     const { token, user } = useAuth();
     const messagesEndRef = useRef(null);
+    const debouncedUserQuery = useDebounce(userQuery, 500);
 
     const {
         // Data
@@ -52,10 +54,20 @@ export default function GroupsSection() {
 
     // Auto-scroll to last message
     useEffect(() => {
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        if (debouncedUserQuery.trim()) {
+            // Disparar busca quando o debouncedUserQuery mudar
+            const lowerQuery = debouncedUserQuery.toLowerCase();
+            setFilteredUsers(
+                users.filter(
+                    user =>
+                        user.name?.toLowerCase().includes(lowerQuery) ||
+                        user.email?.toLowerCase().includes(lowerQuery)
+                )
+            );
+        } else {
+            setFilteredUsers(users);
         }
-    }, [messages]);
+    }, [debouncedUserQuery, users]);
 
     return (
         <section className="flex flex-col h-full">
@@ -160,8 +172,8 @@ export default function GroupsSection() {
                                     <div
                                         key={msg.id}
                                         className={`max-w-[80%] p-3 rounded-lg shadow-sm break-words whitespace-pre-wrap ${msg.senderUserId === user.id
-                                                ? 'bg-blue-600 text-white self-end rounded-br-md ml-auto'
-                                                : 'bg-gray-700 text-white self-start rounded-bl-md'
+                                            ? 'bg-blue-600 text-white self-end rounded-br-md ml-auto'
+                                            : 'bg-gray-700 text-white self-start rounded-bl-md'
                                             }`}
                                     >
                                         <p>{msg.content}</p>
@@ -266,6 +278,7 @@ export default function GroupsSection() {
                                         placeholder="Buscar usuário por nome ou email"
                                         className="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
+                                    );
 
                                     {loadingUsers && (
                                         <p className="text-gray-400 mt-2 text-sm">Carregando usuários...</p>
