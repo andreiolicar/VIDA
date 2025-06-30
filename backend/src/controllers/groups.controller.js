@@ -1,8 +1,8 @@
 const { Group, GroupMember, GroupMessage, User } = require('../models');
 const { getIO, addUserToGroupRoom, removeUserFromGroupRoom } = require('../socket');
+const { Op } = require('sequelize');
 
 class GroupsController {
-
     // Criar grupo
     async createGroup(req, res) {
         const userId = req.user.id;
@@ -301,7 +301,7 @@ class GroupsController {
         }
     }
 
-    exports.search = async (req, res) => {
+    async search(req, res) {
         const { q } = req.query;
         const userId = req.user.id;
 
@@ -326,7 +326,7 @@ class GroupsController {
             console.error('Erro ao buscar usuários:', error);
             res.status(500).json({ error: 'Erro ao buscar usuários' });
         }
-    };
+    }
 }
 
 module.exports = new GroupsController();
