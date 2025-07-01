@@ -16,7 +16,7 @@ export default function GroupsSection() {
         members,
         messages,
         filteredUsers,
-
+        currentUserId,
         // Loading states
         loadingGroups,
         loadingMessages,
@@ -101,8 +101,8 @@ export default function GroupsSection() {
                             <li
                                 key={group.id}
                                 className={`cursor-pointer p-3 rounded transition ${selectedGroup?.id === group.id
-                                        ? 'bg-blue-700 text-white'
-                                        : 'hover:bg-blue-600 text-gray-300'
+                                    ? 'bg-blue-700 text-white'
+                                    : 'hover:bg-blue-600 text-gray-300'
                                     }`}
                             >
                                 <div onClick={() => setSelectedGroup(group)}>
@@ -160,9 +160,9 @@ export default function GroupsSection() {
                                 {messages.map((msg) => (
                                     <div
                                         key={msg.id}
-                                        className={`max-w-[80%] p-3 rounded-lg shadow-sm break-words whitespace-pre-wrap ${msg.senderUserId === user.id
-                                                ? 'bg-blue-600 text-white self-end rounded-br-md ml-auto'
-                                                : 'bg-gray-700 text-white self-start rounded-bl-md'
+                                        className={`max-w-[80%] p-3 rounded-lg shadow-sm break-words whitespace-pre-wrap ${msg.senderUserId === currentUserId // Use currentUserId do hook
+                                            ? 'bg-blue-600 text-white self-end rounded-br-md ml-auto'
+                                            : 'bg-gray-700 text-white self-start rounded-bl-md'
                                             }`}
                                     >
                                         <p>{msg.content}</p>
@@ -172,6 +172,9 @@ export default function GroupsSection() {
                                                 minute: '2-digit',
                                             })}
                                         </span>
+                                        {msg.sending && (
+                                            <span className="text-xs text-gray-400">Enviando...</span>
+                                        )}
                                     </div>
                                 ))}
                                 <div ref={messagesEndRef} />
@@ -224,10 +227,10 @@ export default function GroupsSection() {
                                     >
                                         <div className="flex-1 min-w-0">
                                             <p className="font-semibold truncate">
-                                                {member.User?.name || 'Usuário'}
+                                                {member.user?.name || 'Usuário'}
                                             </p>
                                             <p className="text-sm text-gray-400 truncate">
-                                                {member.User?.email || ''}
+                                                {member.user?.email || ''}
                                             </p>
                                         </div>
 

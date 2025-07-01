@@ -26,14 +26,23 @@ module.exports = (sequelize, DataTypes) => {
         },
         {
             tableName: 'groups',
-            timestamps: true,
+            timestamps: true, // Mantido true
         }
     );
 
     Group.associate = (models) => {
-        Group.belongsTo(models.User, { foreignKey: 'ownerUserId', as: 'owner' });
-        Group.hasMany(models.GroupMember, { foreignKey: 'groupId', as: 'members' });
-        Group.hasMany(models.GroupMessage, { foreignKey: 'groupId', as: 'messages' });
+        Group.belongsTo(models.User, {
+            foreignKey: 'ownerUserId',
+            as: 'owner'
+        });
+        Group.hasMany(models.GroupMember, {
+            foreignKey: 'groupId',
+            as: 'members'
+        });
+        Group.hasMany(models.GroupMessage, {
+            foreignKey: 'groupId',
+            as: 'messages'
+        });
     };
 
     return Group;

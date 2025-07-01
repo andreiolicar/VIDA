@@ -14,10 +14,7 @@ class GroupsController {
 
         try {
             const group = await Group.create({ name, description, imageUrl, ownerUserId: userId });
-
-            // Adiciona o criador como membro com papel owner
             await GroupMember.create({ groupId: group.id, userId, role: 'owner' });
-
             return res.status(201).json(group);
         } catch (error) {
             console.error('Erro ao criar grupo:', error);
@@ -51,12 +48,12 @@ class GroupsController {
         }
     }
 
-    // Obter detalhes do grupo (incluindo membros)
+    // Obter detalhes do grupo
     async getGroupDetails(req, res) {
         const { groupId } = req.params;
         try {
             const group = await Group.findByPk(groupId, {
-                include: [{ model: User, as: 'user', attributes: ['id', 'name', 'email'] }]
+                include: [{ model: User, as: 'owner', attributes: ['id', 'name', 'email'] }]
             });
             if (!group) return res.status(404).json({ error: 'Grupo não encontrado' });
             return res.json(group);
@@ -66,7 +63,7 @@ class GroupsController {
         }
     }
 
-    // Atualizar grupo (somente owner/admin)
+    // Atualizar grupo
     async updateGroup(req, res) {
         const { groupId } = req.params;
         const { name, description, imageUrl } = req.body;
@@ -82,7 +79,6 @@ class GroupsController {
 
             await group.save();
 
-            // Emitir evento de grupo atualizado via socket
             const io = getIO();
             io.to(`group:${groupId}`).emit('group updated', {
                 groupId,
@@ -98,7 +94,7 @@ class GroupsController {
         }
     }
 
-    // Deletar grupo (somente owner)
+    // Deletar grupo
     async deleteGroup(req, res) {
         const { groupId } = req.params;
 
@@ -108,7 +104,6 @@ class GroupsController {
 
             await group.destroy();
 
-            // Emitir evento para membros que grupo foi deletado
             const io = getIO();
             io.to(`group:${groupId}`).emit('group deleted', { groupId });
 
@@ -119,7 +114,7 @@ class GroupsController {
         }
     }
 
-    // Adicionar membro (owner/admin)
+    // Adicionar membro
     async addMember(req, res) {
         const { groupId } = req.params;
         const { userId } = req.body;
@@ -127,16 +122,13 @@ class GroupsController {
         if (!userId) return res.status(400).json({ error: 'userId é obrigatório' });
 
         try {
-            // Verifica se já é membro
             const exists = await GroupMember.findOne({ where: { groupId, userId } });
             if (exists) return res.status(400).json({ error: 'Usuário já é membro do grupo' });
 
             const member = await GroupMember.create({ groupId, userId, role: 'member' });
 
-            // Atualiza rooms no socket
             const io = getIO();
             await addUserToGroupRoom(userId, groupId);
-
             io.to(`group:${groupId}`).emit('group member joined', {
                 groupId,
                 userId,
@@ -150,7 +142,7 @@ class GroupsController {
         }
     }
 
-    // Remover membro (owner/admin)
+    // Remover membro
     async removeMember(req, res) {
         const { groupId, userId } = req.params;
 
@@ -160,14 +152,9 @@ class GroupsController {
 
             await member.destroy();
 
-            // Atualiza rooms no socket
             const io = getIO();
             await removeUserFromGroupRoom(userId, groupId);
-
-            io.to(`group:${groupId}`).emit('group member left', {
-                groupId,
-                userId,
-            });
+            io.to(`group:${groupId}`).emit('group member left', { groupId, userId });
 
             return res.json({ message: 'Membro removido com sucesso' });
         } catch (error) {
@@ -191,7 +178,7 @@ class GroupsController {
         }
     }
 
-    // Alterar papel do membro (owner/admin)
+    // Alterar papel do membro
     async changeMemberRole(req, res) {
         const { groupId, userId } = req.params;
         const { role } = req.body;
@@ -208,13 +195,8 @@ class GroupsController {
             member.role = role;
             await member.save();
 
-            // Emitir evento alteração de papel
             const io = getIO();
-            io.to(`group:${groupId}`).emit('group member updated', {
-                groupId,
-                userId,
-                role,
-            });
+            io.to(`group:${groupId}`).emit('group member updated', { groupId, userId, role });
 
             return res.json(member);
         } catch (error) {
@@ -232,13 +214,11 @@ class GroupsController {
         if (!content) return res.status(400).json({ error: 'Conteúdo da mensagem é obrigatório' });
 
         try {
-            // Verifica se usuário é membro do grupo
             const member = await GroupMember.findOne({ where: { groupId, userId: senderUserId } });
             if (!member) return res.status(403).json({ error: 'Você não é membro deste grupo' });
 
             const message = await GroupMessage.create({ groupId, senderUserId, content, read: false });
 
-            // Emitir evento socket para membros do grupo
             const io = getIO();
             io.to(`group:${groupId}`).emit('group message', {
                 id: message.id,
@@ -256,13 +236,12 @@ class GroupsController {
         }
     }
 
-    // Obter histórico de mensagens do grupo
+    // Obter histórico de mensagens
     async getMessages(req, res) {
         const userId = req.user.id;
         const { groupId } = req.params;
 
         try {
-            // Verifica se usuário é membro
             const member = await GroupMember.findOne({ where: { groupId, userId } });
             if (!member) return res.status(403).json({ error: 'Você não é membro deste grupo' });
 
@@ -278,13 +257,12 @@ class GroupsController {
         }
     }
 
-    // Marcar mensagem como lida (opcional)
+    // Marcar mensagem como lida
     async markMessageRead(req, res) {
         const userId = req.user.id;
         const { groupId, messageId } = req.params;
 
         try {
-            // Verifica se usuário é membro
             const member = await GroupMember.findOne({ where: { groupId, userId } });
             if (!member) return res.status(403).json({ error: 'Você não é membro deste grupo' });
 
@@ -301,6 +279,7 @@ class GroupsController {
         }
     }
 
+    // Buscar usuários
     async search(req, res) {
         const { q } = req.query;
         const userId = req.user.id;
