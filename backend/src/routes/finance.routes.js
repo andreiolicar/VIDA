@@ -676,7 +676,7 @@ router.get("/:userId/goals/:goalId", auth, financeController.getGoalById);
  *             schema:
  *               $ref: '#/components/schemas/FinancialGoal'
  *       400:
- *         description: Erro de validação (ex: valor inválido ou maior que aporte atual)
+ *         description: "Erro de validação (ex: valor inválido ou maior que aporte atual)"
  *         content:
  *           application/json:
  *             schema:
