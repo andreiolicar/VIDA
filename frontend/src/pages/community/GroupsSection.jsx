@@ -1,17 +1,31 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useGroups } from '@/hooks/community/useGroups';
 import { useAuth } from '@/context/useAuth';
-import { Users, MessageSquare, ArrowLeft } from 'lucide-react';
+import {
+    Users,
+    MessageSquare,
+    ArrowLeft,
+    Plus,
+    Edit2,
+    Trash2,
+    Search,
+    CheckCheck,
+    AlertCircle,
+    X,
+    Smile,
+    Send
+} from 'lucide-react';
 import GroupModal from '@/components/community/GroupModal';
 import MembersModal from '@/components/community/MembersModal';
 import '@/components/scrollbar.css';
 
 export default function GroupsSection() {
-    const { token, user } = useAuth();
+    const { token } = useAuth();
     const messagesEndRef = useRef(null);
     const messagesContainerRef = useRef(null);
 
     const [showMembersModal, setShowMembersModal] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     const {
         groups,
@@ -55,9 +69,23 @@ export default function GroupsSection() {
         }
     }, [messages]);
 
+    // Fechar emoji picker ao clicar fora
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showEmojiPicker && !event.target.closest('.emoji-picker-container')) {
+                setShowEmojiPicker(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showEmojiPicker]);
+
     // Função para obter o nome do remetente
     const getSenderName = (senderUserId) => {
-        if (senderUserId === currentUserId || senderUserId === user?.id) {
+        if (senderUserId === currentUserId) {
             return 'Você';
         }
 
@@ -71,24 +99,32 @@ export default function GroupsSection() {
         return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     };
 
-    // Função para gerar cor baseada no nome
+    // Função para gerar cor baseada no nome (tons de azul)
     const getAvatarColor = (senderUserId) => {
-        if (senderUserId === currentUserId || senderUserId === user?.id) {
+        if (senderUserId === currentUserId) {
             return 'bg-blue-600';
         }
 
         const colors = [
-            'bg-red-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500',
-            'bg-pink-500', 'bg-indigo-500', 'bg-teal-500', 'bg-orange-500'
+            'bg-blue-500', 'bg-blue-600', 'bg-blue-700', 'bg-indigo-500',
+            'bg-indigo-600', 'bg-sky-500', 'bg-sky-600', 'bg-cyan-500'
         ];
 
         const index = senderUserId % colors.length;
         return colors[index];
     };
 
+    // Emojis básicos
+    const emojis = ['😀', '😂', '😍', '🤔', '😢', '😡', '👍', '👎', '❤️', '🎉', '🔥', '💯'];
+
+    const handleEmojiClick = (emoji) => {
+        setNewMessage(prev => prev + emoji);
+        setShowEmojiPicker(false);
+    };
+
     return (
         <section className="flex flex-col h-full">
-            {/* Cabeçalho */}
+            {/* Header */}
             <header className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">Grupos</h2>
                 <button
@@ -111,7 +147,7 @@ export default function GroupsSection() {
 
             {/* Layout principal */}
             <div className="flex flex-1 gap-6 min-h-0">
-                {/* Lista de grupos - Estilo idêntico a "Seus Amigos" */}
+                {/* Lista de grupos - Estilo igual ao FriendsSection */}
                 <aside className="w-1/4 flex flex-col">
                     <h3 className="font-semibold mb-3 text-gray-900 dark:text-white">Seus Grupos</h3>
 
@@ -135,13 +171,9 @@ export default function GroupsSection() {
                             >
                                 <div className={`rounded-full w-10 h-10 flex items-center justify-center mr-3 ${selectedGroup?.id === group.id
                                     ? 'bg-blue-500'
-                                    : 'bg-gray-300 dark:bg-gray-600'
+                                    : 'bg-blue-600'
                                     }`}>
-                                    <MessageSquare size={20} className={
-                                        selectedGroup?.id === group.id
-                                            ? 'text-white'
-                                            : 'text-gray-700 dark:text-gray-200'
-                                    } />
+                                    <MessageSquare size={20} className="text-white" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-medium truncate">
@@ -156,16 +188,40 @@ export default function GroupsSection() {
                                         </p>
                                     )}
                                 </div>
+
+                                {/* Botões de ação no hover */}
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                                    <div className="flex space-x-1">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEditGroup(group);
+                                            }}
+                                            className="p-1 rounded hover:bg-black/10 transition-colors"
+                                        >
+                                            <Edit2 size={12} className="text-current" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteGroup(group.id);
+                                            }}
+                                            className="p-1 rounded hover:bg-red-500/20 transition-colors"
+                                        >
+                                            <Trash2 size={12} className="text-red-500" />
+                                        </button>
+                                    </div>
+                                </div>
                             </li>
                         ))}
                     </ul>
                 </aside>
 
-                {/* Conteúdo principal - Container de mensagens */}
+                {/* Container de chat - Estilo igual ao FriendsSection */}
                 <main className="flex-1 flex flex-col bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                     {selectedGroup ? (
                         <>
-                            {/* Header fixo - Idêntico ao MessagesSection */}
+                            {/* Header do chat */}
                             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                                 <div className="flex items-center">
                                     <button
@@ -174,8 +230,8 @@ export default function GroupsSection() {
                                     >
                                         <ArrowLeft size={20} />
                                     </button>
-                                    <div className="bg-gray-300 dark:bg-gray-600 rounded-full w-10 h-10 flex items-center justify-center mr-3">
-                                        <MessageSquare size={20} className="text-gray-700 dark:text-gray-200" />
+                                    <div className="bg-blue-600 rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                                        <MessageSquare size={20} className="text-white" />
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-gray-900 dark:text-white">
@@ -186,19 +242,24 @@ export default function GroupsSection() {
                                         </p>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => setShowMembersModal(true)}
-                                    className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition"
-                                >
-                                    <Users size={16} />
-                                    Membros
-                                </button>
+                                <div className="flex items-center space-x-2">
+                                    <button className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                        <Search size={20} className="text-gray-600 dark:text-gray-400" />
+                                    </button>
+                                    <button
+                                        onClick={() => setShowMembersModal(true)}
+                                        className="flex items-center gap-2 bg-gray-200 dark:bg-gray-700 px-3 py-2 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                                    >
+                                        <Users size={16} />
+                                        Membros
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* Container de mensagens com altura fixa calculada */}
+                            {/* Container de mensagens */}
                             <div
                                 ref={messagesContainerRef}
-                                className="flex-1 overflow-y-auto p-4 scrollbar"
+                                className="flex-1 overflow-y-auto p-4 scrollbar-dark scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-transparent"
                                 style={{
                                     height: 'calc(100vh - 280px)',
                                     maxHeight: 'calc(100vh - 280px)',
@@ -238,7 +299,7 @@ export default function GroupsSection() {
                                                 )}
 
                                                 <div className={`max-w-[70%] ${isOwn ? 'ml-auto' : ''}`}>
-                                                    {/* Nome do remetente (apenas para mensagens de outros e não consecutivas) */}
+                                                    {/* Nome do remetente */}
                                                     {!isOwn && !isConsecutive && (
                                                         <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 ml-2">
                                                             {senderName}
@@ -259,14 +320,24 @@ export default function GroupsSection() {
                                                                     minute: '2-digit',
                                                                 })}
                                                             </span>
-                                                            {msg.sending && (
-                                                                <span className="text-xs text-gray-400 ml-2">Enviando...</span>
+                                                            {isOwn && (
+                                                                <div className="flex items-center space-x-1">
+                                                                    {msg.sending ? (
+                                                                        <div className="flex space-x-1">
+                                                                            <div className="w-1 h-1 bg-blue-200 rounded-full animate-pulse"></div>
+                                                                            <div className="w-1 h-1 bg-blue-200 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
+                                                                            <div className="w-1 h-1 bg-blue-200 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <CheckCheck size={14} className="text-blue-200" />
+                                                                    )}
+                                                                </div>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                {/* Espaço para avatar nas mensagens próprias (para manter alinhamento) */}
+                                                {/* Espaço para avatar nas mensagens próprias */}
                                                 {isOwn && (
                                                     <div className="w-8 ml-2"></div>
                                                 )}
@@ -277,7 +348,7 @@ export default function GroupsSection() {
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            {/* Footer fixo - Idêntico ao MessagesSection */}
+                            {/* Input de mensagem - Scroll removido */}
                             <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
                                 {errorMessage && (
                                     <div className="text-red-500 mb-2 flex justify-between items-center">
@@ -288,28 +359,63 @@ export default function GroupsSection() {
                                     </div>
                                 )}
 
-                                <div className="flex gap-2">
+                                <div className="flex items-center gap-2 relative">
                                     <textarea
                                         rows={1}
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
                                         onKeyDown={handleKeyDown}
                                         placeholder="Digite sua mensagem..."
-                                        className="flex-1 p-3 rounded-full bg-gray-100 dark:bg-gray-700 border-0 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                        style={{ minHeight: '44px', maxHeight: '120px' }}
+                                        className="flex-1 px-4 py-3 rounded-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden"
+                                        style={{
+                                            height: '44px',
+                                            minHeight: '44px',
+                                            maxHeight: '44px',
+                                            lineHeight: '1.2'
+                                        }}
                                     />
+
+                                    {/* Botão de emoji */}
+                                    <div className="relative emoji-picker-container">
+                                        <button
+                                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                            className="flex items-center justify-center w-11 h-11 rounded-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors flex-shrink-0"
+                                        >
+                                            <Smile size={20} className="text-gray-600 dark:text-gray-300" />
+                                        </button>
+
+                                        {/* Picker de emoji */}
+                                        {showEmojiPicker && (
+                                            <div className="absolute bottom-full right-0 mb-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-xl z-10 min-w-[280px]">
+                                                <div className="grid grid-cols-8 gap-1">
+                                                    {emojis.map((emoji, index) => (
+                                                        <button
+                                                            key={index}
+                                                            onClick={() => handleEmojiClick(emoji)}
+                                                            className="flex items-center justify-center w-8 h-8 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-xl"
+                                                            title={`Adicionar ${emoji}`}
+                                                        >
+                                                            {emoji}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Botão de enviar */}
                                     <button
                                         onClick={handleSendMessage}
                                         disabled={!newMessage.trim()}
-                                        className="bg-blue-600 px-4 py-2 rounded-full font-semibold text-white hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="flex items-center justify-center w-11 h-11 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:dark:bg-gray-600 rounded-full transition-colors disabled:cursor-not-allowed flex-shrink-0"
                                     >
-                                        Enviar
+                                        <Send size={20} className="text-white" />
                                     </button>
                                 </div>
                             </div>
                         </>
                     ) : (
-                        // Estado inicial - Idêntico ao MessagesSection
+                        // Estado inicial
                         <div className="flex flex-col items-center justify-center h-full text-gray-400 p-8">
                             <MessageSquare size={64} className="mb-4 text-gray-300 dark:text-gray-600" />
                             <p className="text-xl text-center text-gray-500 dark:text-gray-400">
