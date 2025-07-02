@@ -47,7 +47,7 @@ module.exports = {
       userId: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'Users', // nome da tabela, não do model
+          model: 'users', // nome da tabela, não do model
           key: 'id',
         },
         onDelete: 'CASCADE',
