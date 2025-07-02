@@ -1,27 +1,25 @@
-const { Op } = require('sequelize');
-const { PrivateMessage } = require('../models');
+const messageService = require('../services/messages.service');
 const { getIO, getOnlineUsers } = require('../socket');
 
 class MessagesController {
-  // Enviar nova mensagem
   async sendMessage(req, res) {
-    const senderUserId = req.user.id;
-    const { receiverUserId, content } = req.body;
-
-    if (!receiverUserId || !content) {
-      return res.status(400).json({ error: 'receiverUserId and content are required' });
-    }
-
     try {
-      const message = await PrivateMessage.create({ senderUserId, receiverUserId, content });
+      const senderUserId = req.user.id;
+      const { receiverUserId, content } = req.body;
 
-      // Emitir evento para receptor se estiver online
+      const message = await messageService.sendPrivateMessage({
+        senderUserId,
+        receiverUserId,
+        content,
+      });
+
+      // Emitir via socket se o receptor estiver online
       const io = getIO();
       const onlineUsers = getOnlineUsers();
-
       const receiverSockets = onlineUsers.get(receiverUserId);
+
       if (receiverSockets) {
-        receiverSockets.forEach(socketId => {
+        receiverSockets.forEach((socketId) => {
           io.to(socketId).emit('private message', {
             id: message.id,
             content: message.content,
@@ -36,29 +34,20 @@ class MessagesController {
       return res.status(201).json(message);
     } catch (error) {
       console.error('Error sending message:', error);
-      return res.status(500).json({ error: 'Error sending message' });
+      return res.status(error.statusCode || 500).json({ error: error.message });
     }
   }
 
-  // Obter histórico da conversa com outro usuário
   async getConversation(req, res) {
-    const userId = req.user.id;
-    const otherUserId = parseInt(req.params.userId, 10);
-
-    if (!otherUserId) {
-      return res.status(400).json({ error: 'UserId parameter is required' });
-    }
-
     try {
-      const messages = await PrivateMessage.findAll({
-        where: {
-          [Op.or]: [
-            { senderUserId: userId, receiverUserId: otherUserId },
-            { senderUserId: otherUserId, receiverUserId: userId },
-          ],
-        },
-        order: [['timestamp', 'ASC']],
-      });
+      const userId = req.user.id;
+      const otherUserId = parseInt(req.params.userId, 10);
+
+      if (!otherUserId) {
+        return res.status(400).json({ error: 'UserId parameter is required' });
+      }
+
+      const messages = await messageService.getConversationBetweenUsers(userId, otherUserId);
       return res.json(messages);
     } catch (error) {
       console.error('Error fetching conversation:', error);
@@ -66,35 +55,27 @@ class MessagesController {
     }
   }
 
-  // Marcar mensagem como lida
   async markAsRead(req, res) {
-    const userId = req.user.id;
-    const messageId = parseInt(req.params.messageId, 10);
-
-    if (!messageId) {
-      return res.status(400).json({ error: 'MessageId parameter is required' });
-    }
-
     try {
-      const message = await PrivateMessage.findOne({ where: { id: messageId, receiverUserId: userId } });
-      if (!message) {
-        return res.status(404).json({ error: 'Message not found' });
+      const userId = req.user.id;
+      const messageId = parseInt(req.params.messageId, 10);
+
+      if (!messageId) {
+        return res.status(400).json({ error: 'MessageId parameter is required' });
       }
-      message.read = true;
-      await message.save();
+
+      await messageService.markMessageAsRead(userId, messageId);
       return res.json({ message: 'Message marked as read' });
     } catch (error) {
       console.error('Error marking message as read:', error);
-      return res.status(500).json({ error: 'Error marking message as read' });
+      return res.status(error.statusCode || 500).json({ error: error.message });
     }
   }
 
-  // Obter contagem de mensagens não lidas
   async getUnreadCount(req, res) {
-    const userId = req.user.id;
-
     try {
-      const count = await PrivateMessage.count({ where: { receiverUserId: userId, read: false } });
+      const userId = req.user.id;
+      const count = await messageService.getUnreadMessagesCount(userId);
       return res.json({ count });
     } catch (error) {
       console.error('Error getting unread count:', error);

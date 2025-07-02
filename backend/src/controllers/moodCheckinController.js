@@ -1,4 +1,4 @@
-const { MoodCheckin } = require('../models');
+const moodCheckinService = require('../services/moodCheckin.service');
 
 module.exports = {
   async create(req, res) {
@@ -6,11 +6,7 @@ module.exports = {
       const { mood, notes, date } = req.body;
       const userId = req.params.userId;
 
-      if (!['feliz', 'ok', 'triste', 'irritado'].includes(mood)) {
-        return res.status(400).json({ error: 'Mood inválido' });
-      }
-
-      const checkin = await MoodCheckin.create({
+      const checkin = await moodCheckinService.createCheckin({
         mood,
         notes,
         date,
@@ -19,21 +15,20 @@ module.exports = {
 
       return res.status(201).json(checkin);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Erro ao criar check-in' });
+      console.error('Erro ao criar check-in:', error);
+      res
+        .status(error.statusCode || 500)
+        .json({ error: error.message || 'Erro interno no servidor' });
     }
   },
 
   async getAll(req, res) {
     try {
       const userId = req.params.userId;
-      const list = await MoodCheckin.findAll({
-        where: { userId },
-        order: [['date', 'DESC']],
-      });
+      const list = await moodCheckinService.getAllCheckins(userId);
       res.json(list);
     } catch (error) {
-      console.error(error);
+      console.error('Erro ao buscar check-ins:', error);
       res.status(500).json({ error: 'Erro ao buscar check-ins' });
     }
   },
