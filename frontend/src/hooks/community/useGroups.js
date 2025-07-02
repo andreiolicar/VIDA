@@ -33,6 +33,18 @@ export function useGroups(token) {
     const [userQuery, setUserQuery] = useState('');
     const [filteredUsers, setFilteredUsers] = useState([]);
 
+    // ✅ MOVER PARA AQUI - Logo após os estados
+  const currentUserId = useMemo(() => {
+    try {
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.id || payload.userId;
+    } catch (error) {
+      console.error('Erro ao decodificar token:', error);
+      return null;
+    }
+  }, [token]);
+
     // Fetch groups
     const fetchGroups = useCallback(async () => {
         setLoadingGroups(true);
@@ -62,13 +74,19 @@ export function useGroups(token) {
 
     const fetchMessages = useCallback(async (groupId) => {
         if (!groupId) return;
-
         setLoadingMessages(true);
         try {
             const { data } = await api.get(`/groups/${groupId}/messages`);
-            setMessages(data);
-            // Atualiza o cache diretamente
-            setMessagesCache(prev => ({ ...prev, [groupId]: data }));
+
+            // Normalizar dados das mensagens (igual ao useMessages)
+            const formattedMessages = data.map(msg => ({
+                ...msg,
+                senderUserId: msg.senderUserId || msg.fromUserId || msg.userId,
+                timestamp: msg.timestamp || msg.createdAt,
+            }));
+
+            setMessages(formattedMessages);
+            setMessagesCache(prev => ({ ...prev, [groupId]: formattedMessages }));
         } catch {
             setErrorMessage('Erro ao carregar mensagens');
         } finally {
@@ -174,45 +192,38 @@ export function useGroups(token) {
         }
     }, [fetchMembers]);
 
-    const currentUserId = useMemo(() => {
-        try {
-            if (!token) return null;
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            return payload.id || payload.userId;
-        } catch (error) {
-            console.error('Erro ao decodificar token:', error);
-            return null;
-        }
-    }, [token]);
-
     // Função sendMessage para adicionar mensagem localmente
     const sendMessage = useCallback(async (groupId, content) => {
+        if (!currentUserId) return;
+
         try {
-            // Criar mensagem temporária para exibição imediata
             const tempMessage = {
                 id: `temp-${Date.now()}`,
                 groupId,
-                senderUserId: currentUserId, // Você precisa obter o ID do usuário atual
+                senderUserId: currentUserId,
                 content,
                 timestamp: new Date().toISOString(),
                 read: false,
                 sending: true
             };
 
-            // Adicionar mensagem temporária ao estado
             setMessages(prev => [...prev, tempMessage]);
 
-            // Enviar para o backend
             const response = await api.post(`/groups/${groupId}/messages`, { content });
 
-            // Substituir mensagem temporária pela real
+            // ✅ Normalizar resposta do backend (igual ao useMessages)
+            const normalizedResponse = {
+                ...response.data,
+                senderUserId: response.data.senderUserId || response.data.fromUserId || currentUserId,
+                timestamp: response.data.timestamp || response.data.createdAt,
+            };
+
             setMessages(prev => prev.map(msg =>
-                msg.id === tempMessage.id ? response.data : msg
+                msg.id === tempMessage.id ? normalizedResponse : msg
             ));
 
             setErrorMessage(null);
         } catch (err) {
-            // Remover mensagem temporária em caso de erro
             setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
             setErrorMessage('Erro ao enviar mensagem');
             throw err;
@@ -310,7 +321,7 @@ export function useGroups(token) {
 
     useEffect(() => {
         fetchGroups();
-    }, []);
+    }, [fetchGroups]);
 
     // Socket listeners
     useEffect(() => {
@@ -318,10 +329,17 @@ export function useGroups(token) {
 
         const handleGroupMessage = (msg) => {
             if (msg.groupId === selectedGroup.id) {
-                setMessages(prev => [...prev, msg]);
+                // ✅ Normalizar mensagem do socket (igual ao useMessages)
+                const normalizedMsg = {
+                    ...msg,
+                    senderUserId: msg.senderUserId || msg.fromUserId || msg.userId,
+                    timestamp: msg.timestamp || msg.createdAt,
+                };
+
+                setMessages(prev => [...prev, normalizedMsg]);
                 setMessagesCache(prev => ({
                     ...prev,
-                    [msg.groupId]: [...(prev[msg.groupId] || []), msg]
+                    [msg.groupId]: [...(prev[msg.groupId] || []), normalizedMsg]
                 }));
             }
         };
