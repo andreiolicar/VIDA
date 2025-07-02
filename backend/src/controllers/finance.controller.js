@@ -275,6 +275,35 @@ const updateCommentsAndRecurring = async (req, res) => {
   }
 };
 
+// === NOVA FUNÇÃO ADICIONADA ===
+const updateTransaction = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const transactionId = parseInt(req.params.id, 10);
+  const { type, category, amount, date, description, comments, recurring } = req.body;
+
+  if (!userId || !transactionId) return res.status(400).json({ message: "Parâmetros inválidos." });
+
+  try {
+    const transaction = await Transaction.findOne({ where: { id: transactionId, userId } });
+    if (!transaction) return res.status(404).json({ message: "Transação não encontrada." });
+
+    if (type !== undefined) transaction.type = type;
+    if (category !== undefined) transaction.category = category;
+    if (amount !== undefined) transaction.amount = amount;
+    if (date !== undefined) transaction.date = date;
+    if (description !== undefined) transaction.description = description;
+    if (comments !== undefined) transaction.comments = comments;
+    if (recurring !== undefined) transaction.recurring = recurring;
+
+    await transaction.save();
+
+    res.json(transaction);
+  } catch (error) {
+    console.error("Erro ao atualizar transação:", error);
+    res.status(500).json({ message: "Erro ao atualizar transação." });
+  }
+};
+
 // --- METAS FINANCEIRAS ---
 
 const createGoal = async (req, res) => {
@@ -342,7 +371,6 @@ const getGoalById = async (req, res) => {
   }
 };
 
-// Atualizar meta financeira (edição de título, valor, prazo)
 const updateGoal = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const goalId = parseInt(req.params.goalId, 10);
@@ -369,7 +397,6 @@ const updateGoal = async (req, res) => {
   }
 };
 
-// Excluir meta financeira
 const deleteGoal = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const goalId = parseInt(req.params.goalId, 10);
@@ -388,7 +415,6 @@ const deleteGoal = async (req, res) => {
   }
 };
 
-// Atualizar progresso da meta financeira e registrar histórico (adicionar aporte como despesa)
 const updateGoalProgress = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const goalId = parseInt(req.params.goalId, 10);
@@ -422,7 +448,6 @@ const updateGoalProgress = async (req, res) => {
       });
     }
 
-    // Atualiza a meta
     const newStatus = newCurrentAmount >= goal.targetAmount ? "completed" : "active";
 
     await goal.update({
@@ -430,7 +455,6 @@ const updateGoalProgress = async (req, res) => {
       status: newStatus,
     });
 
-    // Cria transação do tipo despesa para contabilizar o aporte
     await Transaction.create({
       userId,
       type: 'expense',
@@ -442,7 +466,6 @@ const updateGoalProgress = async (req, res) => {
       recurring: false,
     });
 
-    // Atualiza histórico da meta
     const lastHistory = await FinancialGoalHistory.findOne({
       where: { goalId },
       order: [["date", "DESC"], ["id", "DESC"]],
@@ -467,7 +490,6 @@ const updateGoalProgress = async (req, res) => {
   }
 };
 
-// Remover aporte da meta, atualizar saldo criando transação income e histórico negativo
 const removeGoalProgress = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const goalId = parseInt(req.params.goalId, 10);
@@ -496,7 +518,6 @@ const removeGoalProgress = async (req, res) => {
       status: newStatus,
     });
 
-    // Cria transação de receita para devolver o valor ao saldo geral
     await Transaction.create({
       userId,
       type: 'income',
@@ -508,7 +529,6 @@ const removeGoalProgress = async (req, res) => {
       recurring: false,
     });
 
-    // Atualiza histórico da meta com valor negativo
     const lastHistory = await FinancialGoalHistory.findOne({
       where: { goalId },
       order: [["date", "DESC"], ["id", "DESC"]],
@@ -721,6 +741,7 @@ module.exports = {
   deleteAttachment,
   getTransactionHistory,
   updateCommentsAndRecurring,
+  updateTransaction, 
   createGoal,
   getGoals,
   getGoalById,
