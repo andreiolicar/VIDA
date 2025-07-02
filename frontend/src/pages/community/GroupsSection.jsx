@@ -125,7 +125,7 @@ export default function GroupsSection() {
     return (
         <section className="flex flex-col h-full">
             {/* Header */}
-            <header className="flex justify-between items-center mb-4">
+            <header className="flex justify-between items-center mb-2">
                 <h2 className="text-2xl font-bold">Grupos</h2>
                 <button
                     onClick={handleCreateGroup}

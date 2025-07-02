@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { X, Users, Image, AlertCircle } from 'lucide-react';
 
 export default function GroupModal({
     isOpen,
@@ -67,65 +68,128 @@ export default function GroupModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md text-white shadow-lg">
-                <h2 className="text-xl font-semibold mb-4">
-                    {editingGroup ? 'Editar Grupo' : 'Criar Grupo'}
-                </h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md border border-gray-200 dark:border-gray-700">
+                {/* Header do Modal */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-3">
+                        <div className="bg-blue-600 rounded-full p-2">
+                            <Users size={20} className="text-white" />
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                            {editingGroup ? 'Editar Grupo' : 'Criar Novo Grupo'}
+                        </h2>
+                    </div>
+                    <button
+                        onClick={handleClose}
+                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                        <X size={20} className="text-gray-500 dark:text-gray-400" />
+                    </button>
+                </div>
 
-                {(localError || error) && (
-                    <p className="text-red-500 mb-3">{localError || error}</p>
-                )}
+                {/* Conteúdo do Modal */}
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    {/* Mensagem de Erro */}
+                    {(localError || error) && (
+                        <div className="flex items-center p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                            <AlertCircle size={16} className="text-red-500 mr-2 flex-shrink-0" />
+                            <span className="text-red-700 dark:text-red-300 text-sm">
+                                {localError || error}
+                            </span>
+                        </div>
+                    )}
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                    <label className="flex flex-col">
-                        Nome <span className="text-red-500">*</span>
+                    {/* Campo Nome do Grupo */}
+                    <div className="space-y-2">
+                        <label
+                            htmlFor="groupName"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                            Nome do Grupo *
+                        </label>
                         <input
+                            id="groupName"
                             type="text"
                             value={groupName}
                             onChange={(e) => setGroupName(e.target.value)}
-                            className="mt-1 p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Nome do grupo"
+                            placeholder="Digite o nome do grupo"
+                            className="w-full px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                             required
-                            autoFocus
                         />
-                    </label>
+                    </div>
 
-                    <label className="flex flex-col">
-                        Descrição
+                    {/* Campo Descrição */}
+                    <div className="space-y-2">
+                        <label
+                            htmlFor="groupDescription"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                            Descrição
+                        </label>
                         <textarea
+                            id="groupDescription"
                             value={groupDescription}
                             onChange={(e) => setGroupDescription(e.target.value)}
-                            className="mt-1 p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Descrição opcional"
+                            placeholder="Descreva o propósito do grupo (opcional)"
                             rows={3}
+                            className="w-full px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition-colors"
                         />
-                    </label>
+                    </div>
 
-                    <label className="flex flex-col">
-                        URL da imagem
+                    {/* Campo URL da Imagem */}
+                    <div className="space-y-2">
+                        <label
+                            htmlFor="groupImageUrl"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center"
+                        >
+                            <Image size={16} className="mr-2" />
+                            URL da Imagem
+                        </label>
                         <input
+                            id="groupImageUrl"
                             type="url"
                             value={groupImageUrl}
                             onChange={(e) => setGroupImageUrl(e.target.value)}
-                            className="mt-1 p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Link para imagem do grupo (opcional)"
+                            placeholder="https://exemplo.com/imagem.jpg (opcional)"
+                            className="w-full px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                         />
-                    </label>
+                    </div>
 
-                    <div className="flex justify-end gap-3 mt-4">
+                    {/* Preview da Imagem */}
+                    {groupImageUrl && (
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Preview da Imagem
+                            </label>
+                            <div className="flex justify-center">
+                                <img
+                                    src={groupImageUrl}
+                                    alt="Preview do grupo"
+                                    className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 dark:border-gray-600"
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Botões de Ação */}
+                    <div className="flex gap-3 pt-4">
                         <button
                             type="button"
                             onClick={handleClose}
-                            className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-700 transition"
+                            className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 transition font-semibold"
+                            disabled={!groupName.trim()}
+                            className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:dark:bg-gray-600 disabled:cursor-not-allowed transition-colors font-medium"
                         >
-                            {editingGroup ? 'Salvar' : 'Criar'}
+                            {editingGroup ? 'Salvar Alterações' : 'Criar Grupo'}
                         </button>
                     </div>
                 </form>
