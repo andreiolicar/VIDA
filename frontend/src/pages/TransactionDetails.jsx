@@ -4,7 +4,6 @@ import axios from '@/services/axios';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import { Edit, Trash, Copy, Repeat, UploadCloud, X } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const BASE_URL = 'http://localhost:5000';
 
@@ -84,12 +83,6 @@ export default function TransactionDetails() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImage, setModalImage] = useState(null);
 
-  // Categorias relacionadas
-  const [relatedCategories, setRelatedCategories] = useState([]);
-
-  // Gráfico de impacto financeiro
-  const [monthlyImpact, setMonthlyImpact] = useState([]);
-
   // Buscar dados da transação, anexos e histórico
   const fetchData = useCallback(async () => {
     try {
@@ -109,18 +102,6 @@ export default function TransactionDetails() {
       // Buscar histórico real
       const historyRes = await axios.get(`/finance/${userId}/transactions/${id}/history`);
       setHistory(historyRes.data || []);
-
-      // Simular categorias relacionadas
-      setRelatedCategories(['Alimentação', 'Lazer', 'Transporte']);
-
-      // Simular gráfico de impacto
-      setMonthlyImpact([
-        { month: 'Jan', balance: 5000 },
-        { month: 'Feb', balance: 4800 },
-        { month: 'Mar', balance: 5100 },
-        { month: 'Apr', balance: 4950 },
-        { month: 'May', balance: 5200 },
-      ]);
     } catch (err) {
       setError('Erro ao carregar transação.');
     } finally {
@@ -207,7 +188,7 @@ export default function TransactionDetails() {
     }
   };
 
-  // Excluir anexo - CORRIGIDO
+  // Excluir anexo
   const handleDeleteAttachment = async (attachmentId) => {
     setDeletingAttachmentId(attachmentId);
     try {
@@ -237,79 +218,81 @@ export default function TransactionDetails() {
           >
             Detalhes da Transação
           </h1>
+          {/* Container que agora engloba ambos os botões */}
           <div className="flex items-center gap-2" ref={dropdownRef}>
-            <button
-              onClick={() => setDropdownOpen((prev) => !prev)}
-              className="flex items-center gap-2 bg-indigo-6
-00 hover:bg-indigo-700 px-4 py-2 rounded-lg font-semibold"
-              aria-haspopup="true"
-              aria-expanded={dropdownOpen}
-            >
-              Ações
-              <svg
-                className={`w-4 h-4 transition-transform ${dropdownOpen ? 'rotate-180' : 'rotate-0'}`}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+            <div className="relative">
+              <button
+                onClick={() => setDropdownOpen((prev) => !prev)}
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg font-semibold"
+                aria-haspopup="true"
+                aria-expanded={dropdownOpen}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </button>
-            {dropdownOpen && (
-              <ul className="absolute right-0 mt-2 w-56 bg-[#1f2937] rounded-md shadow-lg z-50 py-1 text-white">
-                <li>
-                  <Link
-                    to={`/dashboard/finance/edit-transaction/${transaction.id}`}
-                    className="block w-full text-left px-4 py-2 hover:bg-indigo-700 transition"
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    <Edit className="inline mr-2" size={16} />
-                    Editar
-                  </Link>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {
-                      setDeleteModalOpen(true);
-                      setDropdownOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-red-700 transition"
-                  >
-                    <Trash className="inline mr-2" size={16} />
-                    Excluir
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {
-                      handleDuplicate();
-                      setDropdownOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-indigo-700 transition"
-                  >
-                    <Copy className="inline mr-2" size={16} />
-                    Duplicar
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {
-                      handleToggleRecurring();
-                      setDropdownOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-indigo-700 transition"
-                  >
-                    <Repeat className="inline mr-2" size={16} />
-                    {transaction.recurring ? 'Desmarcar recorrente' : 'Marcar como recorrente'}
-                  </button>
-                </li>
-              </ul>
-            )}
+                Ações
+                <svg
+                  className={`w-4 h-4 transition-transform ${dropdownOpen ? 'rotate-180' : 'rotate-0'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              {dropdownOpen && (
+                <ul className="absolute right-0 mt-2 w-56 bg-[#1f2937] rounded-md shadow-lg z-50 py-1 text-white">
+                  <li>
+                    <Link
+                      to={`/dashboard/finance/edit-transaction/${transaction.id}`}
+                      className="block w-full text-left px-4 py-2 hover:bg-indigo-700 transition"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <Edit className="inline mr-2" size={16} />
+                      Editar
+                    </Link>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        handleDuplicate();
+                        setDropdownOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-indigo-700 transition"
+                    >
+                      <Copy className="inline mr-2" size={16} />
+                      Duplicar
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        handleToggleRecurring();
+                        setDropdownOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-indigo-700 transition"
+                    >
+                      <Repeat className="inline mr-2" size={16} />
+                      {transaction.recurring ? 'Desmarcar recorrente' : 'Marcar como recorrente'}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        setDeleteModalOpen(true);
+                        setDropdownOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-red-700 transition"
+                    >
+                      <Trash className="inline mr-2" size={16} />
+                      Excluir
+                    </button>
+                  </li>
+                </ul>
+              )}
+            </div>
             <button
               onClick={() => navigate(-1)}
-              className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-semibold ml-2"
+              className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-semibold"
             >
               Voltar
             </button>
@@ -456,7 +439,7 @@ export default function TransactionDetails() {
                   )}
                   <p className="truncate w-full text-center">{file.fileName}</p>
                   
-                  {/* Botão para excluir anexo - POSIÇÃO CORRIGIDA */}
+                  {/* Botão para excluir anexo */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -485,43 +468,6 @@ export default function TransactionDetails() {
           onClose={() => setModalOpen(false)}
         />
 
-        {/* Categorias Relacionadas */}
-        <section className="mb-10 max-w-2xl">
-          <h2 className="text-xl font-semibold mb-4">Categorias Relacionadas</h2>
-          {relatedCategories.length === 0 ? (
-            <p className="text-gray-400">Nenhuma sugestão disponível.</p>
-          ) : (
-            <div className="flex flex-wrap gap-3">
-              {relatedCategories.map((cat, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => alert(`Você pode reclassificar para: ${cat}`)}
-                  className="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded-full text-sm font-semibold transition"
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Gráfico de impacto financeiro */}
-        <section className="mb-10 max-w-3xl">
-          <h2 className="text-xl font-semibold mb-4">Impacto Financeiro Mensal</h2>
-          {monthlyImpact.length === 0 ? (
-            <p className="text-gray-400">Dados indisponíveis.</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={monthlyImpact} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="month" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
-                <Tooltip />
-                <Line type="monotone" dataKey="balance" stroke="#22c55e" strokeWidth={3} dot />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </section>
       </main>
 
       <DashboardRightPanel />

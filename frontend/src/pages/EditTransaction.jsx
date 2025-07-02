@@ -10,9 +10,32 @@ const TYPES = [
   { value: 'expense', label: 'Despesa' },
 ];
 
+
+const INCOME_CATEGORIES = [
+  'Salário',
+  'Investimentos',
+  'Presente',
+  'Freelance',
+  'Bônus',
+  'Outros',
+];
+
+const EXPENSE_CATEGORIES = [
+  'Alimentação',
+  'Transporte',
+  'Lazer',
+  'Saúde',
+  'Educação',
+  'Moradia',
+  'Contas',
+  'Roupas',
+  'Impostos',
+  'Outros',
+];
+
 export default function EditTransaction() {
   const userId = localStorage.getItem('user');
-  const { id } = useParams(); // id da transação
+  const { id } = useParams(); 
   const navigate = useNavigate();
 
   const [type, setType] = useState('');
@@ -49,6 +72,9 @@ export default function EditTransaction() {
     fetchTransaction();
   }, [id, userId]);
 
+  const categories =
+    type === 'income' ? INCOME_CATEGORIES : type === 'expense' ? EXPENSE_CATEGORIES : [];
+
   const isFormValid = () => {
     return (
       type !== '' &&
@@ -79,6 +105,7 @@ export default function EditTransaction() {
         description: description.trim() || null,
       };
 
+      
       const response = await axios.patch(`/finance/${userId}/transactions/${id}`, payload);
 
       if (!response.data) {
@@ -87,6 +114,7 @@ export default function EditTransaction() {
 
       navigate('/dashboard/finance');
     } catch (err) {
+      console.error('Erro ao atualizar transação:', err);
       setError(err.message || 'Erro inesperado.');
     } finally {
       setLoading(false);
@@ -135,7 +163,10 @@ export default function EditTransaction() {
                 <select
                   className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-indigo-500"
                   value={type}
-                  onChange={(e) => setType(e.target.value)}
+                  onChange={(e) => {
+                    setType(e.target.value);
+                    setCategory(''); 
+                  }}
                 >
                   <option value="">Selecione o tipo</option>
                   {TYPES.map((t) => (
@@ -149,12 +180,19 @@ export default function EditTransaction() {
 
               <div>
                 <label className="block text-sm mb-1">Categoria *</label>
-                <input
-                  type="text"
+                <select
                   className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-indigo-500"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                />
+                  disabled={categories.length === 0}
+                >
+                  <option value="">Selecione a categoria</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
                 {category.trim() === '' && (
                   <p className="text-red-400 text-xs mt-1">Categoria é obrigatória.</p>
                 )}
