@@ -1,34 +1,32 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useGroups } from '@/hooks/community/useGroups';
 import { useAuth } from '@/context/useAuth';
+import { Users, MessageSquare, ArrowLeft } from 'lucide-react';
 import GroupModal from '@/components/community/GroupModal';
+import MembersModal from '@/components/community/MembersModal';
+import '@/components/scrollbar.css';
 
 export default function GroupsSection() {
     const { token, user } = useAuth();
     const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
 
-    // Inicialize o hook primeiro
+    const [showMembersModal, setShowMembersModal] = useState(false);
+
     const {
-        // Data
         groups,
         selectedGroup,
         setSelectedGroup,
         members,
         messages,
         filteredUsers,
-        currentUserId,
-        // Loading states
         loadingGroups,
         loadingMessages,
         loadingUsers,
-
-        // Error states
         error,
         errorMessage,
         clearError,
         clearErrorMessage,
-
-        // UI states
         isGroupModalOpen,
         editingGroup,
         newMessage,
@@ -36,8 +34,7 @@ export default function GroupsSection() {
         userQuery,
         setUserQuery,
         selectedUserId,
-
-        // Handlers
+        currentUserId,
         handleCreateGroup,
         handleEditGroup,
         handleCloseGroupModal,
@@ -51,27 +48,58 @@ export default function GroupsSection() {
         handleRemoveMemberConfirm,
     } = useGroups(token);
 
-    // Auto-scroll to last message
+    // Auto-scroll para última mensagem
     useEffect(() => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     }, [messages]);
 
+    // Função para obter o nome do remetente
+    const getSenderName = (senderUserId) => {
+        if (senderUserId === currentUserId || senderUserId === user?.id) {
+            return 'Você';
+        }
+
+        const member = members.find(m => m.userId === senderUserId);
+        return member?.user?.name || member?.User?.name || 'Usuário Desconhecido';
+    };
+
+    // Função para obter as iniciais do nome
+    const getInitials = (name) => {
+        if (!name || name === 'Você') return 'V';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    };
+
+    // Função para gerar cor baseada no nome
+    const getAvatarColor = (senderUserId) => {
+        if (senderUserId === currentUserId || senderUserId === user?.id) {
+            return 'bg-blue-600';
+        }
+
+        const colors = [
+            'bg-red-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500',
+            'bg-pink-500', 'bg-indigo-500', 'bg-teal-500', 'bg-orange-500'
+        ];
+
+        const index = senderUserId % colors.length;
+        return colors[index];
+    };
+
     return (
         <section className="flex flex-col h-full">
-            {/* Header */}
+            {/* Cabeçalho */}
             <header className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">Grupos</h2>
                 <button
                     onClick={handleCreateGroup}
-                    className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition font-semibold"
+                    className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition font-semibold text-white"
                 >
                     Criar Grupo
                 </button>
             </header>
 
-            {/* Error notifications */}
+            {/* Notificações de erro */}
             {error && (
                 <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded text-red-200 flex justify-between items-center">
                     <span>{error}</span>
@@ -81,242 +109,240 @@ export default function GroupsSection() {
                 </div>
             )}
 
-            {/* Loading groups */}
-            {loadingGroups && (
-                <div className="mb-4 p-3 bg-blue-900/50 border border-blue-500 rounded text-blue-200">
-                    Carregando grupos...
-                </div>
-            )}
-
-            {/* Main layout */}
+            {/* Layout principal */}
             <div className="flex flex-1 gap-6 min-h-0">
-                {/* Groups list */}
-                <aside className="w-1/4 overflow-y-auto bg-[#1f2937] rounded p-4">
-                    <h3 className="font-semibold mb-3">Meus Grupos</h3>
-                    {groups.length === 0 && !loadingGroups && (
-                        <p className="text-gray-400 italic">Nenhum grupo encontrado.</p>
+                {/* Lista de grupos - Estilo idêntico a "Seus Amigos" */}
+                <aside className="w-1/4 flex flex-col">
+                    <h3 className="font-semibold mb-3 text-gray-900 dark:text-white">Seus Grupos</h3>
+
+                    {loadingGroups && (
+                        <p className="text-gray-400 italic px-3">Carregando grupos...</p>
                     )}
-                    <ul className="space-y-2">
+
+                    <ul className="space-y-1 flex-1 overflow-y-auto scrollbar-dark scrollbar-thin scrollbar-thumb-blue-600 scrollbar-track-transparent">
+                        {groups.length === 0 && !loadingGroups && (
+                            <p className="text-gray-400 italic px-3 py-2">Nenhum grupo encontrado.</p>
+                        )}
+
                         {groups.map((group) => (
                             <li
                                 key={group.id}
-                                className={`cursor-pointer p-3 rounded transition ${selectedGroup?.id === group.id
-                                    ? 'bg-blue-700 text-white'
-                                    : 'hover:bg-blue-600 text-gray-300'
+                                className={`flex items-center p-3 rounded-lg cursor-pointer transition ${selectedGroup?.id === group.id
+                                    ? 'bg-blue-600 text-white'
+                                    : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white'
                                     }`}
+                                onClick={() => setSelectedGroup(group)}
                             >
-                                <div onClick={() => setSelectedGroup(group)}>
-                                    <h4 className="font-medium">{group.name}</h4>
+                                <div className={`rounded-full w-10 h-10 flex items-center justify-center mr-3 ${selectedGroup?.id === group.id
+                                    ? 'bg-blue-500'
+                                    : 'bg-gray-300 dark:bg-gray-600'
+                                    }`}>
+                                    <MessageSquare size={20} className={
+                                        selectedGroup?.id === group.id
+                                            ? 'text-white'
+                                            : 'text-gray-700 dark:text-gray-200'
+                                    } />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="font-medium truncate">
+                                        {group.name}
+                                    </h4>
                                     {group.description && (
-                                        <p className="text-sm text-gray-400 mt-1 truncate">
+                                        <p className={`text-sm mt-1 truncate ${selectedGroup?.id === group.id
+                                            ? 'text-blue-100'
+                                            : 'text-gray-500 dark:text-gray-400'
+                                            }`}>
                                             {group.description}
                                         </p>
                                     )}
-                                </div>
-                                <div className="flex gap-2 mt-2">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleEditGroup(group);
-                                        }}
-                                        className="text-xs bg-yellow-600 px-2 py-1 rounded hover:bg-yellow-700 transition"
-                                    >
-                                        Editar
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteGroup(group.id);
-                                        }}
-                                        className="text-xs bg-red-600 px-2 py-1 rounded hover:bg-red-700 transition"
-                                    >
-                                        Deletar
-                                    </button>
                                 </div>
                             </li>
                         ))}
                     </ul>
                 </aside>
 
-                {/* Main content */}
-                {selectedGroup ? (
-                    <main className="flex flex-1 gap-6 min-h-0">
-                        {/* Group chat */}
-                        <div className="flex-1 flex flex-col bg-[#1a2332] rounded p-4 min-h-0">
-                            <h3 className="text-xl font-semibold mb-4">{selectedGroup.name}</h3>
+                {/* Conteúdo principal - Container de mensagens */}
+                <main className="flex-1 flex flex-col bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                    {selectedGroup ? (
+                        <>
+                            {/* Header fixo - Idêntico ao MessagesSection */}
+                            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                                <div className="flex items-center">
+                                    <button
+                                        onClick={() => setSelectedGroup(null)}
+                                        className="mr-3 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition md:hidden"
+                                    >
+                                        <ArrowLeft size={20} />
+                                    </button>
+                                    <div className="bg-gray-300 dark:bg-gray-600 rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                                        <MessageSquare size={20} className="text-gray-700 dark:text-gray-200" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                                            {selectedGroup.name}
+                                        </h3>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            {members.length} {members.length === 1 ? 'membro' : 'membros'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setShowMembersModal(true)}
+                                    className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                                >
+                                    <Users size={16} />
+                                    Membros
+                                </button>
+                            </div>
 
-                            {/* Messages */}
-                            <div className="flex-1 overflow-y-auto mb-4 space-y-4">
-                                {loadingMessages && (
-                                    <p className="text-gray-400 italic">Carregando mensagens...</p>
-                                )}
-
-                                {!loadingMessages && messages.length === 0 && (
-                                    <p className="text-gray-400 italic">
+                            {/* Container de mensagens com altura fixa calculada */}
+                            <div
+                                ref={messagesContainerRef}
+                                className="flex-1 overflow-y-auto p-4 scrollbar"
+                                style={{
+                                    height: 'calc(100vh - 280px)',
+                                    maxHeight: 'calc(100vh - 280px)',
+                                    minHeight: '300px'
+                                }}
+                            >
+                                {loadingMessages ? (
+                                    <p className="text-gray-400 italic text-center py-4">Carregando mensagens...</p>
+                                ) : messages.length === 0 ? (
+                                    <p className="text-gray-400 italic text-center py-4">
                                         Nenhuma mensagem ainda. Comece a conversa!
                                     </p>
-                                )}
+                                ) : (
+                                    messages.map((msg, idx) => {
+                                        const isOwn = msg.senderUserId === currentUserId;
+                                        const isConsecutive = idx > 0 && messages[idx - 1].senderUserId === msg.senderUserId;
+                                        const senderName = getSenderName(msg.senderUserId);
+                                        const showAvatar = !isConsecutive || idx === messages.length - 1;
 
-                                {messages.map((msg) => (
-                                    <div
-                                        key={msg.id}
-                                        className={`max-w-[80%] p-3 rounded-lg shadow-sm break-words whitespace-pre-wrap ${msg.senderUserId === currentUserId // Use currentUserId do hook
-                                            ? 'bg-blue-600 text-white self-end rounded-br-md ml-auto'
-                                            : 'bg-gray-700 text-white self-start rounded-bl-md'
-                                            }`}
-                                    >
-                                        <p>{msg.content}</p>
-                                        <span className="text-xs text-gray-300 mt-1 block text-right">
-                                            {new Date(msg.timestamp).toLocaleTimeString([], {
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                            })}
-                                        </span>
-                                        {msg.sending && (
-                                            <span className="text-xs text-gray-400">Enviando...</span>
-                                        )}
-                                    </div>
-                                ))}
+                                        return (
+                                            <div
+                                                key={msg.id}
+                                                className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${isConsecutive ? 'mt-1' : 'mt-4'
+                                                    }`}
+                                            >
+                                                {/* Avatar para mensagens de outros usuários */}
+                                                {!isOwn && (
+                                                    <div className="flex flex-col items-center mr-2">
+                                                        {showAvatar ? (
+                                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${getAvatarColor(msg.senderUserId)}`}>
+                                                                {getInitials(senderName)}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-8 h-8"></div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                <div className={`max-w-[70%] ${isOwn ? 'ml-auto' : ''}`}>
+                                                    {/* Nome do remetente (apenas para mensagens de outros e não consecutivas) */}
+                                                    {!isOwn && !isConsecutive && (
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 ml-2">
+                                                            {senderName}
+                                                        </p>
+                                                    )}
+
+                                                    <div
+                                                        className={`p-3 rounded-lg shadow-sm break-words whitespace-pre-wrap ${isOwn
+                                                            ? 'bg-blue-600 text-white rounded-br-md'
+                                                            : 'bg-gray-700 text-white rounded-bl-md'
+                                                            }`}
+                                                    >
+                                                        <p>{msg.content}</p>
+                                                        <div className="flex items-center justify-between mt-1">
+                                                            <span className="text-xs text-gray-300">
+                                                                {new Date(msg.timestamp).toLocaleTimeString([], {
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit',
+                                                                })}
+                                                            </span>
+                                                            {msg.sending && (
+                                                                <span className="text-xs text-gray-400 ml-2">Enviando...</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Espaço para avatar nas mensagens próprias (para manter alinhamento) */}
+                                                {isOwn && (
+                                                    <div className="w-8 ml-2"></div>
+                                                )}
+                                            </div>
+                                        );
+                                    })
+                                )}
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            {/* Message error */}
-                            {errorMessage && (
-                                <div className="text-red-500 mb-2 flex justify-between items-center">
-                                    <span>{errorMessage}</span>
-                                    <button onClick={clearErrorMessage} className="underline text-sm">
-                                        Fechar
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Message input */}
-                            <div className="flex gap-2">
-                                <textarea
-                                    rows={2}
-                                    value={newMessage}
-                                    onChange={(e) => setNewMessage(e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    placeholder="Digite sua mensagem..."
-                                    className="flex-1 p-3 rounded-xl bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                />
-                                <button
-                                    onClick={handleSendMessage}
-                                    disabled={!newMessage.trim()}
-                                    className="bg-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Enviar
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Members list */}
-                        <div className="w-1/3 bg-[#1f2937] rounded p-4 flex flex-col max-h-full">
-                            <h4 className="text-lg font-semibold mb-4">Membros ({members.length})</h4>
-
-                            {/* Members list */}
-                            <div className="flex flex-col gap-2 overflow-y-auto flex-1 mb-4">
-                                {members.length === 0 && (
-                                    <p className="text-gray-400 italic">Nenhum membro encontrado.</p>
+                            {/* Footer fixo - Idêntico ao MessagesSection */}
+                            <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
+                                {errorMessage && (
+                                    <div className="text-red-500 mb-2 flex justify-between items-center">
+                                        <span>{errorMessage}</span>
+                                        <button onClick={clearErrorMessage} className="underline text-sm">
+                                            Fechar
+                                        </button>
+                                    </div>
                                 )}
 
-                                {members.map((member) => (
-                                    <div
-                                        key={member.id}
-                                        className="flex items-center justify-between bg-gray-700 rounded p-2"
-                                    >
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-semibold truncate">
-                                                {member.user?.name || 'Usuário'}
-                                            </p>
-                                            <p className="text-sm text-gray-400 truncate">
-                                                {member.user?.email || ''}
-                                            </p>
-                                        </div>
-
-                                        <div className="flex items-center gap-2 ml-2">
-                                            <select
-                                                value={member.role}
-                                                onChange={(e) => handleChangeMemberRole(member.userId, e.target.value)}
-                                                className="bg-gray-600 rounded px-2 py-1 text-sm"
-                                            >
-                                                <option value="owner">Owner</option>
-                                                <option value="admin">Admin</option>
-                                                <option value="member">Membro</option>
-                                            </select>
-
-                                            <button
-                                                onClick={() => handleRemoveMemberConfirm(member.userId)}
-                                                className="bg-red-600 px-2 py-1 rounded hover:bg-red-700 transition text-sm"
-                                                title="Remover membro"
-                                            >
-                                                Remover
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Add new member */}
-                            <div className="border-t border-gray-600 pt-4">
-                                <h5 className="font-semibold mb-2">Convidar novo membro</h5>
-
-                                {/* User search */}
-                                <div className="mb-2">
-                                    <input
-                                        type="search"
-                                        value={userQuery}
-                                        onChange={(e) => setUserQuery(e.target.value)}
-                                        placeholder="Buscar usuário por nome ou email"
-                                        className="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                <div className="flex gap-2">
+                                    <textarea
+                                        rows={1}
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        onKeyDown={handleKeyDown}
+                                        placeholder="Digite sua mensagem..."
+                                        className="flex-1 p-3 rounded-full bg-gray-100 dark:bg-gray-700 border-0 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                        style={{ minHeight: '44px', maxHeight: '120px' }}
                                     />
-
-                                    {loadingUsers && (
-                                        <p className="text-gray-400 mt-2 text-sm">Carregando usuários...</p>
-                                    )}
-
-                                    {!loadingUsers && filteredUsers.length > 0 && (
-                                        <ul className="max-h-32 overflow-y-auto mt-2 bg-gray-800 rounded border border-gray-600">
-                                            {filteredUsers.map((user) => (
-                                                <li
-                                                    key={user.id}
-                                                    onClick={() => handleSelectUser(user)}
-                                                    className={`cursor-pointer px-3 py-2 hover:bg-blue-600 text-sm ${selectedUserId === user.id ? 'bg-blue-700 font-semibold' : ''
-                                                        }`}
-                                                >
-                                                    <p className="truncate">
-                                                        {user.name} <span className="text-gray-400">({user.email})</span>
-                                                    </p>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
+                                    <button
+                                        onClick={handleSendMessage}
+                                        disabled={!newMessage.trim()}
+                                        className="bg-blue-600 px-4 py-2 rounded-full font-semibold text-white hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Enviar
+                                    </button>
                                 </div>
-
-                                <button
-                                    onClick={handleAddMember}
-                                    disabled={!selectedUserId}
-                                    className="w-full bg-green-600 px-4 py-2 rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Convidar
-                                </button>
                             </div>
+                        </>
+                    ) : (
+                        // Estado inicial - Idêntico ao MessagesSection
+                        <div className="flex flex-col items-center justify-center h-full text-gray-400 p-8">
+                            <MessageSquare size={64} className="mb-4 text-gray-300 dark:text-gray-600" />
+                            <p className="text-xl text-center text-gray-500 dark:text-gray-400">
+                                Selecione um grupo para começar a conversar
+                            </p>
                         </div>
-                    </main>
-                ) : (
-                    <div className="flex flex-1 items-center justify-center text-gray-400 italic">
-                        Selecione um grupo para visualizar os detalhes
-                    </div>
-                )}
+                    )}
+                </main>
             </div>
 
-            {/* Create/edit group modal */}
+            {/* Modais */}
             <GroupModal
                 isOpen={isGroupModalOpen}
                 onClose={handleCloseGroupModal}
                 onSubmit={handleSubmitGroup}
                 editingGroup={editingGroup}
                 error={error}
+            />
+
+            <MembersModal
+                isOpen={showMembersModal}
+                onClose={() => setShowMembersModal(false)}
+                members={members}
+                selectedGroup={selectedGroup}
+                userQuery={userQuery}
+                setUserQuery={setUserQuery}
+                filteredUsers={filteredUsers}
+                loadingUsers={loadingUsers}
+                selectedUserId={selectedUserId}
+                handleSelectUser={handleSelectUser}
+                handleAddMember={handleAddMember}
+                handleChangeMemberRole={handleChangeMemberRole}
+                handleRemoveMemberConfirm={handleRemoveMemberConfirm}
             />
         </section>
     );
