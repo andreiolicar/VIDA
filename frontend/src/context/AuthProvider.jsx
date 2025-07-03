@@ -12,20 +12,22 @@ export function AuthProvider({ children }) {
 
     if (storedUser && storedToken) {
       setUser(storedUser);
-      setToken(storedToken); // Setar token no estado
+      setToken(storedToken);
     }
 
     setLoading(false);
   }, []);
 
-  const login = (userData) => {
+  // Receber token como parâmetro opcional
+  const login = (userData, userToken = null) => {
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
 
-    // Buscar token do localStorage e setar no estado
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      setToken(storedToken);
+    // Usar token passado como parâmetro ou buscar do localStorage
+    const tokenToUse = userToken || localStorage.getItem('token');
+    if (tokenToUse) {
+      localStorage.setItem('token', tokenToUse);
+      setToken(tokenToUse);
     }
   };
 
@@ -39,7 +41,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user,
-      token, // Passar token no contexto
+      token,
       loading,
       login,
       logout

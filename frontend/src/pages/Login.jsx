@@ -1,25 +1,28 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/useAuth';
-import { FcGoogle } from 'react-icons/fc';
-import { FaApple } from 'react-icons/fa';
-import { Undo2 } from 'lucide-react';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { Undo2, Mail, Lock, Sparkles, ArrowRight, Loader2 } from 'lucide-react';
 
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [focusedField, setFocusedField] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
+    if (error) setError(''); // Limpar erro ao digitar
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
       const res = await fetch('http://localhost:5000/api/auth/login', {
@@ -28,114 +31,187 @@ function Login() {
         body: JSON.stringify(form),
       });
 
-      console.log('[DEBUG] Status da resposta:', res.status); // Mostra status HTTP
       const data = await res.json();
-      console.log('[DEBUG] Corpo da resposta:', data); // Mostra o conteúdo da resposta
-
       if (!res.ok) throw new Error(data.message || 'Erro ao fazer login');
 
       console.log('[LOGIN] Login bem-sucedido. Dados recebidos:', data);
-      localStorage.setItem('token', data.token);
-      login(data.user); // Salva no contexto
+      login(data.user, data.token);
       navigate('/dashboard');
     } catch (err) {
       console.error('[LOGIN] Erro no login:', err.message);
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
-      <button
-        onClick={() => navigate('/')}
-        className="absolute top-20 left-20 flex items-center gap-2 text-blue-400 font-semibold hover:text-white transition-colors"
-        aria-label="Voltar para home"
-        type="button"
-      >
-        <Undo2 size={20} />
-        <span>Voltar</span>
-      </button>
-
-      <div className="flex flex-col justify-center items-center w-full md:w-1/2 p-10">
-        <div className="w-full max-w-md space-y-8">
-          <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-bold">Bem-vindo de volta</h1>
-            <p className="text-white/70 text-sm">Digite seu e-mail e senha para acessar sua conta.</p>
+    <div className="min-h-screen bg-gray-900 flex">
+      {/* Left Panel - Form */}
+      <div className="flex-1 flex items-center justify-center p-8 relative">
+        <div className="w-full max-w-md relative z-10">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl mb-6 shadow-lg">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">
+              Bem-vindo de volta!
+            </h1>
+            <p className="text-gray-400">
+              Entre na sua conta e continue organizando sua vida
+            </p>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div>
-              <label className="block mb-1 text-sm font-medium text-white/80">E-mail</label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-md"
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 text-sm font-medium text-white/80">Senha</label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-md"
-              />
-              <div className="text-right mt-1">
-                <a href="#" className="text-sm text-blue-400 hover:underline">Esqueceu sua senha?</a>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Field */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300 block">
+                E-mail
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Mail className={`w-5 h-5 transition-colors ${focusedField === 'email' ? 'text-blue-400' : 'text-gray-400'
+                    }`} />
+                </div>
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField('')}
+                  placeholder="seu@email.com"
+                  className={`w-full pl-12 pr-4 py-4 bg-gray-800 border-2 rounded-xl transition-all duration-200 text-white placeholder-gray-500 ${focusedField === 'email'
+                      ? 'border-blue-500 shadow-lg shadow-blue-500/20'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                    } focus:outline-none`}
+                  required
+                />
               </div>
             </div>
 
+            {/* Password Field */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300 block">
+                Senha
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className={`w-5 h-5 transition-colors ${focusedField === 'password' ? 'text-blue-400' : 'text-gray-400'
+                    }`} />
+                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField('')}
+                  placeholder="••••••••"
+                  className={`w-full pl-12 pr-12 py-4 bg-gray-800 border-2 rounded-xl transition-all duration-200 text-white placeholder-gray-500 ${focusedField === 'password'
+                      ? 'border-blue-500 shadow-lg shadow-blue-500/20'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                    } focus:outline-none`}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <FaEyeSlash className="w-5 h-5" /> : <FaEye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="p-4 bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-700 rounded-xl">
+                <p className="text-red-600 dark:text-red-300 text-sm font-medium">{error}</p>
+              </div>
+            )}
+
+            {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full font-semibold transition"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3"
             >
-              Entrar
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Entrando...
+                </>
+              ) : (
+                <>
+                  Entrar
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
             </button>
 
-            {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+            {/* Register Link */}
+            <div className="text-center pt-6">
+              <p className="text-gray-400">
+                Ainda não tem uma conta?{' '}
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="text-blue-400 hover:text-blue-300 font-semibold hover:underline transition-colors"
+                >
+                  Cadastre-se agora
+                </button>
+              </p>
+            </div>
           </form>
 
-          <div className="flex items-center my-4 gap-2">
-            <hr className="flex-grow border-white/20" />
-            <span className="text-white/60 text-sm">Ou entre com</span>
-            <hr className="flex-grow border-white/20" />
-          </div>
-
-          <div className="flex space-x-4">
-            <button className="flex items-center justify-center gap-2 flex-1 border border-white/10 bg-white/10 rounded-full py-2 text-white/90 hover:bg-white/20 transition backdrop-blur-md">
-              <FcGoogle size={20} />
-              <span>Google</span>
-            </button>
-            <button className="flex items-center justify-center gap-2 flex-1 border border-white/10 bg-white/10 rounded-full py-2 text-white/90 hover:bg-white/20 transition backdrop-blur-md">
-              <FaApple size={20} />
-              <span>Apple</span>
-            </button>
-          </div>
-
-          <p className="text-center text-sm text-white/60">
-            Ainda não tem uma conta?{' '}
-            <a href="/register" className="text-blue-400 hover:underline">Cadastre-se agora.</a>
-          </p>
+          {/* Back Button */}
+          <button
+            onClick={() => navigate('/')}
+            className="absolute top-0 left-0 p-3 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <Undo2 className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
-      {/* Painel à direita (desktop apenas) */}
-      <div className="hidden md:flex items-center justify-center w-1/2 bg-white text-[#0f172a] p-10">
-        <div className="space-y-6 text-center max-w-md">
-          <h2 className="text-2xl font-bold leading-snug text-[#0f172a]">
-            Transforme suas decisões em ações com o V.I.D.A.
-          </h2>
-          <p className="text-[#1e293b] text-sm">
-            Organize suas finanças, estudos, saúde e tarefas com inteligência artificial personalizada.
-            Reduza o estresse, ganhe tempo e alcance seus objetivos com o nosso assistente inteligente.
-          </p>
-          <p className="text-[#475569] text-sm">
-            Bem-estar, produtividade e equilíbrio na palma da sua mão.
-          </p>
+      {/* Right Panel - Hero com Glass Effect */}
+      <div className="hidden lg:flex flex-1 bg-gray-900 relative overflow-hidden items-center justify-center">
+        {/* Glass Container */}
+        <div className="relative z-10 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 max-w-md mx-8 shadow-2xl">
+          <div className="text-center text-white">
+            <div className="mb-8">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-3xl mb-6 backdrop-blur-sm">
+                <Sparkles className="w-10 h-10 text-white" />
+              </div>
+              <h2 className="text-4xl font-bold mb-4">
+                Organize sua vida com
+                <span className="block bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+                  Inteligência Artificial
+                </span>
+              </h2>
+              <p className="text-xl text-blue-100 leading-relaxed">
+                Reduza o estresse, ganhe tempo e alcance seus objetivos com nosso assistente inteligente personalizado.
+              </p>
+            </div>
+
+            <div className="space-y-4 text-left">
+              <div className="flex items-center gap-4">
+                <div className="w-2 h-2 bg-cyan-300 rounded-full"></div>
+                <span className="text-blue-100">Bem-estar e produtividade</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-2 h-2 bg-cyan-300 rounded-full"></div>
+                <span className="text-blue-100">Equilíbrio na palma da sua mão</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-2 h-2 bg-cyan-300 rounded-full"></div>
+                <span className="text-blue-100">Assistente personalizado</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

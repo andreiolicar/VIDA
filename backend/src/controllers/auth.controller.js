@@ -3,24 +3,20 @@ const { registerUser, loginUser } = require("../services/auth.service");
 
 // Define uma função assíncrona que trata a rota de cadastro
 const register = async (req, res) => {
-  // Extrai os dados enviados pelo frontend
   try {
     const { name, email, phone, password } = req.body;
-    // Chama a função do service para registrar o usuário
     const result = await registerUser({ name, email, phone, password });
-    // Envia a resposta de sucesso
+
+    // Retornar mesma estrutura do login
     res.status(201).json({
       message: "Usuário criado com sucesso",
-      user: result,
+      token: result.token, // Token separado
+      user: result.id,     // Apenas ID do usuário
     });
   } catch (err) {
-    // Captura erros vindos do service
     const msg = err.message || "Erro ao registrar usuário";
-    // Define o HTTP com base na mensagem de erro conhecida
     const status = msg === "Usuário já cadastrado" ? 400 : 500;
-    // Loga o erro no console
     console.error("Erro em register:", msg);
-    // Retorna a mensagem de erro com status
     res.status(status).json({ message: msg });
   }
 };
