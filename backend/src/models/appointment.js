@@ -1,23 +1,34 @@
 'use strict';
-const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Appointment extends Model {
-    static associate(models) {
-      Appointment.belongsTo(models.User, { foreignKey: 'userId' });
-    }
-  }
-  Appointment.init(
-    {
-      title: DataTypes.STRING,
-      description: DataTypes.TEXT,
-      datetime: DataTypes.DATE,
-      type: DataTypes.ENUM('consulta', 'exame'),
-      userId: DataTypes.INTEGER,
+  const Appointment = sequelize.define('Appointment', {
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
-    {
-      sequelize,
-      modelName: 'Appointment',
-    }
-  );
+    type: {
+      type: DataTypes.ENUM('consulta', 'exame'),
+      allowNull: false,
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    dateTime: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    description: DataTypes.TEXT,
+    location: DataTypes.STRING,
+    priority: {
+      type: DataTypes.ENUM('baixa', 'media', 'alta'),
+      allowNull: false,
+      defaultValue: 'media',
+    },
+  }, {});
+
+  Appointment.associate = (models) => {
+    Appointment.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+  };
+
   return Appointment;
 };

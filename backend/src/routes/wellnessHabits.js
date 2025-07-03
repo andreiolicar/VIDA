@@ -2,19 +2,24 @@
  * @swagger
  * tags:
  *   name: WellnessHabits
- *   description: Gerenciamento de hábitos de bem-estar
+ *   description: Gerenciamento de hábitos de bem-estar dos usuários
  */
 
 const express = require('express');
 const router = express.Router();
 const wellnessHabitController = require('../controllers/wellnessHabitController');
+const authMiddleware = require('../middleware/auth.middleware');
+
+router.use(authMiddleware);
 
 /**
  * @swagger
- * /wellness-habits/{userId}:
+ * /wellnesshabits/{userId}:
  *   post:
- *     summary: Cria um novo hábito de bem-estar para um usuário
+ *     summary: Criar um novo hábito de bem-estar para um usuário
  *     tags: [WellnessHabits]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -28,23 +33,16 @@ const wellnessHabitController = require('../controllers/wellnessHabitController'
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - name
- *               - target
- *               - unit
  *             properties:
- *               name:
+ *               habit:
  *                 type: string
- *                 example: Caminhada diária
- *               target:
- *                 type: number
- *                 example: 10000
- *               unit:
+ *                 example: "Meditar diariamente"
+ *               frequency:
  *                 type: string
- *                 example: passos
- *               description:
+ *                 example: "Diário"
+ *               notes:
  *                 type: string
- *                 example: Caminhar 10.000 passos por dia
+ *                 example: "Pelo menos 10 minutos por dia"
  *     responses:
  *       201:
  *         description: Hábito criado com sucesso
@@ -53,10 +51,12 @@ router.post('/:userId', wellnessHabitController.create);
 
 /**
  * @swagger
- * /wellness-habits/{userId}:
+ * /wellnesshabits/{userId}:
  *   get:
- *     summary: Retorna todos os hábitos de bem-estar de um usuário
+ *     summary: Listar hábitos de bem-estar de um usuário
  *     tags: [WellnessHabits]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -72,10 +72,12 @@ router.get('/:userId', wellnessHabitController.getAll);
 
 /**
  * @swagger
- * /wellness-habits/{id}:
+ * /wellnesshabits/{id}:
  *   put:
- *     summary: Atualiza um hábito de bem-estar pelo ID
+ *     summary: Atualizar um hábito de bem-estar pelo ID
  *     tags: [WellnessHabits]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -90,13 +92,40 @@ router.get('/:userId', wellnessHabitController.getAll);
  *           schema:
  *             type: object
  *             properties:
- *               currentValue:
- *                 type: number
- *                 example: 5000
+ *               habit:
+ *                 type: string
+ *                 example: "Meditar diariamente"
+ *               frequency:
+ *                 type: string
+ *                 example: "Semanal"
+ *               notes:
+ *                 type: string
+ *                 example: "Pelo menos 3 vezes por semana"
  *     responses:
  *       200:
  *         description: Hábito atualizado com sucesso
  */
 router.put('/:id', wellnessHabitController.update);
+
+/**
+ * @swagger
+ * /wellnesshabits/{id}:
+ *   delete:
+ *     summary: Remover um hábito de bem-estar pelo ID
+ *     tags: [WellnessHabits]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do hábito
+ *     responses:
+ *       200:
+ *         description: Hábito removido com sucesso
+ */
+router.delete('/:id', wellnessHabitController.remove);
 
 module.exports = router;

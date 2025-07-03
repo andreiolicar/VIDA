@@ -15,7 +15,7 @@ module.exports = {
   async create(req, res) {
     try {
       const newRecord = await Health.create(req.body);
-      res.json(newRecord);
+      res.status(201).json(newRecord);
     } catch (err) {
       res.status(500).json({ error: "Erro ao criar registro." });
     }

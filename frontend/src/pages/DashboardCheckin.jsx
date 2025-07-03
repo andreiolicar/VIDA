@@ -85,9 +85,10 @@ export default function DashboardCheckin() {
           </Link>
         </div>
 
+        {/* Seção de check-in */}
         <section className="mb-8">
           <h2 className="text-lg font-semibold mb-3">Como você está se sentindo hoje?</h2>
-          <div className="flex gap-4 mb-4">
+          <div className="flex gap-4 mb-4 flex-wrap">
             {moods.map((m) => (
               <button
                 key={m.value}
@@ -122,6 +123,7 @@ export default function DashboardCheckin() {
           {error && <p className="mt-2 text-red-500">{error}</p>}
         </section>
 
+        {/* Gráfico */}
         <section className="mb-10">
           <h2 className="text-lg font-semibold mb-3">Gráfico de Humor (Últimos 7 registros)</h2>
           <Line
@@ -133,26 +135,10 @@ export default function DashboardCheckin() {
                 {
                   label: "Humor",
                   data: lastEntries.map((e) =>
-                    ["happy", "neutral", "sad", "angry"].indexOf(e.mood)
+                    ["angry", "sad", "neutral", "happy"].indexOf(e.mood)
                   ),
-                  borderColor: lastEntries.length
-                    ? lastEntries.map((e) => {
-                        if (e.mood === "happy") return "#22c55e";
-                        if (e.mood === "neutral") return "#eab308";
-                        if (e.mood === "sad") return "#3b82f6";
-                        if (e.mood === "angry") return "#ef4444";
-                        return "#fff";
-                      })
-                    : "#fff",
-                  backgroundColor: lastEntries.length
-                    ? lastEntries.map((e) => {
-                        if (e.mood === "happy") return "rgba(34, 197, 94, 0.3)";
-                        if (e.mood === "neutral") return "rgba(234, 179, 8, 0.3)";
-                        if (e.mood === "sad") return "rgba(59, 130, 246, 0.3)";
-                        if (e.mood === "angry") return "rgba(239, 68, 68, 0.3)";
-                        return "rgba(255, 255, 255, 0.3)";
-                      })
-                    : "rgba(255, 255, 255, 0.3)",
+                  borderColor: "#22c55e",
+                  backgroundColor: "rgba(34, 197, 94, 0.3)",
                   fill: true,
                   tension: 0.3,
                 },
@@ -163,7 +149,7 @@ export default function DashboardCheckin() {
                 y: {
                   ticks: {
                     callback: (v) =>
-                      ["Feliz", "Ok", "Triste", "Irritado"][v] || "",
+                      ["Irritado", "Triste", "Ok", "Feliz"][v] || "",
                   },
                   beginAtZero: true,
                   stepSize: 1,
@@ -176,7 +162,7 @@ export default function DashboardCheckin() {
                   callbacks: {
                     label: (ctx) => {
                       const mood =
-                        ["Feliz", "Ok", "Triste", "Irritado"][ctx.parsed.y];
+                        ["Irritado", "Triste", "Ok", "Feliz"][ctx.parsed.y];
                       return mood || "";
                     },
                   },
@@ -186,10 +172,9 @@ export default function DashboardCheckin() {
           />
         </section>
 
+        {/* Lista de check-ins */}
         <section className="mb-10">
-          <h2 className="text-lg font-semibold mb-3">
-            Resumo dos Últimos Check-ins
-          </h2>
+          <h2 className="text-lg font-semibold mb-3">Resumo dos Últimos Check-ins</h2>
           <ul>
             {entries.map((e, i) => (
               <li
@@ -206,6 +191,7 @@ export default function DashboardCheckin() {
           </ul>
         </section>
 
+        {/* Tendência */}
         <section>
           <h2 className="text-lg font-semibold mb-3">Tendência Emocional</h2>
           <p className="mb-3">
@@ -236,4 +222,3 @@ export default function DashboardCheckin() {
     </div>
   );
 }
-

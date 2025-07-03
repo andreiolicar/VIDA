@@ -1,45 +1,46 @@
-const appointmentService = require('../services/appointment.service');
+const service = require('../services/appointment.service');
 
 module.exports = {
+  async getAll(req, res) {
+    try {
+      const appointments = await service.getAppointmentsByUser(req.user.id);
+      res.json(appointments);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Erro ao buscar agendamentos.' });
+    }
+  },
+
   async create(req, res) {
     try {
-      const { title, description, datetime, type } = req.body;
-      const { userId } = req.params;
-
-      const appointment = await appointmentService.createAppointment({
-        title,
-        description,
-        datetime,
-        type,
-        userId,
+      const appointment = await service.createAppointment({
+        ...req.body,
+        userId: req.user.id,
       });
-
-      return res.status(201).json(appointment);
+      res.status(201).json(appointment);
     } catch (error) {
       console.error(error);
-      return res.status(400).json({ error: error.message || 'Erro ao criar agendamento' });
+      res.status(error.statusCode || 500).json({ message: error.message });
     }
   },
 
-  async index(req, res) {
+  async update(req, res) {
     try {
-      const { userId } = req.params;
-      const appointments = await appointmentService.getAppointmentsByUser(userId);
-      return res.json(appointments);
+      const updated = await service.updateAppointment(req.params.id, req.user.id, req.body);
+      res.json(updated);
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ error: 'Erro ao buscar agendamentos' });
+      res.status(error.statusCode || 500).json({ message: error.message });
     }
   },
 
-  async delete(req, res) {
+  async remove(req, res) {
     try {
-      const { id } = req.params;
-      await appointmentService.deleteAppointment(id);
-      return res.status(204).send();
+      await service.deleteAppointment(req.params.id, req.user.id);
+      res.json({ message: 'Agendamento removido com sucesso.' });
     } catch (error) {
       console.error(error);
-      return res.status(404).json({ error: error.message || 'Erro ao excluir agendamento' });
+      res.status(error.statusCode || 500).json({ message: error.message });
     }
   },
 };
