@@ -297,7 +297,7 @@ router.get("/:userId/transactions/:id/history", auth, financeController.getTrans
  * @swagger
  * /finance/{userId}/transactions/{id}:
  *   patch:
- *     summary: Atualizar comentários e recorrência de uma transação
+ *     summary: Atualizar uma transação (todos os campos)
  *     tags: [Finanças]
  *     security:
  *       - bearerAuth: []
@@ -307,26 +307,48 @@ router.get("/:userId/transactions/:id/history", auth, financeController.getTrans
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID do usuário
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: integer
+ *         description: ID da transação
  *     requestBody:
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
+ *               type:
+ *                 type: string
+ *                 example: income
+ *               category:
+ *                 type: string
+ *                 example: alimentação
+ *               amount:
+ *                 type: number
+ *                 example: 150.75
+ *               date:
+ *                 type: string
+ *                 format: date-time
+ *                 example: 2025-06-21T14:00:00Z
+ *               description:
+ *                 type: string
+ *                 example: almoço com amigos
  *               comments:
  *                 type: string
+ *                 example: Comentário opcional
  *               recurring:
  *                 type: boolean
+ *                 example: false
  *     responses:
  *       200:
  *         description: Transação atualizada com sucesso
  */
-router.patch("/:userId/transactions/:id", auth, financeController.updateCommentsAndRecurring);
+router.patch("/:userId/transactions/:id", auth, financeController.updateTransaction);
+
 
 // ROTAS DE METAS FINANCEIRAS
 
@@ -676,7 +698,7 @@ router.get("/:userId/goals/:goalId", auth, financeController.getGoalById);
  *             schema:
  *               $ref: '#/components/schemas/FinancialGoal'
  *       400:
- *         description: Erro de validação (ex: valor inválido ou maior que aporte atual)
+ *         description: "Erro de validação (ex: valor inválido ou maior que aporte atual)"
  *         content:
  *           application/json:
  *             schema:

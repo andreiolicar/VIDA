@@ -41,10 +41,19 @@ module.exports = {
         allowNull: false,
         defaultValue: false,
       },
+      createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+      },
+      updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')
+      }
     });
   },
-
   down: async (queryInterface) => {
     await queryInterface.dropTable('group_messages');
-  },
+  }
 };

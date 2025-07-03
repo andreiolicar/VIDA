@@ -10,6 +10,24 @@ const TYPES = [
   { value: 'expense', label: 'Despesa' },
 ];
 
+const incomeCategories = [
+  'Salário',
+  'Bonificação',
+  'Investimentos',
+  'Presente',
+  'Outros',
+];
+
+const expenseCategories = [
+  'Aluguel',
+  'Alimentação',
+  'Transporte',
+  'Lazer',
+  'Educação',
+  'Saúde',
+  'Outros',
+];
+
 export default function NewTransaction() {
   const userId = localStorage.getItem('user');
   const navigate = useNavigate();
@@ -34,6 +52,11 @@ export default function NewTransaction() {
   useEffect(() => {
     if (fixedType) setType(fixedType);
   }, [fixedType]);
+
+  // Quando o tipo mudar, resetar categoria para evitar inconsistência
+  useEffect(() => {
+    setCategory('');
+  }, [type]);
 
   const isFormValid = () => {
     return (
@@ -80,6 +103,9 @@ export default function NewTransaction() {
       setLoading(false);
     }
   };
+
+  // Define categorias a mostrar no dropdown conforme o tipo selecionado
+  const categoriesToShow = type === 'income' ? incomeCategories : type === 'expense' ? expenseCategories : [];
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
@@ -139,12 +165,29 @@ export default function NewTransaction() {
 
               <div>
                 <label className="block text-sm mb-1">Categoria </label>
-                <input
-                  type="text"
-                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-indigo-500"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                />
+                {type === '' ? (
+                  <input
+                    type="text"
+                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-indigo-500"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    placeholder="Selecione o tipo primeiro"
+                    disabled
+                  />
+                ) : (
+                  <select
+                    className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-indigo-500"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                  >
+                    <option value="">Selecione a categoria</option>
+                    {categoriesToShow.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 {category.trim() === '' && (
                   <p className="text-red-400 text-xs mt-1">Categoria é obrigatória.</p>
                 )}

@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
     const GroupMessage = sequelize.define(
-        'group_messages',
+        'GroupMessage',
         {
             id: {
                 type: DataTypes.INTEGER,
@@ -32,13 +32,18 @@ module.exports = (sequelize, DataTypes) => {
         },
         {
             tableName: 'group_messages',
-            timestamps: true,
+            timestamps: true, // Alterado para true
         }
     );
 
     GroupMessage.associate = (models) => {
-        GroupMessage.belongsTo(models.Group, { foreignKey: 'groupId' });
-        GroupMessage.belongsTo(models.User, { foreignKey: 'senderUserId', as: 'sender' });
+        GroupMessage.belongsTo(models.Group, {
+            foreignKey: 'groupId'
+        });
+        GroupMessage.belongsTo(models.User, {
+            foreignKey: 'senderUserId',
+            as: 'sender'
+        });
     };
 
     return GroupMessage;

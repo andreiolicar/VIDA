@@ -29,7 +29,7 @@ module.exports = {
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: { model: 'Users', key: 'id' }, // Relacionamento com Users
+        references: { model: 'users', key: 'id' }, // Relacionamento com Users
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },

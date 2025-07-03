@@ -25,6 +25,6 @@ router.get('/:groupId/messages', groupsController.getMessages);
 router.put('/:groupId/messages/:messageId/read', groupsController.markMessageRead);
 
 // Outros (busca de usuários)
-router.get('/users', groupsController.search);
+router.get('/search/users', groupsController.search);
 
 module.exports = router;

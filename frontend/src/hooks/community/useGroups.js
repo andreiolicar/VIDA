@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '@/services/axios';
 import { useSocket } from '@/hooks/useSocket';
 
@@ -33,7 +33,19 @@ export function useGroups(token) {
     const [userQuery, setUserQuery] = useState('');
     const [filteredUsers, setFilteredUsers] = useState([]);
 
-    // Fetch functions
+    // ✅ MOVER PARA AQUI - Logo após os estados
+  const currentUserId = useMemo(() => {
+    try {
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.id || payload.userId;
+    } catch (error) {
+      console.error('Erro ao decodificar token:', error);
+      return null;
+    }
+  }, [token]);
+
+    // Fetch groups
     const fetchGroups = useCallback(async () => {
         setLoadingGroups(true);
         setError(null);
@@ -50,56 +62,52 @@ export function useGroups(token) {
     const fetchMembers = useCallback(async (groupId) => {
         if (!groupId) return;
 
-        // Usar cache se disponível
-        if (membersCache[groupId]) {
-            setMembers(membersCache[groupId]);
-            return;
-        }
-
         try {
             const { data } = await api.get(`/groups/${groupId}/members`);
             setMembers(data);
+            // Atualiza o cache diretamente
             setMembersCache(prev => ({ ...prev, [groupId]: data }));
         } catch {
             setError('Erro ao carregar membros');
         }
-    }, [membersCache]);
+    }, []);
 
     const fetchMessages = useCallback(async (groupId) => {
         if (!groupId) return;
-
-        // Usar cache se disponível
-        if (messagesCache[groupId]) {
-            setMessages(messagesCache[groupId]);
-            return;
-        }
-
         setLoadingMessages(true);
-        setErrorMessage(null);
         try {
             const { data } = await api.get(`/groups/${groupId}/messages`);
-            setMessages(data);
-            setMessagesCache(prev => ({ ...prev, [groupId]: data }));
+
+            // Normalizar dados das mensagens (igual ao useMessages)
+            const formattedMessages = data.map(msg => ({
+                ...msg,
+                senderUserId: msg.senderUserId || msg.fromUserId || msg.userId,
+                timestamp: msg.timestamp || msg.createdAt,
+            }));
+
+            setMessages(formattedMessages);
+            setMessagesCache(prev => ({ ...prev, [groupId]: formattedMessages }));
         } catch {
             setErrorMessage('Erro ao carregar mensagens');
         } finally {
             setLoadingMessages(false);
         }
-    }, [messagesCache]);
+    }, []);
 
-    const fetchUsers = useCallback(async () => {
+    // Fetch all users
+    const fetchUsers = useCallback(async (query = "") => {
         setLoadingUsers(true);
         try {
-            const { data } = await api.get('/users');
-            setUsers(data);
+            const { data } = await api.get(`/groups/search/users?q=${encodeURIComponent(query)}`);
+            setFilteredUsers(data);
         } catch (err) {
-            console.error('Erro ao carregar usuários:', err);
+            console.error('Erro ao buscar usuários:', err);
         } finally {
             setLoadingUsers(false);
         }
     }, []);
 
-    // CRUD operations
+    // Create group
     const createGroup = useCallback(async (data) => {
         try {
             const { data: newGroup } = await api.post('/groups', data);
@@ -112,17 +120,14 @@ export function useGroups(token) {
         }
     }, []);
 
+    // Update group
     const updateGroup = useCallback(async (groupId, data) => {
         try {
             const { data: updatedGroup } = await api.put(`/groups/${groupId}`, data);
-            setGroups(prev => prev.map(group =>
-                group.id === groupId ? { ...group, ...updatedGroup } : group
-            ));
-
+            setGroups(prev => prev.map(group => (group.id === groupId ? { ...group, ...updatedGroup } : group)));
             if (selectedGroup?.id === groupId) {
                 setSelectedGroup(prev => ({ ...prev, ...updatedGroup }));
             }
-
             setError(null);
             return updatedGroup;
         } catch (err) {
@@ -131,17 +136,16 @@ export function useGroups(token) {
         }
     }, [selectedGroup]);
 
+    // Delete group
     const deleteGroup = useCallback(async (groupId) => {
         try {
             await api.delete(`/groups/${groupId}`);
             setGroups(prev => prev.filter(group => group.id !== groupId));
-
             if (selectedGroup?.id === groupId) {
                 setSelectedGroup(null);
                 setMembers([]);
                 setMessages([]);
             }
-
             setError(null);
         } catch (err) {
             setError('Erro ao deletar grupo');
@@ -149,11 +153,10 @@ export function useGroups(token) {
         }
     }, [selectedGroup]);
 
-    // Member operations
+    // Add member (invalidate cache)
     const addMember = useCallback(async (groupId, userId) => {
         try {
             await api.post(`/groups/${groupId}/members`, { userId });
-            // Invalida cache ao adicionar novo membro
             setMembersCache(prev => ({ ...prev, [groupId]: undefined }));
             await fetchMembers(groupId);
             setError(null);
@@ -163,10 +166,10 @@ export function useGroups(token) {
         }
     }, [fetchMembers]);
 
+    // Remove member (invalidate cache)
     const removeMember = useCallback(async (groupId, userId) => {
         try {
             await api.delete(`/groups/${groupId}/members/${userId}`);
-            // Invalida cache ao remover membro
             setMembersCache(prev => ({ ...prev, [groupId]: undefined }));
             await fetchMembers(groupId);
             setError(null);
@@ -176,10 +179,10 @@ export function useGroups(token) {
         }
     }, [fetchMembers]);
 
+    // Change member role (invalidate cache)
     const changeMemberRole = useCallback(async (groupId, userId, role) => {
         try {
             await api.put(`/groups/${groupId}/members/${userId}/role`, { role });
-            // Invalida cache ao alterar papel
             setMembersCache(prev => ({ ...prev, [groupId]: undefined }));
             await fetchMembers(groupId);
             setError(null);
@@ -189,15 +192,43 @@ export function useGroups(token) {
         }
     }, [fetchMembers]);
 
+    // Função sendMessage para adicionar mensagem localmente
     const sendMessage = useCallback(async (groupId, content) => {
+        if (!currentUserId) return;
+
         try {
-            await api.post(`/groups/${groupId}/messages`, { content });
+            const tempMessage = {
+                id: `temp-${Date.now()}`,
+                groupId,
+                senderUserId: currentUserId,
+                content,
+                timestamp: new Date().toISOString(),
+                read: false,
+                sending: true
+            };
+
+            setMessages(prev => [...prev, tempMessage]);
+
+            const response = await api.post(`/groups/${groupId}/messages`, { content });
+
+            // ✅ Normalizar resposta do backend (igual ao useMessages)
+            const normalizedResponse = {
+                ...response.data,
+                senderUserId: response.data.senderUserId || response.data.fromUserId || currentUserId,
+                timestamp: response.data.timestamp || response.data.createdAt,
+            };
+
+            setMessages(prev => prev.map(msg =>
+                msg.id === tempMessage.id ? normalizedResponse : msg
+            ));
+
             setErrorMessage(null);
         } catch (err) {
+            setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
             setErrorMessage('Erro ao enviar mensagem');
             throw err;
         }
-    }, []);
+    }, [currentUserId]);
 
     // UI Handlers
     const handleCreateGroup = useCallback(() => {
@@ -284,24 +315,37 @@ export function useGroups(token) {
         }
     }, [handleRemoveMember]);
 
+    // Clear error functions
+    const clearError = useCallback(() => setError(null), []);
+    const clearErrorMessage = useCallback(() => setErrorMessage(null), []);
+
+    useEffect(() => {
+        fetchGroups();
+    }, [fetchGroups]);
+
     // Socket listeners
     useEffect(() => {
         if (!socket || !selectedGroup) return;
 
         const handleGroupMessage = (msg) => {
             if (msg.groupId === selectedGroup.id) {
-                setMessages(prev => [...prev, msg]);
-                // Atualiza cache de mensagens
+                // ✅ Normalizar mensagem do socket (igual ao useMessages)
+                const normalizedMsg = {
+                    ...msg,
+                    senderUserId: msg.senderUserId || msg.fromUserId || msg.userId,
+                    timestamp: msg.timestamp || msg.createdAt,
+                };
+
+                setMessages(prev => [...prev, normalizedMsg]);
                 setMessagesCache(prev => ({
                     ...prev,
-                    [msg.groupId]: [...(prev[msg.groupId] || []), msg]
+                    [msg.groupId]: [...(prev[msg.groupId] || []), normalizedMsg]
                 }));
             }
         };
 
         const handleMemberJoined = (data) => {
             if (data.groupId === selectedGroup.id) {
-                // Invalida cache de membros
                 setMembersCache(prev => ({ ...prev, [data.groupId]: undefined }));
                 fetchMembers(selectedGroup.id);
             }
@@ -309,7 +353,6 @@ export function useGroups(token) {
 
         const handleMemberLeft = (data) => {
             if (data.groupId === selectedGroup.id) {
-                // Invalida cache de membros
                 setMembersCache(prev => ({ ...prev, [data.groupId]: undefined }));
                 fetchMembers(selectedGroup.id);
             }
@@ -334,23 +377,22 @@ export function useGroups(token) {
         };
     }, [socket, selectedGroup, fetchMembers]);
 
-    // Initialize
+    // Busca usuários
     useEffect(() => {
-        fetchGroups();
-        fetchUsers();
-    }, [fetchGroups, fetchUsers]);
+        if (userQuery.trim() !== '') {
+            fetchUsers(userQuery);
+        } else {
+            setFilteredUsers([]);
+        }
+    }, [userQuery, fetchUsers]);
 
-    // Fetch data when group is selected
+    // Carrega membros e mensagens ao selecionar grupo
     useEffect(() => {
         if (selectedGroup) {
             fetchMembers(selectedGroup.id);
             fetchMessages(selectedGroup.id);
         }
-    }, [selectedGroup, fetchMembers, fetchMessages]);
-
-    // Clear error functions
-    const clearError = useCallback(() => setError(null), []);
-    const clearErrorMessage = useCallback(() => setErrorMessage(null), []);
+    }, [selectedGroup]);
 
     return {
         // Data
@@ -378,6 +420,7 @@ export function useGroups(token) {
         selectedUserId,
         userQuery,
         setUserQuery,
+        currentUserId,
         // CRUD operations
         createGroup,
         updateGroup,

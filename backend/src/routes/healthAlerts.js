@@ -7,7 +7,7 @@
 
 const express = require('express');
 const router = express.Router();
-const healthAlertController = require('../controllers/healthAlertController');
+const healthAlertController = require('../controllers/healthAlert.controller');
 
 /**
  * @swagger

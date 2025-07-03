@@ -23,13 +23,19 @@ module.exports = (sequelize, DataTypes) => {
         },
         {
             tableName: 'group_members',
-            timestamps: true,
+            timestamps: true, // Mantido true
         }
     );
 
     GroupMember.associate = (models) => {
-        GroupMember.belongsTo(models.Group, { foreignKey: 'groupId', as: 'group' });
-        GroupMember.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+        GroupMember.belongsTo(models.Group, {
+            foreignKey: 'groupId',
+            as: 'group'
+        });
+        GroupMember.belongsTo(models.User, {
+            foreignKey: 'userId',
+            as: 'user'
+        });
     };
 
     return GroupMember;
