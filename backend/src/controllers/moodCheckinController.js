@@ -4,7 +4,7 @@ module.exports = {
   async create(req, res) {
     try {
       const { mood, notes, date } = req.body;
-      const userId = req.params.userId;
+      const userId = parseInt(req.params.userId, 10);
 
       const checkin = await moodCheckinService.createCheckin({
         mood,
@@ -24,12 +24,14 @@ module.exports = {
 
   async getAll(req, res) {
     try {
-      const userId = req.params.userId;
+      const userId = parseInt(req.params.userId, 10);
       const list = await moodCheckinService.getAllCheckins(userId);
       res.json(list);
     } catch (error) {
       console.error('Erro ao buscar check-ins:', error);
-      res.status(500).json({ error: 'Erro ao buscar check-ins' });
+      res.status(error.statusCode || 500).json({
+        error: error.message || 'Erro ao buscar check-ins',
+      });
     }
   },
 };
