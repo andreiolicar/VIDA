@@ -1,4 +1,4 @@
- import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/dashboard/Sidebar";
 import DashboardRightPanel from "@/components/dashboard/DashboardRightPanel";
@@ -386,4 +386,3 @@ export default function DashboardHealth() {
     </div>
   );
 }
-

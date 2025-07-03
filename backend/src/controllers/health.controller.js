@@ -1,75 +1,49 @@
-const healthService = require('../services/health.service');
+const { Health } = require("../models");
 
 module.exports = {
-  createHealthPlan: async (req, res) => {
+  async getAll(req, res) {
     try {
-      const result = await healthService.createHealthPlan(req);
-      res.status(201).json({ healthPlan: result });
-    } catch (error) {
-      console.error('Erro ao criar plano de saúde:', error);
-      res.status(500).json({ message: error.message || 'Erro ao criar plano de saúde.' });
+      const records = await Health.findAll({
+        order: [["date", "DESC"]],
+      });
+      res.json(records);
+    } catch (err) {
+      res.status(500).json({ error: "Erro ao buscar registros." });
     }
   },
 
-  getAllHealthPlans: async (req, res) => {
+  async create(req, res) {
     try {
-      const plans = await healthService.getAllHealthPlans(req);
-      res.json(plans);
-    } catch (error) {
-      console.error('Erro ao listar planos:', error);
-      res.status(500).json({ message: error.message || 'Erro ao listar planos.' });
+      const newRecord = await Health.create(req.body);
+      res.json(newRecord);
+    } catch (err) {
+      res.status(500).json({ error: "Erro ao criar registro." });
     }
   },
 
-  getHealthPlanById: async (req, res) => {
+  async update(req, res) {
     try {
-      const plan = await healthService.getHealthPlanById(req);
-      if (!plan) return res.status(404).json({ message: 'Plano não encontrado' });
-      res.json(plan);
-    } catch (error) {
-      console.error('Erro ao buscar plano:', error);
-      res.status(500).json({ message: error.message || 'Erro ao buscar plano.' });
+      const { id } = req.params;
+      const record = await Health.findByPk(id);
+      if (!record) return res.status(404).json({ error: "Registro não encontrado." });
+
+      await record.update(req.body);
+      res.json(record);
+    } catch (err) {
+      res.status(500).json({ error: "Erro ao atualizar registro." });
     }
   },
 
-  addMoodEntry: async (req, res) => {
+  async delete(req, res) {
     try {
-      const result = await healthService.addMoodEntry(req);
-      res.json(result);
-    } catch (error) {
-      console.error('Erro ao adicionar entrada de humor:', error);
-      res.status(500).json({ message: error.message || 'Erro ao adicionar entrada de humor.' });
-    }
-  },
+      const { id } = req.params;
+      const record = await Health.findByPk(id);
+      if (!record) return res.status(404).json({ error: "Registro não encontrado." });
 
-  updateHabits: async (req, res) => {
-    try {
-      const result = await healthService.updateHabits(req);
-      res.json(result);
-    } catch (error) {
-      console.error('Erro ao atualizar hábitos:', error);
-      res.status(500).json({ message: error.message || 'Erro ao atualizar hábitos.' });
-    }
-  },
-
-  updateHealthPlan: async (req, res) => {
-    try {
-      const result = await healthService.updateHealthPlan(req);
-      if (!result) return res.status(404).json({ message: 'Plano não encontrado' });
-      res.json(result);
-    } catch (error) {
-      console.error('Erro ao atualizar plano:', error);
-      res.status(500).json({ message: error.message || 'Erro ao atualizar plano.' });
-    }
-  },
-
-  deleteHealthPlan: async (req, res) => {
-    try {
-      await healthService.deleteHealthPlan(req);
-      res.json({ message: 'Plano deletado com sucesso' });
-    } catch (error) {
-      console.error('Erro ao deletar plano:', error);
-      res.status(500).json({ message: error.message || 'Erro ao deletar plano.' });
+      await record.destroy();
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: "Erro ao excluir registro." });
     }
   },
 };
