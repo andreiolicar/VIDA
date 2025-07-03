@@ -184,6 +184,7 @@ router.post("/:userId/transactions/:id/duplicate", auth, financeController.dupli
  *         schema:
  *           type: integer
  *     requestBody:
+ *       required: true
  *       content:
  *         multipart/form-data:
  *           schema:
@@ -349,7 +350,6 @@ router.get("/:userId/transactions/:id/history", auth, financeController.getTrans
  */
 router.patch("/:userId/transactions/:id", auth, financeController.updateTransaction);
 
-
 // ROTAS DE METAS FINANCEIRAS
 
 /**
@@ -367,6 +367,7 @@ router.patch("/:userId/transactions/:id", auth, financeController.updateTransact
  *         schema:
  *           type: integer
  *     requestBody:
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -698,7 +699,7 @@ router.get("/:userId/goals/:goalId", auth, financeController.getGoalById);
  *             schema:
  *               $ref: '#/components/schemas/FinancialGoal'
  *       400:
- *         description: "Erro de validação (ex: valor inválido ou maior que aporte atual)"
+ *         description: Erro de validação (ex: valor inválido ou maior que aporte atual)
  *         content:
  *           application/json:
  *             schema:
@@ -793,7 +794,5 @@ router.patch("/:userId/goals/:goalId", auth, financeController.updateGoal);
  *         description: Meta financeira não encontrada
  */
 router.delete("/:userId/goals/:goalId", auth, financeController.deleteGoal);
-
-
 
 module.exports = router;
