@@ -31,5 +31,6 @@ app.use('/api/messages', require('./routes/messages.routes'));
 app.use('/api/groups', require('./routes/groups.routes'));
 app.use('/api/health', require('./routes/health'));
 app.use('/api/moodcheckins', require('./routes/moodCheckins'));
+app.use('/api/appointments', require('./routes/appointments'));
 
 module.exports = app;

@@ -2,10 +2,12 @@ const { Appointment } = require('../models');
 
 async function createAppointment({ type, title, dateTime, description, location, priority, userId }) {
   if (!['consulta', 'exame'].includes(type)) {
-    throw new Error('Tipo inválido');
+    const error = new Error('Tipo inválido');
+    error.statusCode = 400;
+    throw error;
   }
 
-  const appointment = await Appointment.create({
+  return Appointment.create({
     type,
     title,
     dateTime,
@@ -14,8 +16,6 @@ async function createAppointment({ type, title, dateTime, description, location,
     priority,
     userId,
   });
-
-  return appointment;
 }
 
 async function getAppointmentsByUser(userId) {
@@ -28,8 +28,11 @@ async function getAppointmentsByUser(userId) {
 async function updateAppointment(id, userId, data) {
   const appointment = await Appointment.findOne({ where: { id, userId } });
   if (!appointment) {
-    throw new Error('Agendamento não encontrado');
+    const error = new Error('Agendamento não encontrado');
+    error.statusCode = 404;
+    throw error;
   }
+
   await appointment.update(data);
   return appointment;
 }
@@ -37,8 +40,11 @@ async function updateAppointment(id, userId, data) {
 async function deleteAppointment(id, userId) {
   const appointment = await Appointment.findOne({ where: { id, userId } });
   if (!appointment) {
-    throw new Error('Agendamento não encontrado');
+    const error = new Error('Agendamento não encontrado');
+    error.statusCode = 404;
+    throw error;
   }
+
   await appointment.destroy();
   return true;
 }
