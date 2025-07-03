@@ -94,9 +94,19 @@ function Login() {
 
             {/* Password Field */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300 block">
-                Senha
-              </label>
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-gray-300 block">
+                  Senha
+                </label>
+                {/* ✅ NOVO: Link "Esqueceu a senha?" */}
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors hover:underline"
+                >
+                  Esqueceu a senha?
+                </button>
+              </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock className={`w-5 h-5 transition-colors ${focusedField === 'password' ? 'text-blue-400' : 'text-gray-400'

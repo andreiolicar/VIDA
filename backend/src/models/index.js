@@ -37,6 +37,8 @@ db.Group = require('./Group')(sequelize, Sequelize.DataTypes);
 db.GroupMember = require('./GroupMember')(sequelize, Sequelize.DataTypes);
 db.GroupMessage = require('./GroupMessage')(sequelize, Sequelize.DataTypes);
 
+db.PasswordReset = require('./PasswordReset')(sequelize, Sequelize.DataTypes);
+
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
@@ -74,5 +76,7 @@ if (db.PrivateMessage.associate) db.PrivateMessage.associate(db);
 if (db.Group.associate) db.Group.associate(db);
 if (db.GroupMember.associate) db.GroupMember.associate(db);
 if (db.GroupMessage.associate) db.GroupMessage.associate(db);
+
+if (db.PasswordReset.associate) db.PasswordReset.associate(db);
 
 module.exports = db;

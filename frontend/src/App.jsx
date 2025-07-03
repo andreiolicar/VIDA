@@ -10,6 +10,10 @@ import Dashboard from './pages/Dashboard';
 import DashboardProfile from './pages/DashboardProfile';
 import PrivateRoute from './routes/PrivateRoute';
 
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetCode from './pages/auth/ResetCode';
+import NewPassword from './pages/auth/NewPassword';
+
 import DashboardStudy from './pages/DashboardStudy';
 import NewStudyRouteForm from './pages/NewStudyRouteForm';
 import DashboardStudyDetail from './pages/DashboardStudyDetail';
@@ -55,7 +59,6 @@ import Health from './pages/Health.jsx';
 import DashboardHealthScore from './pages/DashboardHealthScore.jsx';
 import DashboardCheckin from './pages/DashboardCheckin.jsx';
 import DashboardWellnessHabit from './pages/DashboardWellnessHabit.jsx';
-import DashboardHealthAlert from './pages/DashboardHealthAlert.jsx';
 
 function App() {
   return (
@@ -65,6 +68,12 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* ✅ NOVO: Rotas de recuperação de senha */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-code" element={<ResetCode />} />
+        <Route path="/new-password" element={<NewPassword />} />
+
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-use" element={<TermsOfUse />} />
         <Route path="/partnerships" element={<Partnerships />} />
@@ -129,7 +138,6 @@ function App() {
           <Route path="/dashboard/health/score" element={<DashboardHealthScore />} />
           <Route path="/dashboard/health/checkin" element={<DashboardCheckin />} />
           <Route path="/dashboard/health/habits" element={<DashboardWellnessHabit />} />
-          <Route path="/dashboard/health/alerts" element={<DashboardHealthAlert />} />
         </Route>
       </Route>
     </Routes>

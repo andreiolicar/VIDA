@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const swaggerConfig = require("./swagger");
+const passwordResetRoutes = require('./routes/passwordReset.routes');
 
 require('dotenv').config();
 
@@ -33,5 +34,6 @@ app.use('/api/health', require('./routes/health'));
 app.use('/api/moodcheckins', require('./routes/moodCheckins'));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/wellness-habits', require('./routes/wellnessHabits'));
+app.use('/api/password-reset', passwordResetRoutes);
 
 module.exports = app;
