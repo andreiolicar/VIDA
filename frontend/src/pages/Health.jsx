@@ -47,7 +47,6 @@ export default function DashboardHealth() {
   const [healthRecord, setHealthRecord] = useState(null);
   const [showHealthForm, setShowHealthForm] = useState(false);
 
-  // Campos do formulário de saúde física
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [weight, setWeight] = useState("");
@@ -56,6 +55,17 @@ export default function DashboardHealth() {
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
+    // Carregar registro de saúde do backend
+    fetch("/api/health")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.length > 0) {
+          setHealthRecord(data[0]);
+        }
+      })
+      .catch(console.error);
+
+    // Continuar usando localStorage para appointments, habits, alerts
     const savedAppointments = localStorage.getItem("appointments");
     if (savedAppointments) setAppointments(JSON.parse(savedAppointments));
 
@@ -64,18 +74,11 @@ export default function DashboardHealth() {
 
     const savedAlerts = localStorage.getItem("alerts");
     if (savedAlerts) setAlerts(JSON.parse(savedAlerts));
-
-    const savedHealth = localStorage.getItem("healthRecord");
-    if (savedHealth) setHealthRecord(JSON.parse(savedHealth));
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("healthRecord", JSON.stringify(healthRecord));
-  }, [healthRecord]);
-
-  function handleHealthSubmit(e) {
+  async function handleHealthSubmit(e) {
     e.preventDefault();
-    const record = {
+    const payload = {
       gender,
       age,
       weight,
@@ -84,8 +87,30 @@ export default function DashboardHealth() {
       notes,
       date: new Date().toISOString(),
     };
-    setHealthRecord(record);
-    setShowHealthForm(false);
+
+    try {
+      let res;
+      if (healthRecord) {
+        res = await fetch(`/api/health/${healthRecord.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        res = await fetch("/api/health", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      }
+      if (!res.ok) throw new Error("Erro ao salvar registro.");
+      const saved = await res.json();
+      setHealthRecord(saved);
+      setShowHealthForm(false);
+    } catch (err) {
+      alert("Erro ao salvar dados.");
+      console.error(err);
+    }
   }
 
   function calculateIMC() {
@@ -153,7 +178,7 @@ export default function DashboardHealth() {
           <p className="text-gray-400 text-sm">{habit.description}</p>
         </div>
         <div className="mt-2 sm:mt-0 flex gap-4">
-          <span className="text-green-400 font-semibold">Meta: {habit.target}</span>
+          <span className="text-gray-400 font-semibold">Meta: {habit.target}</span>
           <span className="text-gray-300">
             Atual: {habit.currentValue} {habit.unit}
           </span>
@@ -184,7 +209,8 @@ export default function DashboardHealth() {
           <p className="font-semibold">{alert.title}</p>
           <p className="text-sm text-gray-200">{alert.summary}</p>
           <p className="text-xs text-gray-400">
-            Prioridade: {alert.priority || "média"} - {new Date(alert.date).toLocaleDateString("pt-BR")}
+            Prioridade: {alert.priority || "média"} -{" "}
+            {new Date(alert.date).toLocaleDateString("pt-BR")}
           </p>
         </div>
       </div>
@@ -223,7 +249,6 @@ export default function DashboardHealth() {
           />
         </section>
 
-        {/* Formulário de Saúde Física */}
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3 flex justify-between items-center">
             Formulário de Saúde Física
@@ -240,48 +265,45 @@ export default function DashboardHealth() {
                   }
                   setShowHealthForm(true);
                 }}
-                className="text-green-400 flex items-center gap-1"
+                className="text-gray-400 flex items-center gap-1"
               >
                 <Edit2 className="w-4 h-4" />
                 {healthRecord ? "Editar Registro" : "Novo Registro"}
               </button>
             )}
           </h2>
+
           {showHealthForm && (
-            <form onSubmit={handleHealthSubmit} className="bg-[#1f2937] p-6 rounded-lg max-w-2xl">
+            <form
+              onSubmit={handleHealthSubmit}
+              className="bg-[#1f2937] p-6 rounded-lg max-w-xl"
+            >
               <div className="mb-4">
                 <label className="block mb-1">Sexo</label>
-                <select
+                <input
+                  type="text"
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-full rounded px-3 py-2 bg-[#111827]"
-                  required
-                >
-                  <option value="">Selecione</option>
-                  <option value="homem">Homem</option>
-                  <option value="mulher">Mulher</option>
-                  <option value="outro">Outro</option>
-                </select>
+                  className="w-full bg-[#111827] px-3 py-2 rounded"
+                />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                  <label className="block mb-1">Idade</label>
-                  <input
-                    type="number"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    className="w-full rounded px-3 py-2 bg-[#111827]"
-                    required
-                  />
-                </div>
+              <div className="mb-4">
+                <label className="block mb-1">Idade</label>
+                <input
+                  type="number"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  className="w-full bg-[#111827] px-3 py-2 rounded"
+                />
+              </div>
+              <div className="mb-4 grid grid-cols-2 gap-4">
                 <div>
                   <label className="block mb-1">Peso (kg)</label>
                   <input
                     type="number"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
-                    className="w-full rounded px-3 py-2 bg-[#111827]"
-                    required
+                    className="w-full bg-[#111827] px-3 py-2 rounded"
                   />
                 </div>
                 <div>
@@ -290,47 +312,33 @@ export default function DashboardHealth() {
                     type="number"
                     value={height}
                     onChange={(e) => setHeight(e.target.value)}
-                    className="w-full rounded px-3 py-2 bg-[#111827]"
-                    required
+                    className="w-full bg-[#111827] px-3 py-2 rounded"
                   />
                 </div>
               </div>
               <div className="mb-4">
-                <label className="block mb-1">Dores ou desconfortos frequentes</label>
+                <label className="block mb-1">Dores</label>
                 <textarea
                   value={pains}
                   onChange={(e) => setPains(e.target.value)}
-                  rows={2}
-                  className="w-full rounded px-3 py-2 bg-[#111827]"
+                  className="w-full bg-[#111827] px-3 py-2 rounded"
                 />
               </div>
               <div className="mb-4">
-                <label className="block mb-1">Notas adicionais</label>
+                <label className="block mb-1">Observações</label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
-                  className="w-full rounded px-3 py-2 bg-[#111827]"
+                  className="w-full bg-[#111827] px-3 py-2 rounded"
                 />
               </div>
               <button
                 type="submit"
-                className="bg-green-600 w-full py-2 rounded hover:bg-green-700"
+                className="w-full bg-green-600 hover:bg-green-700 py-2 rounded"
               >
-                Salvar
+                Salvar Registro
               </button>
             </form>
-          )}
-          {!showHealthForm && healthRecord && (
-            <div className="bg-[#1f2937] p-4 rounded">
-              <p><strong>Sexo:</strong> {healthRecord.gender}</p>
-              <p><strong>Idade:</strong> {healthRecord.age}</p>
-              <p><strong>Peso:</strong> {healthRecord.weight} kg</p>
-              <p><strong>Altura:</strong> {healthRecord.height} cm</p>
-              <p><strong>IMC:</strong> {calculateIMC()} ({imcCategory()})</p>
-              {healthRecord.pains && <p><strong>Dores:</strong> {healthRecord.pains}</p>}
-              {healthRecord.notes && <p><strong>Notas:</strong> {healthRecord.notes}</p>}
-            </div>
           )}
         </section>
 
@@ -339,7 +347,7 @@ export default function DashboardHealth() {
             Consultas e Exames Agendados
             <Link
               to="/dashboard/health/score"
-              className="text-green-400 hover:underline text-sm"
+              className="text-gray-400 hover:underline text-sm"
             >
               Ver todos
             </Link>
@@ -352,7 +360,7 @@ export default function DashboardHealth() {
             Resumo de Hábitos
             <Link
               to="/dashboard/health/habits"
-              className="text-green-400 hover:underline text-sm"
+              className="text-gray-400 hover:underline text-sm"
             >
               Gerenciar hábitos
             </Link>
@@ -365,7 +373,7 @@ export default function DashboardHealth() {
             Alertas e Recomendações
             <Link
               to="/dashboard/health/alerts"
-              className="text-green-400 hover:underline text-sm"
+              className="text-gray-400 hover:underline text-sm"
             >
               Ver alertas
             </Link>

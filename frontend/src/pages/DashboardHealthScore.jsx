@@ -9,7 +9,7 @@ const PRIORITIES = ["baixa", "media", "alta"];
 export default function DashboardHealthScore() {
   const [appointments, setAppointments] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [filterType, setFilterType] = useState(""); // "" = todos
+  const [filterType, setFilterType] = useState("");
   const [formType, setFormType] = useState("consulta");
   const [formTitle, setFormTitle] = useState("");
   const [formDateTime, setFormDateTime] = useState("");
@@ -21,16 +21,15 @@ export default function DashboardHealthScore() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState(null);
 
-  // Carrega do localStorage
+  // Carrega agendamentos da API
   useEffect(() => {
-    const saved = localStorage.getItem("appointments");
-    if (saved) setAppointments(JSON.parse(saved));
+    fetch("/api/appointments", {
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((res) => res.json())
+      .then(setAppointments)
+      .catch((err) => console.error(err));
   }, []);
-
-  // Salva no localStorage
-  useEffect(() => {
-    localStorage.setItem("appointments", JSON.stringify(appointments));
-  }, [appointments]);
 
   const resetForm = () => {
     setFormType("consulta");
@@ -42,15 +41,15 @@ export default function DashboardHealthScore() {
     setEditingId(null);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formTitle.trim() || !formDateTime.trim()) {
       alert("Preencha todos os campos obrigatórios.");
       return;
     }
     setSaving(true);
-    const newItem = {
-      id: editingId ?? Date.now(),
+
+    const data = {
       type: formType,
       title: formTitle.trim(),
       dateTime: formDateTime,
@@ -58,32 +57,73 @@ export default function DashboardHealthScore() {
       location: formLocation.trim(),
       priority: formPriority,
     };
-    if (editingId) {
-      setAppointments((prev) => prev.map((a) => (a.id === editingId ? newItem : a)));
-    } else {
-      setAppointments((prev) => [...prev, newItem]);
+
+    try {
+      let res;
+      if (editingId) {
+        res = await fetch(`/api/appointments/${editingId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+      } else {
+        res = await fetch("/api/appointments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+      }
+
+      if (!res.ok) throw new Error("Erro ao salvar agendamento.");
+
+      const saved = await res.json();
+
+      if (editingId) {
+        setAppointments((prev) =>
+          prev.map((a) => (a.id === saved.id ? saved : a))
+        );
+      } else {
+        setAppointments((prev) => [...prev, saved]);
+      }
+
+      resetForm();
+      setShowForm(false);
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao salvar agendamento.");
+    } finally {
+      setSaving(false);
     }
-    resetForm();
-    setShowForm(false);
-    setSaving(false);
   };
 
   const startEdit = (item) => {
     setEditingId(item.id);
     setFormType(item.type);
     setFormTitle(item.title);
-    setFormDateTime(item.dateTime);
+    setFormDateTime(item.dateTime.slice(0, 16));
     setFormDescription(item.description);
     setFormLocation(item.location);
     setFormPriority(item.priority);
     setShowForm(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!appointmentToDelete) return;
-    setAppointments((prev) => prev.filter((a) => a.id !== appointmentToDelete.id));
-    setAppointmentToDelete(null);
-    setShowConfirmModal(false);
+    try {
+      const res = await fetch(`/api/appointments/${appointmentToDelete.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Erro ao excluir.");
+
+      setAppointments((prev) =>
+        prev.filter((a) => a.id !== appointmentToDelete.id)
+      );
+      setAppointmentToDelete(null);
+      setShowConfirmModal(false);
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao excluir agendamento.");
+    }
   };
 
   const filteredAppointments = appointments.filter((a) =>
@@ -110,13 +150,16 @@ export default function DashboardHealthScore() {
           </div>
         </div>
 
+        {/* filtros */}
         <div className="flex gap-4 mb-6">
           {["", "consulta", "exame"].map((t) => (
             <button
               key={t}
               onClick={() => setFilterType(t)}
               className={`px-4 py-2 rounded ${
-                filterType === t ? "bg-indigo-600" : "bg-gray-700 hover:bg-gray-600"
+                filterType === t
+                  ? "bg-indigo-600"
+                  : "bg-gray-700 hover:bg-gray-600"
               }`}
             >
               {t ? t.charAt(0).toUpperCase() + t.slice(1) : "Todos"}
@@ -124,6 +167,7 @@ export default function DashboardHealthScore() {
           ))}
         </div>
 
+        {/* Formulário */}
         {showForm && (
           <form
             onSubmit={handleSubmit}
@@ -210,6 +254,7 @@ export default function DashboardHealthScore() {
           </form>
         )}
 
+        {/* Lista */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredAppointments.length === 0 ? (
             <p className="text-gray-400">Nenhum agendamento cadastrado.</p>
@@ -264,7 +309,9 @@ export default function DashboardHealthScore() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-[#1f2937] p-6 rounded max-w-sm w-full">
             <h2 className="text-xl font-semibold mb-4">Confirmar Exclusão</h2>
-            <p className="mb-6">Tem certeza que deseja excluir "{appointmentToDelete?.title}"?</p>
+            <p className="mb-6">
+              Tem certeza que deseja excluir "{appointmentToDelete?.title}"?
+            </p>
             <div className="flex justify-end gap-4">
               <button
                 onClick={() => setShowConfirmModal(false)}
@@ -285,3 +332,5 @@ export default function DashboardHealthScore() {
     </div>
   );
 }
+
+

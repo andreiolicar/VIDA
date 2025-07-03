@@ -1,4 +1,3 @@
-// src/pages/DashboardHealthAlert.jsx
 import { useState, useEffect } from "react";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 import Sidebar from "@/components/dashboard/Sidebar";
@@ -89,3 +88,4 @@ export default function DashboardHealthAlert() {
     </div>
   );
 }
+

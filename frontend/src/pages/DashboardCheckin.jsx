@@ -1,5 +1,5 @@
-// src/pages/DashboardCheckin.jsx
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Line } from "react-chartjs-2";
 import { Smile, Meh, Frown, Angry } from "lucide-react";
 import Sidebar from "@/components/dashboard/Sidebar";
@@ -17,40 +17,52 @@ export default function DashboardCheckin() {
   const [entries, setEntries] = useState([]);
   const [selectedMood, setSelectedMood] = useState("");
   const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Carregar entradas do localStorage ao montar o componente
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("moodEntries")) || [];
-    setEntries(saved);
+    fetch("/api/moodcheckins")
+      .then((res) => res.json())
+      .then((data) => setEntries(data))
+      .catch(() => setEntries([]));
   }, []);
 
-  // Salvar entradas no localStorage sempre que mudarem
-  useEffect(() => {
-    localStorage.setItem("moodEntries", JSON.stringify(entries));
-  }, [entries]);
-
-  // Função para adicionar novo check-in
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!selectedMood) return;
+    setLoading(true);
+    setError("");
+
     const newEntry = {
-      date: new Date().toISOString(),
       mood: selectedMood,
       note: note.trim(),
+      date: new Date().toISOString(),
     };
-    setEntries([newEntry, ...entries]);
-    setSelectedMood("");
-    setNote("");
+
+    try {
+      const res = await fetch("/api/moodcheckins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newEntry),
+      });
+
+      if (!res.ok) throw new Error("Erro ao salvar check-in");
+
+      const savedEntry = await res.json();
+      setEntries((prev) => [savedEntry, ...prev]);
+      setSelectedMood("");
+      setNote("");
+    } catch (err) {
+      setError("Não foi possível salvar o check-in. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  // Calcula a quantidade de cada humor
   const moodCounts = entries.reduce((acc, e) => {
     acc[e.mood] = (acc[e.mood] || 0) + 1;
     return acc;
   }, {});
-
-  const total = entries.length || 1; // para evitar divisão por zero
-
-  // Calcula porcentagens
+  const total = entries.length || 1;
   const moodPercentages = {
     happy: ((moodCounts.happy || 0) / total) * 100,
     neutral: ((moodCounts.neutral || 0) / total) * 100,
@@ -58,14 +70,20 @@ export default function DashboardCheckin() {
     angry: ((moodCounts.angry || 0) / total) * 100,
   };
 
-  // Preparar dados para o gráfico (últimos 7 registros, invertidos para ordem cronológica)
   const lastEntries = [...entries].slice(0, 7).reverse();
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-[#06141e] to-[#0f2533] text-white">
       <Sidebar />
       <main className="flex-1 px-4 md:px-10 py-8 max-w-[1440px] mx-auto overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-6">Check-in Emocional</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Check-in Emocional</h1>
+          <Link to="/dashboard/health">
+            <button className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600">
+              Voltar
+            </button>
+          </Link>
+        </div>
 
         <section className="mb-8">
           <h2 className="text-lg font-semibold mb-3">Como você está se sentindo hoje?</h2>
@@ -77,6 +95,7 @@ export default function DashboardCheckin() {
                 className={`flex flex-col items-center p-3 rounded-lg border ${
                   selectedMood === m.value ? "border-green-400" : "border-transparent"
                 } hover:bg-[#1f2937]`}
+                disabled={loading}
               >
                 {m.icon}
                 <span className="text-sm">{m.label}</span>
@@ -89,13 +108,18 @@ export default function DashboardCheckin() {
             placeholder="Escreva algo se quiser..."
             className="w-full p-2 bg-[#1f2937] rounded mb-3"
             rows={3}
+            disabled={loading}
           />
           <button
             onClick={handleSubmit}
-            className="bg-green-500 px-4 py-2 rounded hover:bg-green-600 transition"
+            disabled={loading || !selectedMood}
+            className={`px-4 py-2 rounded transition ${
+              loading ? "bg-gray-600 cursor-not-allowed" : "bg-green-500 hover:bg-green-600"
+            }`}
           >
-            Salvar Check-in
+            {loading ? "Salvando..." : "Salvar Check-in"}
           </button>
+          {error && <p className="mt-2 text-red-500">{error}</p>}
         </section>
 
         <section className="mb-10">
@@ -111,8 +135,24 @@ export default function DashboardCheckin() {
                   data: lastEntries.map((e) =>
                     ["happy", "neutral", "sad", "angry"].indexOf(e.mood)
                   ),
-                  borderColor: "#34d399",
-                  backgroundColor: "rgba(52, 211, 153, 0.3)",
+                  borderColor: lastEntries.length
+                    ? lastEntries.map((e) => {
+                        if (e.mood === "happy") return "#22c55e";
+                        if (e.mood === "neutral") return "#eab308";
+                        if (e.mood === "sad") return "#3b82f6";
+                        if (e.mood === "angry") return "#ef4444";
+                        return "#fff";
+                      })
+                    : "#fff",
+                  backgroundColor: lastEntries.length
+                    ? lastEntries.map((e) => {
+                        if (e.mood === "happy") return "rgba(34, 197, 94, 0.3)";
+                        if (e.mood === "neutral") return "rgba(234, 179, 8, 0.3)";
+                        if (e.mood === "sad") return "rgba(59, 130, 246, 0.3)";
+                        if (e.mood === "angry") return "rgba(239, 68, 68, 0.3)";
+                        return "rgba(255, 255, 255, 0.3)";
+                      })
+                    : "rgba(255, 255, 255, 0.3)",
                   fill: true,
                   tension: 0.3,
                 },
@@ -135,7 +175,8 @@ export default function DashboardCheckin() {
                 tooltip: {
                   callbacks: {
                     label: (ctx) => {
-                      const mood = ["Feliz", "Ok", "Triste", "Irritado"][ctx.parsed.y];
+                      const mood =
+                        ["Feliz", "Ok", "Triste", "Irritado"][ctx.parsed.y];
                       return mood || "";
                     },
                   },
@@ -146,7 +187,9 @@ export default function DashboardCheckin() {
         </section>
 
         <section className="mb-10">
-          <h2 className="text-lg font-semibold mb-3">Resumo dos Últimos Check-ins</h2>
+          <h2 className="text-lg font-semibold mb-3">
+            Resumo dos Últimos Check-ins
+          </h2>
           <ul>
             {entries.map((e, i) => (
               <li
@@ -155,7 +198,9 @@ export default function DashboardCheckin() {
               >
                 <span>{new Date(e.date).toLocaleDateString("pt-BR")}</span>
                 <span className="capitalize">{e.mood}</span>
-                <span className="text-gray-400 truncate max-w-xs">{e.note || "-"}</span>
+                <span className="text-gray-400 truncate max-w-xs">
+                  {e.note || "-"}
+                </span>
               </li>
             ))}
           </ul>
@@ -191,3 +236,4 @@ export default function DashboardCheckin() {
     </div>
   );
 }
+
