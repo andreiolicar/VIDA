@@ -21,12 +21,20 @@ export default function DashboardHealthScore() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState(null);
 
-  // Carrega agendamentos da API
+  // Pega token e carrega agendamentos autenticados
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return; // não buscar sem token
     fetch("/api/appointments", {
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("Erro ao carregar agendamentos.");
+        return res.json();
+      })
       .then(setAppointments)
       .catch((err) => console.error(err));
   }, []);
@@ -59,17 +67,25 @@ export default function DashboardHealthScore() {
     };
 
     try {
+      const token = localStorage.getItem("token");
       let res;
+
       if (editingId) {
         res = await fetch(`/api/appointments/${editingId}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(data),
         });
       } else {
         res = await fetch("/api/appointments", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(data),
         });
       }
@@ -110,8 +126,12 @@ export default function DashboardHealthScore() {
   const confirmDelete = async () => {
     if (!appointmentToDelete) return;
     try {
+      const token = localStorage.getItem("token");
       const res = await fetch(`/api/appointments/${appointmentToDelete.id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       if (!res.ok) throw new Error("Erro ao excluir.");
 
@@ -249,7 +269,11 @@ export default function DashboardHealthScore() {
               disabled={saving}
               className="bg-indigo-600 w-full py-2 rounded hover:bg-indigo-700"
             >
-              {saving ? "Salvando..." : editingId ? "Salvar Alterações" : "Cadastrar"}
+              {saving
+                ? "Salvando..."
+                : editingId
+                ? "Salvar Alterações"
+                : "Cadastrar"}
             </button>
           </form>
         )}
@@ -332,5 +356,3 @@ export default function DashboardHealthScore() {
     </div>
   );
 }
-
-

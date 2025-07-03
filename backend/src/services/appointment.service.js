@@ -1,15 +1,17 @@
 const { Appointment } = require('../models');
 
-async function createAppointment({ title, description, datetime, type, userId }) {
+async function createAppointment({ type, title, dateTime, description, location, priority, userId }) {
   if (!['consulta', 'exame'].includes(type)) {
     throw new Error('Tipo inválido');
   }
 
   const appointment = await Appointment.create({
-    title,
-    description,
-    datetime,
     type,
+    title,
+    dateTime,
+    description,
+    location,
+    priority,
     userId,
   });
 
@@ -19,20 +21,31 @@ async function createAppointment({ title, description, datetime, type, userId })
 async function getAppointmentsByUser(userId) {
   return Appointment.findAll({
     where: { userId },
-    order: [['datetime', 'ASC']],
+    order: [['dateTime', 'ASC']],
   });
 }
 
-async function deleteAppointment(id) {
-  const appointment = await Appointment.findByPk(id);
+async function updateAppointment(id, userId, data) {
+  const appointment = await Appointment.findOne({ where: { id, userId } });
+  if (!appointment) {
+    throw new Error('Agendamento não encontrado');
+  }
+  await appointment.update(data);
+  return appointment;
+}
+
+async function deleteAppointment(id, userId) {
+  const appointment = await Appointment.findOne({ where: { id, userId } });
   if (!appointment) {
     throw new Error('Agendamento não encontrado');
   }
   await appointment.destroy();
+  return true;
 }
 
 module.exports = {
   createAppointment,
   getAppointmentsByUser,
+  updateAppointment,
   deleteAppointment,
 };

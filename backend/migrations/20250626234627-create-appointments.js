@@ -1,43 +1,54 @@
-'use strict';
+"use strict";
 
 module.exports = {
-  async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Appointments', {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable("appointments", {
       id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true,
+        allowNull: false,
         autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER,
+      },
+      userId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: { model: "users", key: "id" },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
+      type: {
+        type: Sequelize.ENUM("consulta", "exame"),
         allowNull: false,
       },
       title: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      description: {
-        type: Sequelize.TEXT,
-      },
-      datetime: {
+      dateTime: {
         type: Sequelize.DATE,
         allowNull: false,
       },
-      type: {
-        type: Sequelize.ENUM('consulta', 'exame'),
+      description: Sequelize.TEXT,
+      location: Sequelize.STRING,
+      priority: {
+        type: Sequelize.ENUM("baixa", "media", "alta"),
         allowNull: false,
+        defaultValue: "media",
       },
-      userId: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'users',
-          key: 'id',
-        },
-        onDelete: 'CASCADE',
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn("NOW"),
       },
-      createdAt: Sequelize.DATE,
-      updatedAt: Sequelize.DATE,
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn("NOW"),
+      },
     });
   },
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Appointments');
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable("appointments");
   },
 };
