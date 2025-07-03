@@ -1,87 +1,21 @@
-const db = require("../models");
-const Op = db.Sequelize.Op;
-const { Task, TaskAttachment, TaskReminder, TaskList, Subtask } = db;
+const taskService = require("../services/tasks.service");
 
-const { suggestPriority } = require("../gemini");
-const { buildUserPriorityProfile } = require("../prioritization");
-
-// Criar tarefa com priorização inteligente e subtasks
 const createTask = async (req, res) => {
-  const { title, description, priority, dueDate, status, recurring, listId, subtasks } = req.body;
   const userId = req.params.userId;
-
-  if (!title || !listId) {
-    return res.status(400).json({ message: "Título e lista são obrigatórios." });
-  }
-
   try {
-    // Gerar perfil do usuário para IA
-    const userProfile = await buildUserPriorityProfile(userId);
-
-    // Obter sugestão da IA Gemini
-    const suggestedPriority = await suggestPriority(userProfile, title, description);
-
-    // Criar a tarefa
-    const task = await Task.create({
-      title,
-      description,
-      priority: priority ?? suggestedPriority ?? "media",
-      dueDate,
-      status: status ?? "a_fazer",
-      recurring: recurring ?? false,
-      listId,
-      userId,
-    });
-
-    // Criar subtasks em bulk, se existirem
-    if (subtasks && Array.isArray(subtasks) && subtasks.length > 0) {
-      const subtasksData = subtasks
-        .filter((t) => t.trim() !== '')
-        .map((title) => ({
-          taskId: task.id,
-          title,
-          completed: false,
-        }));
-
-      if (subtasksData.length > 0) {
-        await Subtask.bulkCreate(subtasksData);
-      }
-    }
-
-    res.status(201).json({
-      ...task.get({ plain: true }),
-      suggestedPriority: priority ? undefined : suggestedPriority,
-    });
+    const task = await taskService.createTaskService(userId, req.body);
+    res.status(201).json(task);
   } catch (error) {
     console.error("Erro ao criar tarefa:", error);
-    res.status(500).json({ message: "Erro ao criar tarefa." });
+    res.status(400).json({ message: error.message });
   }
 };
 
-// Atualizar tarefa com priorização inteligente
 const updateTask = async (req, res) => {
   const { id } = req.params;
-  const updates = req.body;
-
   try {
-    const task = await Task.findByPk(id);
+    const task = await taskService.updateTaskService(id, req.body);
     if (!task) return res.status(404).json({ message: "Tarefa não encontrada." });
-
-    // Se título ou descrição mudaram, reavaliar prioridade
-    if (updates.title || updates.description) {
-      const userProfile = await buildUserPriorityProfile(task.userId);
-      const suggestedPriority = await suggestPriority(
-        userProfile,
-        updates.title || task.title,
-        updates.description || task.description
-      );
-
-      if (!updates.priority) {
-        updates.priority = suggestedPriority;
-      }
-    }
-
-    await task.update(updates);
     res.json({ message: "Tarefa atualizada", task });
   } catch (error) {
     console.error("Erro ao atualizar tarefa:", error);
@@ -89,40 +23,9 @@ const updateTask = async (req, res) => {
   }
 };
 
-// Buscar tarefas por Usuário incluindo lista, anexos e lembretes
 const getTasksByUser = async (req, res) => {
-  const { userId } = req.params;
   try {
-    const tasks = await Task.findAll({
-      where: { userId },
-      include: [
-        { model: TaskAttachment, as: "attachments" },
-        { model: TaskReminder, as: "reminders" },
-        { model: TaskList, as: "list" },
-      ],
-      order: [["dueDate", "ASC"]],
-    });
-    res.json(tasks);
-  } catch (error) {
-    console.error("Erro ao buscar tarefas por usuário:", error);
-    res.status(500).json({ message: "Erro ao buscar tarefas por usuário." });
-  }
-};
-
-// Buscar tarefas por lista incluindo anexos e lembretes
-const getTasksByList = async (req, res) => {
-  const { listId } = req.params;
-
-  try {
-    const tasks = await Task.findAll({
-      where: { listId },
-      include: [
-        { model: TaskAttachment, as: "attachments" },
-        { model: TaskReminder, as: "reminders" },
-        { model: TaskList, as: "list" },
-      ],
-      order: [["dueDate", "ASC"]],
-    });
+    const tasks = await taskService.getTasksByUserService(req.params.userId);
     res.json(tasks);
   } catch (error) {
     console.error("Erro ao buscar tarefas:", error);
@@ -130,19 +33,19 @@ const getTasksByList = async (req, res) => {
   }
 };
 
-// Buscar tarefa por ID incluindo anexos, lembretes, lista e subtarefas
-const getTaskById = async (req, res) => {
-  const { id } = req.params;
-
+const getTasksByList = async (req, res) => {
   try {
-    const task = await Task.findByPk(id, {
-      include: [
-        { model: TaskAttachment, as: "attachments" },
-        { model: TaskReminder, as: "reminders" },
-        { model: TaskList, as: "list" },
-        { model: Subtask, as: "subtasks" }, // inclusão das subtarefas
-      ],
-    });
+    const tasks = await taskService.getTasksByListService(req.params.listId);
+    res.json(tasks);
+  } catch (error) {
+    console.error("Erro ao buscar tarefas:", error);
+    res.status(500).json({ message: "Erro ao buscar tarefas." });
+  }
+};
+
+const getTaskById = async (req, res) => {
+  try {
+    const task = await taskService.getTaskByIdService(req.params.id);
     if (!task) return res.status(404).json({ message: "Tarefa não encontrada." });
     res.json(task);
   } catch (error) {
@@ -151,16 +54,10 @@ const getTaskById = async (req, res) => {
   }
 };
 
-// Deletar tarefa e seus anexos e lembretes
 const deleteTask = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    await TaskAttachment.destroy({ where: { taskId: id } });
-    await TaskReminder.destroy({ where: { taskId: id } });
-    const deleted = await Task.destroy({ where: { id } });
+    const deleted = await taskService.deleteTaskService(req.params.id);
     if (!deleted) return res.status(404).json({ message: "Tarefa não encontrada." });
-
     res.json({ message: "Tarefa excluída com sucesso." });
   } catch (error) {
     console.error("Erro ao excluir tarefa:", error);
@@ -168,48 +65,16 @@ const deleteTask = async (req, res) => {
   }
 };
 
-// Buscar tarefas para Kanban por lista
 const getTasksKanbanByList = async (req, res) => {
-  const { listId } = req.params;
-  const { priority, recurring } = req.query;
-
   try {
-    const where = { listId };
-    if (priority) where.priority = priority;
-    if (recurring !== undefined) where.recurring = recurring === "true";
-
-    const tasks = await Task.findAll({
-      where,
-      include: [
-        { model: TaskAttachment, as: "attachments" },
-        { model: TaskReminder, as: "reminders" },
-        { model: TaskList, as: "list" },
-      ],
-      order: [["dueDate", "ASC"]],
-    });
-
-    const kanban = {
-      a_fazer: [],
-      fazendo: [],
-      feito: [],
-    };
-
-    tasks.forEach((task) => {
-      if (kanban[task.status]) {
-        kanban[task.status].push(task);
-      } else {
-        kanban.a_fazer.push(task);
-      }
-    });
-
+    const kanban = await taskService.getTasksKanbanByListService(req.params.listId, req.query);
     res.json(kanban);
   } catch (error) {
-    console.error("Erro ao buscar tarefas Kanban:", error);
+    console.error("Erro ao buscar Kanban:", error);
     res.status(500).json({ message: "Erro ao buscar tarefas Kanban." });
   }
 };
 
-// Buscar tarefas para calendário por usuário
 const getTasksCalendarByUser = async (req, res) => {
   const { userId } = req.params;
   const { start, end, status, priority } = req.query;
@@ -218,42 +83,12 @@ const getTasksCalendarByUser = async (req, res) => {
     return res.status(400).json({ message: "Parâmetros 'start' e 'end' são obrigatórios." });
   }
 
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-
-  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-    return res.status(400).json({ message: "Parâmetros 'start' e 'end' devem ser datas válidas." });
-  }
-
   try {
-    const where = {
-      userId,
-      dueDate: {
-        [Op.between]: [startDate, endDate],
-      },
-    };
-
-    if (status) where.status = status;
-    if (priority) where.priority = priority;
-
-    const tasks = await Task.findAll({
-      where,
-      attributes: ["id", "title", "dueDate", "status", "priority"],
-      order: [["dueDate", "ASC"]],
-    });
-
-    const events = tasks.map((task) => ({
-      id: task.id,
-      title: task.title,
-      start: task.dueDate,
-      status: task.status,
-      priority: task.priority,
-    }));
-
+    const events = await taskService.getTasksCalendarByUserService(userId, start, end, status, priority);
     res.json(events);
   } catch (error) {
     console.error("Erro ao buscar tarefas para calendário:", error);
-    res.status(500).json({ message: "Erro ao buscar tarefas para calendário.", error: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 

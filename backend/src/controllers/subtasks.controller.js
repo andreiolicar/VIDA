@@ -1,37 +1,25 @@
-const db = require("../models");
-const { Subtask } = db;
+const subtaskService = require("../services/subtasks.service");
 
 const createSubtask = async (req, res) => {
   try {
-    const { taskId, title, completed } = req.body;
-    if (!taskId || !title) {
-      return res.status(400).json({ message: "taskId e title são obrigatórios." });
-    }
-    const subtask = await Subtask.create({
-      taskId,
-      title,
-      completed: completed ?? false,
-    });
-    return res.status(201).json(subtask);
+    const subtask = await subtaskService.createSubtask(req.body);
+    res.status(201).json(subtask);
   } catch (error) {
-    console.error("Erro ao criar subtarefa:", error);
-    return res.status(500).json({ message: "Erro ao criar subtarefa." });
+    console.error("Erro ao criar subtarefa:", error.message);
+    res.status(400).json({ message: error.message });
   }
 };
 
 const updateSubtask = async (req, res) => {
   const { id } = req.params;
-  const updates = req.body;
 
   try {
-    const subtask = await Subtask.findByPk(id);
-    if (!subtask) return res.status(404).json({ message: "Subtarefa não encontrada." });
-
-    await subtask.update(updates);
-    return res.json({ message: "Subtarefa atualizada", subtask });
+    const subtask = await subtaskService.updateSubtask(id, req.body);
+    res.json({ message: "Subtarefa atualizada", subtask });
   } catch (error) {
-    console.error("Erro ao atualizar subtarefa:", error);
-    return res.status(500).json({ message: "Erro ao atualizar subtarefa." });
+    console.error("Erro ao atualizar subtarefa:", error.message);
+    const status = error.message === "Subtarefa não encontrada." ? 404 : 500;
+    res.status(status).json({ message: error.message });
   }
 };
 
@@ -39,14 +27,11 @@ const getSubtasksByTask = async (req, res) => {
   const { taskId } = req.params;
 
   try {
-    const subtasks = await Subtask.findAll({
-      where: { taskId },
-      order: [["createdAt", "ASC"]],
-    });
-    return res.json(subtasks);
+    const subtasks = await subtaskService.getSubtasksByTask(taskId);
+    res.json(subtasks);
   } catch (error) {
-    console.error("Erro ao buscar subtarefas:", error);
-    return res.status(500).json({ message: "Erro ao buscar subtarefas." });
+    console.error("Erro ao buscar subtarefas:", error.message);
+    res.status(500).json({ message: "Erro ao buscar subtarefas." });
   }
 };
 
@@ -54,12 +39,12 @@ const deleteSubtask = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deleted = await Subtask.destroy({ where: { id } });
-    if (!deleted) return res.status(404).json({ message: "Subtarefa não encontrada." });
-    return res.status(204).send();
+    await subtaskService.deleteSubtask(id);
+    res.status(204).send();
   } catch (error) {
-    console.error("Erro ao deletar subtarefa:", error);
-    return res.status(500).json({ message: "Erro ao deletar subtarefa." });
+    console.error("Erro ao deletar subtarefa:", error.message);
+    const status = error.message === "Subtarefa não encontrada." ? 404 : 500;
+    res.status(status).json({ message: error.message });
   }
 };
 
