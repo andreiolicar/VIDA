@@ -34,16 +34,16 @@ export function useGroups(token) {
     const [filteredUsers, setFilteredUsers] = useState([]);
 
     // ✅ MOVER PARA AQUI - Logo após os estados
-  const currentUserId = useMemo(() => {
-    try {
-      if (!token) return null;
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.id || payload.userId;
-    } catch (error) {
-      console.error('Erro ao decodificar token:', error);
-      return null;
-    }
-  }, [token]);
+    const currentUserId = useMemo(() => {
+        try {
+            if (!token) return null;
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload.id || payload.userId;
+        } catch (error) {
+            console.error('Erro ao decodificar token:', error);
+            return null;
+        }
+    }, [token]);
 
     // Fetch groups
     const fetchGroups = useCallback(async () => {
@@ -211,11 +211,10 @@ export function useGroups(token) {
 
             const response = await api.post(`/groups/${groupId}/messages`, { content });
 
-            // ✅ Normalizar resposta do backend (igual ao useMessages)
             const normalizedResponse = {
                 ...response.data,
                 senderUserId: response.data.senderUserId || response.data.fromUserId || currentUserId,
-                timestamp: response.data.timestamp || response.data.createdAt,
+                timestamp: response.data.createdAt || response.data.timestamp, // corrigido: fallback 
             };
 
             setMessages(prev => prev.map(msg =>
@@ -329,11 +328,11 @@ export function useGroups(token) {
 
         const handleGroupMessage = (msg) => {
             if (msg.groupId === selectedGroup.id) {
-                // ✅ Normalizar mensagem do socket (igual ao useMessages)
+                // Normalizar mensagem do socket
                 const normalizedMsg = {
                     ...msg,
                     senderUserId: msg.senderUserId || msg.fromUserId || msg.userId,
-                    timestamp: msg.timestamp || msg.createdAt,
+                    timestamp: msg.createdAt || msg.timestamp, // createdAt primeiro
                 };
 
                 setMessages(prev => [...prev, normalizedMsg]);

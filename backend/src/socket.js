@@ -67,7 +67,8 @@ function init(server) {
           io.to(socketId).emit('private message', {
             fromUserId: userId,
             content,
-            timestamp: new Date(),
+            createdAt: new Date().toISOString(), // usar 'createdAt'
+            timestamp: new Date().toISOString(), // fallback para compatibilidade
           });
         });
       }
@@ -81,7 +82,8 @@ function init(server) {
         groupId,
         senderUserId: userId,
         content,
-        timestamp: new Date(),
+        createdAt: new Date().toISOString(), // usar 'createdAt'
+        timestamp: new Date().toISOString(), // fallback para compatibilidade
       });
     });
 

@@ -128,7 +128,6 @@ class GroupsService {
 
   async sendMessage(senderUserId, groupId, content) {
     if (!content) throw { status: 400, message: 'Conteúdo da mensagem é obrigatório' };
-
     const member = await GroupMember.findOne({ where: { groupId, userId: senderUserId } });
     if (!member) throw { status: 403, message: 'Você não é membro deste grupo' };
 
@@ -140,7 +139,7 @@ class GroupsService {
       groupId,
       senderUserId,
       content: message.content,
-      timestamp: message.timestamp,
+      createdAt: message.createdAt,
       read: message.read,
     });
 
@@ -153,7 +152,7 @@ class GroupsService {
 
     return GroupMessage.findAll({
       where: { groupId },
-      order: [['timestamp', 'ASC']],
+      order: [['createdAt', 'ASC']],
     });
   }
 
