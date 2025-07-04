@@ -17,8 +17,9 @@ export default function Dashboard() {
     estudos: 65,
     finançasPendentes: 3,
     saudeAtividades: 4,
-    tarefasPendentes: 0, // Inicializado com 0
+    tarefasPendentes: 0,
   });
+  const [vidaScore, setVidaScore] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -48,10 +49,24 @@ export default function Dashboard() {
         const routesRes = await axios.get(`/study-routes/${userId}`);
         const numTrilhas = Array.isArray(routesRes.data) ? routesRes.data.length : 0;
 
+        // Buscar vidaScore
+        try {
+          const resVida = await axios.get(`/finance/vida-score`);
+          const score = resVida.data?.vidaScore;
+          if (typeof score === 'number') {
+            setVidaScore(score);
+          } else {
+            setVidaScore(null);
+          }
+        } catch {
+          setVidaScore(null);
+        }
+
         setStats(prev => ({
           ...prev,
           tarefasPendentes: pendentes,
-          estudos: numTrilhas, // Atualiza com número real de trilhas
+          estudos: numTrilhas,
+          finançasPendentes: pendentes, // Mantém pendências financeiras (pode ajustar se quiser)
         }));
 
       } catch (err) {
@@ -118,7 +133,7 @@ export default function Dashboard() {
           <CardDashboard
             icon={<DollarSign className="w-8 h-8 text-green-400" />}
             title="Finanças"
-            subtitle={`${stats.finançasPendentes} pendências financeiras`}
+            subtitle={`V.I.D.A. Score: ${vidaScore !== null ? vidaScore.toFixed(1) : '...'}`}
             btnText="Ver Finanças"
             btnLink="/dashboard/finance"
             bgColor="bg-green-900"

@@ -35,13 +35,12 @@ function Card({ title, icon, value, to, className }) {
         wordBreak: 'break-word',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        maxWidth: '280px', // limite máximo para não ficar muito largo
+        whiteSpace: 'normal', // Permite quebra de linha para evitar overflow
       }}
     >
       <div className="mb-3">{icon}</div>
-      <h3 className="text-lg font-semibold mb-1 text-center">{title}</h3>
-      <p className="text-gray-300 text-2xl group-hover:text-white transition text-center">{value}</p>
+      <h3 className="text-lg font-semibold mb-1 text-center break-words">{title}</h3>
+      <p className="text-gray-300 text-2xl group-hover:text-white transition text-center break-words">{value}</p>
     </a>
   );
 }
@@ -349,11 +348,12 @@ export default function DashboardFinance() {
 
       <div className="flex flex-1 flex-col px-6 md:px-12 py-8 overflow-y-auto max-w-[1280px] mx-auto w-full">
         {/* Cards alinhados em grid responsivo com expansão */}
-        <section className="max-w-[1280px] mx-auto px-6 md:px-12 w-full mb-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <section
+          className="max-w-[1280px] mx-auto px-6 md:px-12 w-full mb-6 grid gap-3"
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}
+        >
           {cards.map((card, i) => (
-            <div key={i} className="flex justify-center w-full">
-              <Card {...card} />
-            </div>
+            <Card key={i} {...card} />
           ))}
         </section>
 
