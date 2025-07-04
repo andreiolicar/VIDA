@@ -7,7 +7,7 @@
 
 const express = require('express');
 const router = express.Router();
-const wellnessHabitController = require('../controllers/wellnessHabitController');
+const wellnessHabitController = require('../controllers/wellnessHabit.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 
 router.use(authMiddleware);

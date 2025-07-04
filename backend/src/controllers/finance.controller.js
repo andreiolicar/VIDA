@@ -34,6 +34,38 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// --- FUNÇÃO AUXILIAR PARA CALCULAR VIDA SCORE (0 a 1000) ---
+
+const calculateVidaScore = async (userId) => {
+  const transactions = await Transaction.findAll({ where: { userId } });
+  const goals = await FinancialGoal.findAll({ where: { userId } });
+
+  let income = 0;
+  let expense = 0;
+
+  transactions.forEach(t => {
+    if (t.type === 'income') income += t.amount;
+    else if (t.type === 'expense') expense += t.amount;
+  });
+
+  const netBalance = income - expense;
+
+  let goalProgress = 0;
+  if (goals.length > 0) {
+    goalProgress = goals.reduce((acc, g) => acc + (g.currentAmount / g.targetAmount), 0) / goals.length;
+  }
+
+  // Score base 500, ajustado pelo saldo líquido e progresso nas metas
+  let score = 500;
+  score += Math.max(-300, Math.min(300, netBalance / 10)); // saldo líquido influencia até +/-300 pontos
+  score += goalProgress * 200; // progresso nas metas até +200 pontos
+
+  // Limitar entre 0 e 1000
+  score = Math.max(0, Math.min(1000, Math.round(score)));
+
+  return score;
+};
+
 // --- TRANSAÇÕES ---
 
 const createTransaction = async (req, res) => {
@@ -58,6 +90,12 @@ const createTransaction = async (req, res) => {
       comments: comments || null,
       recurring: recurring || false,
     });
+
+    // Atualiza Vida Score após criar transação
+    const newScore = await calculateVidaScore(userId);
+    await VidaScore.upsert({ userId, score: newScore, lastCalculatedAt: new Date() });
+    await VidaScoreHistory.create({ userId, score: newScore, recordedAt: new Date() });
+
     res.status(201).json(transaction);
   } catch (error) {
     console.error("Erro ao criar transação:", error);
@@ -296,6 +334,11 @@ const updateTransaction = async (req, res) => {
 
     await transaction.save();
 
+    // Atualiza Vida Score após atualizar transação
+    const newScore = await calculateVidaScore(userId);
+    await VidaScore.upsert({ userId, score: newScore, lastCalculatedAt: new Date() });
+    await VidaScoreHistory.create({ userId, score: newScore, recordedAt: new Date() });
+
     res.json(transaction);
   } catch (error) {
     console.error("Erro ao atualizar transação:", error);
@@ -353,7 +396,7 @@ const getGoals = async (req, res) => {
 };
 
 const getGoalById = async (req, res) => {
-  const userId = parseInt(req.params.userId, 10);
+  const userId = req.user.id;
   const goalId = parseInt(req.params.goalId, 10);
 
   if (!userId || !goalId) {
@@ -371,23 +414,19 @@ const getGoalById = async (req, res) => {
 };
 
 const updateGoal = async (req, res) => {
-  console.log("=== updateGoal chamado ===");
-  console.log("Parâmetros da URL:", req.params);
-  console.log("Payload recebido:", req.body);
-
-  const userId = parseInt(req.params.userId, 10);
+  const userId = req.user.id;
   const goalId = parseInt(req.params.goalId, 10);
   const { title, targetAmount, deadline } = req.body;
 
   if (!userId || !goalId) {
-    console.log("Parâmetros inválidos: userId ou goalId ausentes ou inválidos");
     return res.status(400).json({ message: "Parâmetros inválidos." });
   }
 
-  const parsedTargetAmount = targetAmount !== undefined ? Number(targetAmount) : undefined;
-  if (parsedTargetAmount !== undefined && (isNaN(parsedTargetAmount) || parsedTargetAmount <= 0)) {
-    console.log("targetAmount inválido:", targetAmount);
-    return res.status(400).json({ message: "Valor inválido para targetAmount." });
+  if (targetAmount !== undefined) {
+    const parsedTargetAmount = Number(targetAmount);
+    if (isNaN(parsedTargetAmount) || parsedTargetAmount <= 0) {
+      return res.status(400).json({ message: "Valor inválido para targetAmount." });
+    }
   }
 
   const isValidDate = (dateStr) => {
@@ -399,12 +438,11 @@ const updateGoal = async (req, res) => {
   try {
     const goal = await FinancialGoal.findOne({ where: { id: goalId, userId } });
     if (!goal) {
-      console.log("Meta financeira não encontrada para id:", goalId, "e userId:", userId);
       return res.status(404).json({ message: "Meta não encontrada." });
     }
 
     if (title !== undefined) goal.title = String(title).trim();
-    if (parsedTargetAmount !== undefined) goal.targetAmount = parsedTargetAmount;
+    if (targetAmount !== undefined) goal.targetAmount = Number(targetAmount);
 
     if (deadline !== undefined) {
       if (deadline === null || deadline === '' || !isValidDate(deadline)) {
@@ -415,7 +453,6 @@ const updateGoal = async (req, res) => {
     }
 
     await goal.save();
-    console.log("Meta atualizada com sucesso:", goal.toJSON());
     res.json(goal);
   } catch (error) {
     console.error("Erro ao atualizar meta financeira:", error);
@@ -424,7 +461,7 @@ const updateGoal = async (req, res) => {
 };
 
 const deleteGoal = async (req, res) => {
-  const userId = parseInt(req.params.userId, 10);
+  const userId = req.user.id;
   const goalId = parseInt(req.params.goalId, 10);
 
   if (!userId || !goalId) return res.status(400).json({ message: "Parâmetros inválidos." });
@@ -442,7 +479,7 @@ const deleteGoal = async (req, res) => {
 };
 
 const updateGoalProgress = async (req, res) => {
-  const userId = parseInt(req.params.userId, 10);
+  const userId = req.user.id;
   const goalId = parseInt(req.params.goalId, 10);
   const { amountToAdd } = req.body;
 
@@ -517,7 +554,7 @@ const updateGoalProgress = async (req, res) => {
 };
 
 const removeGoalProgress = async (req, res) => {
-  const userId = parseInt(req.params.userId, 10);
+  const userId = req.user.id;
   const goalId = parseInt(req.params.goalId, 10);
   const { amountToRemove } = req.body;
 
@@ -580,7 +617,7 @@ const removeGoalProgress = async (req, res) => {
 };
 
 const getGoalHistory = async (req, res) => {
-  const userId = parseInt(req.params.userId, 10);
+  const userId = req.user.id;
   const goalId = parseInt(req.params.goalId, 10);
 
   if (!userId || !goalId) {
@@ -606,7 +643,7 @@ const getGoalHistory = async (req, res) => {
 // --- VIDA SCORE ---
 
 const getVidaScore = async (req, res) => {
-  const userId = parseInt(req.params.userId, 10);
+  const userId = req.user.id;
   if (!userId) return res.status(400).json({ message: "UserId obrigatório." });
 
   try {
@@ -652,7 +689,7 @@ const getVidaScore = async (req, res) => {
 };
 
 const getVidaScoreHistory = async (req, res) => {
-  const userId = parseInt(req.params.userId, 10);
+  const userId = req.user.id;
   if (!userId) return res.status(400).json({ message: "UserId obrigatório." });
 
   try {
@@ -683,7 +720,7 @@ const getVidaScoreHistory = async (req, res) => {
 // --- RELATÓRIOS E ALERTAS ---
 
 const getFinancialReport = async (req, res) => {
-  const userId = parseInt(req.params.userId, 10);
+  const userId = req.user.id;
   const { startDate, endDate } = req.query;
 
   if (!userId) return res.status(400).json({ message: "UserId obrigatório." });
@@ -713,7 +750,7 @@ const getFinancialReport = async (req, res) => {
 };
 
 const getAlerts = async (req, res) => {
-  const userId = parseInt(req.params.userId, 10);
+  const userId = req.user.id;
   if (!userId) return res.status(400).json({ message: "UserId obrigatório." });
 
   try {
@@ -726,34 +763,6 @@ const getAlerts = async (req, res) => {
       error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
-};
-
-// --- FUNÇÃO AUXILIAR ---
-
-const calculateVidaScore = async (userId) => {
-  const transactions = await Transaction.findAll({ where: { userId } });
-  const goals = await FinancialGoal.findAll({ where: { userId } });
-
-  let income = transactions.reduce((acc, t) => (t.type === "income" ? acc + t.amount : acc), 0);
-  let expense = transactions.reduce((acc, t) => (t.type === "expense" ? acc + t.amount : acc), 0);
-
-  const netBalance = income - expense;
-
-  let goalProgress = 0;
-  if (goals.length > 0) {
-    goalProgress = goals.reduce((acc, g) => acc + g.currentAmount / g.targetAmount, 0) / goals.length;
-  }
-
-  let score = 50;
-
-  if (netBalance > 0) score += Math.min(netBalance / 1000, 30);
-  else score -= Math.min(Math.abs(netBalance) / 1000, 30);
-
-  score += goalProgress * 20;
-
-  score = Math.max(0, Math.min(100, score));
-
-  return score;
 };
 
 module.exports = {
@@ -781,4 +790,5 @@ module.exports = {
   getFinancialReport,
   getAlerts,
   upload,
+  calculateVidaScore,
 };
