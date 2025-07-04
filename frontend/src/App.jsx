@@ -18,7 +18,9 @@ import DashboardStudy from './pages/DashboardStudy';
 import NewStudyRouteForm from './pages/NewStudyRouteForm';
 import DashboardStudyDetail from './pages/DashboardStudyDetail';
 import DashboardEventDetail from './pages/DashboardEventDetail';
-import NewEvent from '@/pages/NewEvent';
+import NewEvent from './pages/NewEvent';
+import AllStudy from './pages/AllStudyRoutes';
+import AllEvents from './pages/AllStudyEvents';
 
 import DashboardTasks from './pages/DashboardTasks';
 import NewTask from './pages/NewTask';
@@ -69,7 +71,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* ✅ NOVO: Rotas de recuperação de senha */}
+        {/* Rotas de recuperação de senha */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-code" element={<ResetCode />} />
         <Route path="/new-password" element={<NewPassword />} />
@@ -93,6 +95,8 @@ function App() {
           <Route path="/dashboard/study" element={<DashboardStudy />} />
           <Route path="/dashboard/study/new" element={<NewStudyRouteForm />} />
           <Route path="/dashboard/study/:id" element={<DashboardStudyDetail />} />
+          <Route path="/dashboard/study/all" element={<AllStudy/>} />
+          <Route path="/dashboard/events" element={<AllEvents />} />
 
           {/* Eventos */}
           <Route path="/dashboard/events/new" element={<NewEvent />} />
