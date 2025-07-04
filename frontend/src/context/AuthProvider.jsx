@@ -4,7 +4,7 @@ import { AuthContext } from './AuthContext';
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true); // 👈
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -15,12 +15,20 @@ export function AuthProvider({ children }) {
       setToken(storedToken);
     }
 
-    setLoading(false); // 👈 fim do carregamento
+    setLoading(false);
   }, []);
 
-  const login = (userData) => {
+  // Receber token como parâmetro opcional
+  const login = (userData, userToken = null) => {
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
+
+    // Usar token passado como parâmetro ou buscar do localStorage
+    const tokenToUse = userToken || localStorage.getItem('token');
+    if (tokenToUse) {
+      localStorage.setItem('token', tokenToUse);
+      setToken(tokenToUse);
+    }
   };
 
   const logout = () => {
@@ -31,7 +39,13 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{
+      user,
+      token,
+      loading,
+      login,
+      logout
+    }}>
       {children}
     </AuthContext.Provider>
   );

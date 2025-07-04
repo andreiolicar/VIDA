@@ -3,18 +3,27 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class WellnessHabit extends Model {
     static associate(models) {
-      WellnessHabit.belongsTo(models.User, { foreignKey: 'userId' });
+      WellnessHabit.belongsTo(models.User, {
+        foreignKey: 'userId',
+        as: 'user',
+      });
     }
   }
   WellnessHabit.init(
     {
-      name: DataTypes.STRING,
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       description: DataTypes.TEXT,
       frequency: DataTypes.STRING,
       target: DataTypes.STRING,
       currentValue: DataTypes.STRING,
       unit: DataTypes.STRING,
-      userId: DataTypes.INTEGER,
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
     },
     {
       sequelize,

@@ -8,10 +8,19 @@ module.exports = (sequelize, DataTypes) => {
   }
   MoodCheckin.init(
     {
-      mood: DataTypes.ENUM('feliz', 'ok', 'triste', 'irritado'),
+      mood: {
+        type: DataTypes.ENUM('feliz', 'ok', 'triste', 'irritado'),
+        allowNull: false,
+      },
       notes: DataTypes.TEXT,
-      date: DataTypes.DATEONLY,
-      userId: DataTypes.INTEGER,
+      date: {
+        type: DataTypes.DATEONLY,
+        allowNull: false,
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
     },
     {
       sequelize,

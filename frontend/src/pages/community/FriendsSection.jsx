@@ -38,8 +38,7 @@ export default function FriendsSection() {
       <div className="flex flex-col sm:flex-row gap-4 mb-12 max-w-xl mx-auto sm:mx-0">
         <input
           type="text"
-          className="flex-grow px-5 py-3 rounded-xl bg-[#1f2937] border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
-          placeholder="Buscar por nome ou email"
+          className="flex-grow px-5 py-3 rounded-xl bg-[#1f2937] border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={handleSearchKeyDown}

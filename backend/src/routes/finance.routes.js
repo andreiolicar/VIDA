@@ -184,6 +184,7 @@ router.post("/:userId/transactions/:id/duplicate", auth, financeController.dupli
  *         schema:
  *           type: integer
  *     requestBody:
+ *       required: true
  *       content:
  *         multipart/form-data:
  *           schema:
@@ -349,7 +350,6 @@ router.get("/:userId/transactions/:id/history", auth, financeController.getTrans
  */
 router.patch("/:userId/transactions/:id", auth, financeController.updateTransaction);
 
-
 // ROTAS DE METAS FINANCEIRAS
 
 /**
@@ -367,6 +367,7 @@ router.patch("/:userId/transactions/:id", auth, financeController.updateTransact
  *         schema:
  *           type: integer
  *     requestBody:
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -794,6 +795,57 @@ router.patch("/:userId/goals/:goalId", auth, financeController.updateGoal);
  */
 router.delete("/:userId/goals/:goalId", auth, financeController.deleteGoal);
 
+/**
+ * @swagger
+ * /finance/{userId}/goals/{goalId}:
+ *   patch:
+ *     summary: Editar uma meta financeira (título, valor, prazo)
+ *     tags: [Finanças]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: ID do usuário
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: goalId
+ *         required: true
+ *         description: ID da meta financeira
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: Nova meta financeira
+ *               targetAmount:
+ *                 type: number
+ *                 example: 5000
+ *               deadline:
+ *                 type: string
+ *                 format: date
+ *                 example: 2025-12-31
+ *     responses:
+ *       200:
+ *         description: Meta financeira atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/FinancialGoal'
+ *       400:
+ *         description: Parâmetros inválidos
+ *       404:
+ *         description: Meta financeira não encontrada
+ */
+router.patch("/:userId/goals/:goalId", auth, financeController.updateGoal);
 
 
 module.exports = router;

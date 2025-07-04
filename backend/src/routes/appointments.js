@@ -7,21 +7,33 @@
 
 const express = require('express');
 const router = express.Router();
-const appointmentController = require('../controllers/appointment.controller');
+const authMiddleware = require('../middleware/auth.middleware');
+const controller = require('../controllers/appointment.controller');
+
+router.use(authMiddleware);
 
 /**
  * @swagger
- * /appointments/{userId}:
- *   post:
- *     summary: Cria um novo agendamento para um usuário
+ * /appointments:
+ *   get:
+ *     summary: Lista todas as consultas e exames do usuário
  *     tags: [Appointments]
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID do usuário
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista retornada com sucesso
+ */
+router.get('/', controller.getAll);
+
+/**
+ * @swagger
+ * /appointments:
+ *   post:
+ *     summary: Cria uma nova consulta ou exame
+ *     tags: [Appointments]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -29,67 +41,78 @@ const appointmentController = require('../controllers/appointment.controller');
  *           schema:
  *             type: object
  *             required:
- *               - title
- *               - dateTime
  *               - type
+ *               - date
  *             properties:
- *               title:
- *                 type: string
- *                 example: Consulta com cardiologista
- *               dateTime:
- *                 type: string
- *                 example: 2025-06-27T15:00:00Z
  *               type:
  *                 type: string
- *                 example: consulta
- *               description:
+ *                 example: Consulta médica
+ *               date:
  *                 type: string
- *                 example: Avaliação de rotina
- *               location:
+ *                 format: date-time
+ *                 example: 2025-07-03T10:00:00.000Z
+ *               notes:
  *                 type: string
- *                 example: Hospital São Lucas
  *     responses:
  *       201:
- *         description: Agendamento criado com sucesso
+ *         description: Consulta criada com sucesso
  */
-router.post('/:userId', appointmentController.create);
+router.post('/', controller.create);
 
 /**
  * @swagger
- * /appointments/{userId}:
- *   get:
- *     summary: Retorna todos os agendamentos de um usuário
+ * /appointments/{id}:
+ *   put:
+ *     summary: Atualiza uma consulta ou exame existente
  *     tags: [Appointments]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: userId
+ *       - name: id
+ *         in: path
  *         required: true
  *         schema:
  *           type: string
- *         description: ID do usuário
+ *         description: ID da consulta
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date-time
+ *               notes:
+ *                 type: string
  *     responses:
  *       200:
- *         description: Lista de agendamentos retornada com sucesso
+ *         description: Consulta atualizada com sucesso
  */
-router.get('/:userId', appointmentController.getAll);
+router.put('/:id', controller.update);
 
 /**
  * @swagger
  * /appointments/{id}:
  *   delete:
- *     summary: Deleta um agendamento pelo ID
+ *     summary: Remove uma consulta ou exame
  *     tags: [Appointments]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
  *         required: true
  *         schema:
  *           type: string
- *         description: ID do agendamento
+ *         description: ID da consulta
  *     responses:
  *       200:
- *         description: Agendamento deletado com sucesso
+ *         description: Consulta removida com sucesso
  */
-router.delete('/:id', appointmentController.delete);
+router.delete('/:id', controller.remove);
 
 module.exports = router;

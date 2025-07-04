@@ -2,136 +2,57 @@
  * @swagger
  * tags:
  *   name: Health
- *   description: Gerenciamento da área de saúde mental e física
- *
- * components:
- *   securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
+ *   description: Gerenciamento de registros de saúde
  */
 
 const express = require("express");
 const router = express.Router();
-const healthController = require("../controllers/health.controller");
-const auth = require("../middleware/auth.middleware");
+const controller = require("../controllers/health.controller");
 
 /**
  * @swagger
- * /health/{userId}:
- *   post:
- *     summary: Cria um novo registro de saúde para um usuário
+ * /health:
+ *   get:
+ *     summary: Listar todos os registros de saúde
  *     tags: [Health]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID do usuário
+ *     responses:
+ *       200:
+ *         description: Lista de registros de saúde retornada com sucesso
+ */
+router.get("/", controller.getAll);
+
+/**
+ * @swagger
+ * /health:
+ *   post:
+ *     summary: Criar um novo registro de saúde
+ *     tags: [Health]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - title
- *               - description
- *               - roadmap
- *               - moodEntries
- *               - habits
  *             properties:
  *               title:
  *                 type: string
- *                 example: Plano de autocuidado mental
+ *               date:
+ *                 type: string
+ *                 format: date
  *               description:
  *                 type: string
- *                 example: Plano detalhado para melhora da saúde mental
- *               roadmap:
- *                 type: string
- *                 example: "Passo 1: Meditação diária, Passo 2: Exercícios físicos..."
- *               moodEntries:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     date:
- *                       type: string
- *                       format: date
- *                       example: 2025-06-25
- *                     mood:
- *                       type: string
- *                       example: "Ansioso"
- *                     notes:
- *                       type: string
- *                       example: "Me senti mais calmo após a meditação."
- *               habits:
- *                 type: array
- *                 items:
- *                   type: string
- *                 example: ["Meditação", "Exercícios físicos", "Boa alimentação"]
  *     responses:
  *       201:
  *         description: Registro de saúde criado com sucesso
  */
-router.post("/:userId", auth, healthController.createHealthRecord);
-
-/**
- * @swagger
- * /health/{userId}:
- *   get:
- *     summary: Retorna todos os registros de saúde do usuário
- *     tags: [Health]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID do usuário
- *     responses:
- *       200:
- *         description: Lista de registros retornada com sucesso
- */
-router.get("/:userId", auth, healthController.getAllHealthRecords);
-
-/**
- * @swagger
- * /health/getone/{id}:
- *   get:
- *     summary: Retorna um registro de saúde pelo ID
- *     tags: [Health]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID do registro de saúde
- *     responses:
- *       200:
- *         description: Registro encontrado
- *       404:
- *         description: Registro não encontrado
- */
-router.get("/getone/:id", auth, healthController.getHealthRecordById);
+router.post("/", controller.create);
 
 /**
  * @swagger
  * /health/{id}:
- *   patch:
- *     summary: Atualiza um registro de saúde pelo ID
+ *   put:
+ *     summary: Atualizar um registro de saúde
  *     tags: [Health]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -148,42 +69,23 @@ router.get("/getone/:id", auth, healthController.getHealthRecordById);
  *             properties:
  *               title:
  *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
  *               description:
  *                 type: string
- *               roadmap:
- *                 type: string
- *               moodEntries:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     date:
- *                       type: string
- *                       format: date
- *                     mood:
- *                       type: string
- *                     notes:
- *                       type: string
- *               habits:
- *                 type: array
- *                 items:
- *                   type: string
  *     responses:
  *       200:
- *         description: Registro atualizado com sucesso
- *       404:
- *         description: Registro não encontrado
+ *         description: Registro de saúde atualizado com sucesso
  */
-router.patch("/:id", auth, healthController.updateHealthRecord);
+router.put("/:id", controller.update);
 
 /**
  * @swagger
  * /health/{id}:
  *   delete:
- *     summary: Deleta um registro de saúde pelo ID
+ *     summary: Deletar um registro de saúde
  *     tags: [Health]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -193,8 +95,8 @@ router.patch("/:id", auth, healthController.updateHealthRecord);
  *         description: ID do registro de saúde
  *     responses:
  *       200:
- *         description: Registro deletado com sucesso
+ *         description: Registro de saúde deletado com sucesso
  */
-router.delete("/:id", auth, healthController.deleteHealthRecord);
+router.delete("/:id", controller.delete);
 
 module.exports = router;

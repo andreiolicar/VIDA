@@ -1,26 +1,31 @@
 const { MoodCheckin } = require('../models');
 
-const validMoods = ['feliz', 'ok', 'triste', 'irritado'];
-
-async function createCheckin({ mood, notes, date, userId }) {
-  if (!validMoods.includes(mood)) {
-    const error = new Error('Mood inválido');
+exports.createCheckin = async ({ mood, notes, date, userId }) => {
+  if (!mood || !date || !userId) {
+    const error = new Error('Campos obrigatórios ausentes');
     error.statusCode = 400;
     throw error;
   }
 
-  const checkin = await MoodCheckin.create({ mood, notes, date, userId });
-  return checkin;
-}
+  const newCheckin = await MoodCheckin.create({
+    mood,
+    notes,
+    date,
+    userId,
+  });
 
-async function getAllCheckins(userId) {
+  return newCheckin;
+};
+
+exports.getAllCheckins = async (userId) => {
+  if (!userId) {
+    const error = new Error('UserId obrigatório');
+    error.statusCode = 400;
+    throw error;
+  }
+
   return MoodCheckin.findAll({
     where: { userId },
     order: [['date', 'DESC']],
   });
-}
-
-module.exports = {
-  createCheckin,
-  getAllCheckins,
 };

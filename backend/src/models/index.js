@@ -1,7 +1,9 @@
+// backend/src/models/index.js
 const Sequelize = require('sequelize');
 const sequelize = require('../config/database');
 
 const db = {};
+
 
 db.User = require('./user')(sequelize, Sequelize.DataTypes);
 db.StudyRoute = require('./StudyRoute')(sequelize, Sequelize.DataTypes);
@@ -37,10 +39,18 @@ db.Group = require('./Group')(sequelize, Sequelize.DataTypes);
 db.GroupMember = require('./GroupMember')(sequelize, Sequelize.DataTypes);
 db.GroupMessage = require('./GroupMessage')(sequelize, Sequelize.DataTypes);
 
+db.PasswordReset = require('./PasswordReset')(sequelize, Sequelize.DataTypes);
+
+
+db.Appointment = require('./appointment')(sequelize, Sequelize.DataTypes);
+db.Health = require('./Health')(sequelize, Sequelize.DataTypes);
+db.MoodCheckin = require('./moodcheckin')(sequelize, Sequelize.DataTypes);
+db.WellnessHabit = require('./wellnesshabit')(sequelize, Sequelize.DataTypes);
+
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
-// Associações
+// ASSOCIAÇÕES
 if (db.User.associate) db.User.associate(db);
 if (db.StudyRoute.associate) db.StudyRoute.associate(db);
 if (db.StudyTopic.associate) db.StudyTopic.associate(db);
@@ -74,5 +84,12 @@ if (db.PrivateMessage.associate) db.PrivateMessage.associate(db);
 if (db.Group.associate) db.Group.associate(db);
 if (db.GroupMember.associate) db.GroupMember.associate(db);
 if (db.GroupMessage.associate) db.GroupMessage.associate(db);
+
+if (db.PasswordReset.associate) db.PasswordReset.associate(db);
+
+
+if (db.Appointment.associate) db.Appointment.associate(db);
+if (db.MoodCheckin.associate) db.MoodCheckin.associate(db);
+if (db.WellnessHabit.associate) db.WellnessHabit.associate(db);
 
 module.exports = db;
