@@ -33,7 +33,6 @@ export function useGroups(token) {
     const [userQuery, setUserQuery] = useState('');
     const [filteredUsers, setFilteredUsers] = useState([]);
 
-    // ✅ MOVER PARA AQUI - Logo após os estados
     const currentUserId = useMemo(() => {
         try {
             if (!token) return null;

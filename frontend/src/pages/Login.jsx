@@ -98,7 +98,7 @@ function Login() {
                 <label className="text-sm font-medium text-gray-300 block">
                   Senha
                 </label>
-                {/* ✅ NOVO: Link "Esqueceu a senha?" */}
+                {/* "Esqueceu a senha?" */}
                 <button
                   type="button"
                   onClick={() => navigate('/forgot-password')}
