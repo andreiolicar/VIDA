@@ -8,14 +8,14 @@ import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 function formatCurrency(value) {
   const num = Number(value);
   return !isNaN(num)
-    ? num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    ? num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 })
     : 'R$ 0,00';
 }
 
 function formatCurrencyUSD(value) {
   const num = Number(value);
   return !isNaN(num)
-    ? num.toLocaleString('pt-BR', { style: 'currency', currency: 'USD' })
+    ? num.toLocaleString('pt-BR', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })
     : '$ 0,00';
 }
 
@@ -29,12 +29,19 @@ function Card({ title, icon, value, to, className }) {
   return (
     <a
       href={to}
-      className={`bg-[#1f2937] rounded-xl p-6 shadow-lg flex flex-col items-center hover:bg-opacity-80 transition group focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
-      style={{ minWidth: 220 }}
+      className={`bg-[#1f2937] rounded-xl p-6 shadow-lg flex flex-col items-center transition group focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
+      style={{
+        width: '100%', // ocupa toda largura da célula do grid
+        wordBreak: 'break-word',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        maxWidth: '280px', // limite máximo para não ficar muito largo
+      }}
     >
       <div className="mb-3">{icon}</div>
-      <h3 className="text-lg font-semibold mb-1">{title}</h3>
-      <p className="text-gray-300 text-2xl group-hover:text-white transition">{value}</p>
+      <h3 className="text-lg font-semibold mb-1 text-center">{title}</h3>
+      <p className="text-gray-300 text-2xl group-hover:text-white transition text-center">{value}</p>
     </a>
   );
 }
@@ -84,7 +91,6 @@ function Carousel({ items, interval = 5000 }) {
   );
 }
 
-// Busca histórico dólar AwesomeAPI últimos N dias
 async function fetchDollarHistoryAwesomeAPI(days = 5) {
   try {
     const res = await axios.get(`https://economia.awesomeapi.com.br/json/daily/USD-BRL/${days}`);
@@ -139,29 +145,25 @@ export default function DashboardFinance() {
           setExpense(expenseSum);
           setBalance(incomeSum - expenseSum);
         } else {
-          console.warn('Transações não são array:', txs);
           setIncome(0);
           setExpense(0);
           setBalance(0);
         }
-      } catch (error) {
-        console.error('Erro ao buscar transações:', error);
+      } catch {
         setIncome(0);
         setExpense(0);
         setBalance(0);
       }
 
       try {
-        const res = await axios.get(`/finance/${userId}/vida-score`);
+        const res = await axios.get(`/finance/vida-score`);
         const score = res.data?.vidaScore;
         if (typeof score === 'number') {
           setVidaScore(score);
         } else {
-          console.warn('vidaScore inválido:', score);
           setVidaScore(null);
         }
-      } catch (error) {
-        console.error('Erro ao buscar vidaScore:', error);
+      } catch {
         setVidaScore(null);
       }
     }
@@ -181,19 +183,12 @@ export default function DashboardFinance() {
         const bidNum = Number(data?.bid);
         const pctChangeNum = Number(data?.pctChange);
         if (!isNaN(bidNum)) setDollarQuote(bidNum);
-        else {
-          console.warn('Cotação bid inválida:', data?.bid);
-          setDollarQuote(null);
-        }
+        else setDollarQuote(null);
         if (!isNaN(pctChangeNum)) setDollarChangePercent(pctChangeNum);
-        else {
-          console.warn('Cotação pctChange inválida:', data?.pctChange);
-          setDollarChangePercent(null);
-        }
+        else setDollarChangePercent(null);
         setDollarLastUpdate(new Date());
         setDollarTimer(300);
-      } catch (error) {
-        console.error('Erro ao buscar cotação atual do dólar:', error);
+      } catch {
         setDollarQuote(null);
         setDollarChangePercent(null);
       }
@@ -258,8 +253,8 @@ export default function DashboardFinance() {
         setCarouselItems(items);
         setStockLastUpdate(new Date());
         setStockTimer(300);
-      } catch (err) {
-        console.error('Erro ao buscar ações em alta:', err);
+      } catch {
+        // erro ignorado
       }
     }
 
@@ -349,14 +344,16 @@ export default function DashboardFinance() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
+    <div className="flex min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white overflow-x-hidden">
       <Sidebar />
 
-      <div className="flex flex-1 flex-col px-12 py-8 overflow-y-auto max-w-[1280px] mx-auto w-full">
-        {/* Cards superiores */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+      <div className="flex flex-1 flex-col px-6 md:px-12 py-8 overflow-y-auto max-w-[1280px] mx-auto w-full">
+        {/* Cards alinhados em grid responsivo com expansão */}
+        <section className="max-w-[1280px] mx-auto px-6 md:px-12 w-full mb-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
           {cards.map((card, i) => (
-            <Card key={i} {...card} />
+            <div key={i} className="flex justify-center w-full">
+              <Card {...card} />
+            </div>
           ))}
         </section>
 

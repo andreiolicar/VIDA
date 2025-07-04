@@ -488,62 +488,67 @@ router.patch("/:userId/goals/:goalId", auth, financeController.updateGoalProgres
  */
 router.get("/:userId/goals/:goalId/history", auth, financeController.getGoalHistory);
 
-// OUTRAS ROTAS
-
 /**
  * @swagger
- * /finance/{userId}/vida-score:
+ * /finance/vida-score:
  *   get:
  *     summary: Obter o V.I.D.A. Score do usuário
  *     tags: [Finanças]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
  *     responses:
  *       200:
  *         description: V.I.D.A. Score retornado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 vidaScore:
+ *                   type: number
+ *                   example: 750
  */
-router.get("/:userId/vida-score", auth, financeController.getVidaScore);
+router.get("/vida-score", auth, financeController.getVidaScore);
+
 
 /**
  * @swagger
- * /finance/{userId}/vida-score/history:
+ * /finance/vida-score/history:
  *   get:
  *     summary: Obter histórico do V.I.D.A. Score
  *     tags: [Finanças]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
  *     responses:
  *       200:
  *         description: Histórico do V.I.D.A. Score retornado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   date:
+ *                     type: string
+ *                     format: date
+ *                     example: 2025-07-01
+ *                   score:
+ *                     type: number
+ *                     example: 720
  */
-router.get("/:userId/vida-score/history", auth, financeController.getVidaScoreHistory);
+router.get("/vida-score/history", auth, financeController.getVidaScoreHistory);
+
 
 /**
  * @swagger
- * /finance/{userId}/reports:
+ * /finance/reports:
  *   get:
  *     summary: Gerar relatório financeiro resumido para gráficos
  *     tags: [Finanças]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
  *       - in: query
  *         name: startDate
  *         schema:
@@ -559,28 +564,46 @@ router.get("/:userId/vida-score/history", auth, financeController.getVidaScoreHi
  *     responses:
  *       200:
  *         description: Relatório retornado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 summary:
+ *                   type: object
+ *                   example: { "income-Salary": 5000, "expense-Food": 1200 }
  */
-router.get("/:userId/reports", auth, financeController.getFinancialReport);
+router.get("/reports", auth, financeController.getFinancialReport);
+
 
 /**
  * @swagger
- * /finance/{userId}/alerts:
+ * /finance/alerts:
  *   get:
  *     summary: Listar alertas financeiros do usuário
  *     tags: [Finanças]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
  *     responses:
  *       200:
  *         description: Alertas retornados com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   message:
+ *                     type: string
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
  */
-router.get("/:userId/alerts", auth, financeController.getAlerts);
+router.get("/alerts", auth, financeController.getAlerts);
+
 
 /**
  * @swagger

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "@/services/axios";
 import Sidebar from "@/components/dashboard/Sidebar";
 import DashboardRightPanel from "@/components/dashboard/DashboardRightPanel";
@@ -21,20 +22,73 @@ import {
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-// Tooltip customizado para LineChart
+// Função para obter cor hex da pontuação
+const getScoreColorHex = (score) => {
+  if (score <= 300) return "#ef4444"; // vermelho
+  if (score <= 500) return "#facc15"; // amarelo
+  if (score <= 700) return "#3b82f6"; // azul
+  return "#22c55e"; // verde
+};
+
+// Tooltip customizado para LineChart com cor dinâmica da pontuação
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
+    const scoreValue = payload[0].value;
+    const color = getScoreColorHex(scoreValue);
+
     return (
       <div className="bg-[#1f2937] p-2 rounded shadow-lg text-white">
         <p className="font-semibold">{label}</p>
-        <p className="font-bold text-green-400">{payload[0].value.toFixed(0)}</p>
+        <p className="font-bold" style={{ color }}>
+          {scoreValue.toFixed(0)}
+        </p>
       </div>
     );
   }
   return null;
 };
 
+// Tooltip customizado para valores em reais nos gráficos de pizza e barras
+const CustomCurrencyTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#1f2937] p-2 rounded shadow-lg text-white">
+        {label && <p className="font-semibold mb-1">{label}</p>}
+        {payload.map((entry, index) => {
+          let color = entry.fill;
+
+          // No gráfico de barras, colorir receita verde e despesa vermelho
+          if (entry.name === "Receitas") color = "#22c55e";
+          else if (entry.name === "Despesas") color = "#ef4444";
+
+          const formattedValue = entry.value.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          });
+
+          return (
+            <p key={`item-${index}`} className="font-bold" style={{ color }}>
+              {entry.name}: {formattedValue}
+            </p>
+          );
+        })}
+      </div>
+    );
+  }
+  return null;
+};
+
+// Legenda personalizada para o V.I.D.A. Score
+const vidaScoreLegendPayload = [
+  { value: "0 - 300", type: "square", color: "#ef4444" }, // vermelho
+  { value: "301 - 500", type: "square", color: "#facc15" }, // amarelo
+  { value: "501 - 700", type: "square", color: "#3b82f6" }, // azul
+  { value: "701 - 1000", type: "square", color: "#22c55e" }, // verde
+];
+
 export default function VidaScoreDetails() {
+  const navigate = useNavigate();
+
   const [vidaScore, setVidaScore] = useState(null);
   const [scoreHistory, setScoreHistory] = useState([]);
   const [financialReport, setFinancialReport] = useState(null);
@@ -132,11 +186,58 @@ export default function VidaScoreDetails() {
   const pieDataMap = preparePieData();
   const barData = prepareBarData();
 
+  // Função para voltar
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+  // Custom label para garantir que as porcentagens caibam dentro da fatia
+  const renderCustomizedLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+    index,
+  }) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const RADIAN = Math.PI / 180;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    // Esconde labels para fatias muito pequenas (< 3%)
+    if (percent < 0.03) return null;
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor={x > cx ? "start" : "end"}
+        dominantBaseline="central"
+        fontSize={12}
+        fontWeight="bold"
+      >
+        {(percent * 100).toFixed(0)}%
+      </text>
+    );
+  };
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
       <Sidebar />
       <div className="flex-1 px-12 py-8 overflow-y-auto">
-        <h1 className="text-3xl font-semibold mb-4">Detalhes do V.I.D.A. Score</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-semibold">Detalhes do V.I.D.A. Score</h1>
+          <button
+            onClick={handleBack}
+            className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-semibold transition text-white"
+            aria-label="Voltar"
+          >
+            Voltar
+          </button>
+        </div>
 
         {loading ? (
           <p>Carregando dados...</p>
@@ -160,25 +261,33 @@ export default function VidaScoreDetails() {
               </ul>
             </section>
 
-            {/* Histórico do Score - Gráfico de Linha */}
+            {/* Histórico do Score - Gráfico de Linha com legenda personalizada */}
             <section className="mb-10 max-w-4xl">
               <h2 className="text-2xl font-semibold mb-3">Histórico do V.I.D.A. Score</h2>
               {scoreHistory && scoreHistory.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={scoreHistory} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                    <XAxis dataKey="date" stroke="#94a3b8" padding={{ left: 20, right: 20 }} />
-                    <YAxis domain={[0, 1000]} stroke="#94a3b8" />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line
-                      type="monotone"
-                      dataKey="score"
-                      stroke="#22c55e"
-                      strokeWidth={3}
-                      dot={{ r: 6, strokeWidth: 2, fill: '#22c55e', stroke: '#fff' }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                <div className="bg-[#1f2937] rounded-xl p-4">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={scoreHistory} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                      <XAxis dataKey="date" stroke="#94a3b8" padding={{ left: 20, right: 20 }} />
+                      <YAxis domain={[0, 1000]} stroke="#94a3b8" />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Line
+                        type="monotone"
+                        dataKey="score"
+                        stroke="#22c55e"
+                        strokeWidth={3}
+                        dot={{ r: 6, strokeWidth: 2, fill: "#22c55e", stroke: "#fff" }}
+                      />
+                      <Legend
+                        verticalAlign="top"
+                        align="right"
+                        payload={vidaScoreLegendPayload}
+                        wrapperStyle={{ padding: 10 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               ) : (
                 <p className="text-gray-400">Nenhum histórico disponível.</p>
               )}
@@ -190,26 +299,28 @@ export default function VidaScoreDetails() {
               <div>
                 <h2 className="text-2xl font-semibold mb-3">Receitas por Categoria</h2>
                 {pieDataMap.income && pieDataMap.income.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={pieDataMap.income}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        fill="#22c55e"
-                        label
-                      >
-                        {pieDataMap.income.map((entry, index) => (
-                          <Cell key={`cell-income-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Legend verticalAlign="bottom" height={36} />
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <div className="bg-[#1f2937] rounded-xl p-4">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={pieDataMap.income}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={100}
+                          fill="#22c55e"
+                          label={renderCustomizedLabel}
+                        >
+                          {pieDataMap.income.map((entry, index) => (
+                            <Cell key={`cell-income-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Legend layout="horizontal" verticalAlign="bottom" />
+                        <Tooltip content={<CustomCurrencyTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 ) : (
                   <p className="text-gray-400">Nenhuma receita registrada.</p>
                 )}
@@ -219,26 +330,28 @@ export default function VidaScoreDetails() {
               <div>
                 <h2 className="text-2xl font-semibold mb-3">Despesas por Categoria</h2>
                 {pieDataMap.expense && pieDataMap.expense.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={pieDataMap.expense}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        fill="#ef4444"
-                        label
-                      >
-                        {pieDataMap.expense.map((entry, index) => (
-                          <Cell key={`cell-expense-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Legend verticalAlign="bottom" height={36} />
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <div className="bg-[#1f2937] rounded-xl p-4">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={pieDataMap.expense}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={100}
+                          fill="#ef4444"
+                          label={renderCustomizedLabel}
+                        >
+                          {pieDataMap.expense.map((entry, index) => (
+                            <Cell key={`cell-expense-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Legend layout="horizontal" verticalAlign="bottom" />
+                        <Tooltip content={<CustomCurrencyTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 ) : (
                   <p className="text-gray-400">Nenhuma despesa registrada.</p>
                 )}
@@ -248,15 +361,17 @@ export default function VidaScoreDetails() {
               <div className="md:col-span-2">
                 <h2 className="text-2xl font-semibold mb-3">Receitas vs Despesas</h2>
                 {barData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={barData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis dataKey="name" stroke="#94a3b8" />
-                      <YAxis stroke="#94a3b8" />
-                      <Tooltip />
-                      <Bar dataKey="valor" fill="#3b82f6" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div className="bg-[#1f2937] rounded-xl p-4">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={barData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis dataKey="name" stroke="#94a3b8" />
+                        <YAxis stroke="#94a3b8" />
+                        <Tooltip content={<CustomCurrencyTooltip />} />
+                        <Bar dataKey="valor" fill="#3b82f6" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 ) : (
                   <p className="text-gray-400">Dados insuficientes para gráfico.</p>
                 )}
