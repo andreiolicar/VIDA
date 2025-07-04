@@ -699,7 +699,7 @@ router.get("/:userId/goals/:goalId", auth, financeController.getGoalById);
  *             schema:
  *               $ref: '#/components/schemas/FinancialGoal'
  *       400:
- *         description: Erro de validação (ex: valor inválido ou maior que aporte atual)
+ *         description: "Erro de validação (ex: valor inválido ou maior que aporte atual)"
  *         content:
  *           application/json:
  *             schema:
@@ -794,5 +794,58 @@ router.patch("/:userId/goals/:goalId", auth, financeController.updateGoal);
  *         description: Meta financeira não encontrada
  */
 router.delete("/:userId/goals/:goalId", auth, financeController.deleteGoal);
+
+/**
+ * @swagger
+ * /finance/{userId}/goals/{goalId}:
+ *   patch:
+ *     summary: Editar uma meta financeira (título, valor, prazo)
+ *     tags: [Finanças]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: ID do usuário
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: goalId
+ *         required: true
+ *         description: ID da meta financeira
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: Nova meta financeira
+ *               targetAmount:
+ *                 type: number
+ *                 example: 5000
+ *               deadline:
+ *                 type: string
+ *                 format: date
+ *                 example: 2025-12-31
+ *     responses:
+ *       200:
+ *         description: Meta financeira atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/FinancialGoal'
+ *       400:
+ *         description: Parâmetros inválidos
+ *       404:
+ *         description: Meta financeira não encontrada
+ */
+router.patch("/:userId/goals/:goalId", auth, financeController.updateGoal);
+
 
 module.exports = router;

@@ -56,8 +56,6 @@ import DashboardCommunity from './pages/community/DashboardCommunity';
 import IncomePage from './pages/IncomePage';
 import ExpensePage from './pages/ExpensePage';
 import Health from './pages/Health.jsx';
-
-// Importando dashboards de saúde
 import DashboardHealthScore from './pages/DashboardHealthScore.jsx';
 import DashboardCheckin from './pages/DashboardCheckin.jsx';
 import DashboardWellnessHabit from './pages/DashboardWellnessHabit.jsx';

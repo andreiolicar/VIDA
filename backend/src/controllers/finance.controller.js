@@ -275,7 +275,6 @@ const updateCommentsAndRecurring = async (req, res) => {
   }
 };
 
-// === NOVA FUNÇÃO ADICIONADA ===
 const updateTransaction = async (req, res) => {
   const userId = parseInt(req.params.userId, 10);
   const transactionId = parseInt(req.params.id, 10);
@@ -372,24 +371,51 @@ const getGoalById = async (req, res) => {
 };
 
 const updateGoal = async (req, res) => {
+  console.log("=== updateGoal chamado ===");
+  console.log("Parâmetros da URL:", req.params);
+  console.log("Payload recebido:", req.body);
+
   const userId = parseInt(req.params.userId, 10);
   const goalId = parseInt(req.params.goalId, 10);
   const { title, targetAmount, deadline } = req.body;
 
-  if (!userId || !goalId) return res.status(400).json({ message: "Parâmetros inválidos." });
-  if (targetAmount !== undefined && (isNaN(targetAmount) || targetAmount <= 0)) {
+  if (!userId || !goalId) {
+    console.log("Parâmetros inválidos: userId ou goalId ausentes ou inválidos");
+    return res.status(400).json({ message: "Parâmetros inválidos." });
+  }
+
+  const parsedTargetAmount = targetAmount !== undefined ? Number(targetAmount) : undefined;
+  if (parsedTargetAmount !== undefined && (isNaN(parsedTargetAmount) || parsedTargetAmount <= 0)) {
+    console.log("targetAmount inválido:", targetAmount);
     return res.status(400).json({ message: "Valor inválido para targetAmount." });
   }
 
+  const isValidDate = (dateStr) => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
+  };
+
   try {
     const goal = await FinancialGoal.findOne({ where: { id: goalId, userId } });
-    if (!goal) return res.status(404).json({ message: "Meta não encontrada." });
+    if (!goal) {
+      console.log("Meta financeira não encontrada para id:", goalId, "e userId:", userId);
+      return res.status(404).json({ message: "Meta não encontrada." });
+    }
 
-    if (title !== undefined) goal.title = title;
-    if (targetAmount !== undefined) goal.targetAmount = targetAmount;
-    if (deadline !== undefined) goal.deadline = deadline;
+    if (title !== undefined) goal.title = String(title).trim();
+    if (parsedTargetAmount !== undefined) goal.targetAmount = parsedTargetAmount;
+
+    if (deadline !== undefined) {
+      if (deadline === null || deadline === '' || !isValidDate(deadline)) {
+        goal.deadline = null;
+      } else {
+        goal.deadline = new Date(deadline);
+      }
+    }
 
     await goal.save();
+    console.log("Meta atualizada com sucesso:", goal.toJSON());
     res.json(goal);
   } catch (error) {
     console.error("Erro ao atualizar meta financeira:", error);
@@ -741,7 +767,7 @@ module.exports = {
   deleteAttachment,
   getTransactionHistory,
   updateCommentsAndRecurring,
-  updateTransaction, 
+  updateTransaction,
   createGoal,
   getGoals,
   getGoalById,
