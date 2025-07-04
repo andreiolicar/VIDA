@@ -28,8 +28,7 @@ export default function Footer() {
             <div>
               <h4 className="font-semibold mb-4">Recursos</h4>
               <ul className="space-y-2 text-sm text-white/80">
-                <li><a href="#">Documentação</a></li>
-                <li><a href="#">Novidades</a></li>
+                <li><Link to="http://localhost:5000/api-docs" className="hover:underline">Documentação</Link></li>
               </ul>
             </div>
             <div>
@@ -55,9 +54,8 @@ export default function Footer() {
             © 2025 VIDA. Todos os direitos reservados.
           </p>
           <div className="flex items-center gap-6 text-white/50">
-            <a href="#"><Github className="hover:text-white" size={18} /></a>
-            <a href="#"><Instagram className="hover:text-white" size={18} /></a>
-            <a href="#"><LinkIcon className="hover:text-white" size={18} /></a>
+            <a href="https://github.com/andreiolicar/VIDA"><Github className="hover:text-white" size={18} /></a>
+            <a href="https://www.instagram.com/vida.api/"><Instagram className="hover:text-white" size={18} /></a>
           </div>
         </div>
       </div>
