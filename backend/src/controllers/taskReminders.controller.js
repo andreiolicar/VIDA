@@ -1,49 +1,41 @@
-const { TaskReminder } = require("../models");
+const taskReminderService = require("../services/taskReminder.service");
 
+// Cria lembrete
 const addReminder = async (req, res) => {
-  const { taskId, remindAt, type, message } = req.body;
-
-  if (!taskId || !remindAt) {
-    return res.status(400).json({ message: "taskId e remindAt são obrigatórios." });
-  }
-
   try {
-    const reminder = await TaskReminder.create({
-      taskId,
-      remindAt,
-      type: type ?? "push",
-      message,
-    });
+    const reminder = await taskReminderService.addReminder(req.body);
     res.status(201).json(reminder);
   } catch (error) {
-    console.error("Erro ao adicionar lembrete:", error);
-    res.status(500).json({ message: "Erro ao adicionar lembrete." });
+    console.error("Erro ao adicionar lembrete:", error.message);
+    res.status(400).json({ message: error.message });
   }
 };
 
+// Lista lembretes por tarefa
 const getRemindersByTask = async (req, res) => {
-  const { taskId } = req.params;
-
   try {
-    const reminders = await TaskReminder.findAll({ where: { taskId } });
+    const reminders = await taskReminderService.getRemindersByTask(req.params.taskId);
     res.json(reminders);
   } catch (error) {
-    console.error("Erro ao buscar lembretes:", error);
+    console.error("Erro ao buscar lembretes:", error.message);
     res.status(500).json({ message: "Erro ao buscar lembretes." });
   }
 };
 
+// Exclui lembrete
 const deleteReminder = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const deleted = await TaskReminder.destroy({ where: { id } });
-    if (!deleted) return res.status(404).json({ message: "Lembrete não encontrado." });
+    await taskReminderService.deleteReminder(req.params.id);
     res.json({ message: "Lembrete excluído com sucesso." });
   } catch (error) {
-    console.error("Erro ao excluir lembrete:", error);
-    res.status(500).json({ message: "Erro ao excluir lembrete." });
+    console.error("Erro ao excluir lembrete:", error.message);
+    const status = error.message === "Lembrete não encontrado." ? 404 : 500;
+    res.status(status).json({ message: error.message });
   }
 };
 
-module.exports = { addReminder, getRemindersByTask, deleteReminder };
+module.exports = {
+  addReminder,
+  getRemindersByTask,
+  deleteReminder,
+};
