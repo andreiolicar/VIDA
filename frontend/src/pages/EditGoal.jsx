@@ -6,8 +6,7 @@ import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import axios from '@/services/axios';
 
 export default function EditGoal() {
-  const userId = localStorage.getItem('user');
-  const { id } = useParams(); // id da meta financeira
+  const { id } = useParams(); // id da meta financeira (goalId)
   const navigate = useNavigate();
 
   const [title, setTitle] = useState('');
@@ -21,31 +20,43 @@ export default function EditGoal() {
     async function fetchGoal() {
       try {
         setLoadingData(true);
-        const res = await axios.get(`/finance/${userId}/goals`);
-        const goal = res.data.find((g) => g.id === Number(id));
-        if (!goal) {
-          setError('Meta financeira não encontrada.');
-          setLoadingData(false);
-          return;
+        const res = await axios.get(`/finance/goals/${id}`);
+        const goal = res.data;
+        if (goal) {
+          setTitle(goal.title);
+          setTargetAmount(goal.targetAmount.toString());
+          setDeadline(goal.deadline ? goal.deadline.split('T')[0] : '');
         }
-        setTitle(goal.title);
-        setTargetAmount(goal.targetAmount.toString());
-        setDeadline(goal.deadline ? goal.deadline.split('T')[0] : '');
-      } catch (err) {
-        setError('Erro ao carregar meta financeira.');
+      } catch (error) {
+        if (error.response) {
+          // Erro retornado pelo servidor (ex: 404, 500)
+          console.warn('Erro na resposta do servidor:', error.response.data.message || error.response.statusText);
+        } else if (error.request) {
+          // Requisição feita mas sem resposta
+          console.warn('Nenhuma resposta do servidor. Verifique se o backend está rodando.');
+        } else {
+          // Erro na configuração da requisição
+          console.warn('Erro ao configurar a requisição:', error.message);
+        }
+        // Não atualizamos estado de erro para não mostrar na UI
       } finally {
         setLoadingData(false);
       }
     }
     fetchGoal();
-  }, [id, userId]);
+  }, [id]);
+
+  const isTitleValid = title.trim() !== '';
+  const targetAmountNumber = Number(targetAmount);
+  const isTargetAmountValid = !isNaN(targetAmountNumber) && targetAmountNumber > 0;
 
   const isFormValid = () => {
-    return title.trim() !== '' && targetAmount !== '' && !isNaN(Number(targetAmount)) && Number(targetAmount) > 0;
+    return isTitleValid && isTargetAmountValid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!isFormValid()) {
       setError('Preencha todos os campos obrigatórios corretamente.');
       return;
@@ -57,13 +68,13 @@ export default function EditGoal() {
     try {
       const payload = {
         title: title.trim(),
-        targetAmount: Number(targetAmount),
+        targetAmount: targetAmountNumber,
         deadline: deadline ? new Date(deadline).toISOString() : null,
       };
 
       console.log('Payload enviado:', payload);
 
-      const response = await axios.patch(`/finance/${userId}/goals/${id}`, payload);
+      const response = await axios.patch(`/finance/goals/${id}`, payload);
 
       if (!response.data) {
         throw new Error(response.data?.message || 'Erro ao atualizar meta financeira.');
@@ -108,7 +119,7 @@ export default function EditGoal() {
               Editar Meta Financeira
             </h1>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
               <div className="flex items-center gap-2 text-yellow-400 text-sm mb-2">
                 <AlertCircle className="w-4 h-4" />
                 <span>Atualize os campos e salve as alterações.</span>
@@ -117,34 +128,53 @@ export default function EditGoal() {
               {error && <p className="text-red-400 text-sm">{error}</p>}
 
               <div>
-                <label className="block text-sm mb-1">Título *</label>
+                <label htmlFor="title" className="block text-sm mb-1">
+                  Título 
+                </label>
                 <input
+                  id="title"
                   type="text"
-                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-green-500"
+                  className={`w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ${
+                    !isTitleValid ? 'ring-red-500' : 'ring-green-500'
+                  }`}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  required
                 />
-                {title.trim() === '' && <p className="text-red-400 text-xs mt-1">Título é obrigatório.</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm mb-1">Valor Meta (R$) *</label>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-green-500"
-                  value={targetAmount}
-                  onChange={(e) => setTargetAmount(e.target.value)}
-                />
-                {(!targetAmount || isNaN(Number(targetAmount)) || Number(targetAmount) <= 0) && (
-                  <p className="text-red-400 text-xs mt-1">Valor válido é obrigatório.</p>
+                {!isTitleValid && (
+                  <p className="text-red-400 text-xs mt-1">Título é obrigatório.</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm mb-1">Prazo (Opcional)</label>
+                <label htmlFor="targetAmount" className="block text-sm mb-1">
+                  Valor Meta (R$) 
+                </label>
                 <input
+                  id="targetAmount"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  className={`w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ${
+                    !isTargetAmountValid ? 'ring-red-500' : 'ring-green-500'
+                  }`}
+                  value={targetAmount}
+                  onChange={(e) => setTargetAmount(e.target.value)}
+                  required
+                />
+                {!isTargetAmountValid && (
+                  <p className="text-red-400 text-xs mt-1">
+                    Informe um valor válido maior que zero.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="deadline" className="block text-sm mb-1">
+                  Prazo (Opcional)
+                </label>
+                <input
+                  id="deadline"
                   type="date"
                   className="w-full bg-[#111827] text-white rounded-lg px-4 py-3 outline-none focus:ring-2 ring-green-500"
                   value={deadline}

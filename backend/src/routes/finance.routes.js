@@ -797,19 +797,13 @@ router.delete("/:userId/goals/:goalId", auth, financeController.deleteGoal);
 
 /**
  * @swagger
- * /finance/{userId}/goals/{goalId}:
+ * /finance/goals/{goalId}:
  *   patch:
  *     summary: Editar uma meta financeira (título, valor, prazo)
  *     tags: [Finanças]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         description: ID do usuário
- *         schema:
- *           type: integer
  *       - in: path
  *         name: goalId
  *         required: true
@@ -845,7 +839,34 @@ router.delete("/:userId/goals/:goalId", auth, financeController.deleteGoal);
  *       404:
  *         description: Meta financeira não encontrada
  */
-router.patch("/:userId/goals/:goalId", auth, financeController.updateGoal);
+router.patch("/goals/:goalId", auth, financeController.updateGoal);
+
+/**
+ * @swagger
+ * /finance/goals/{goalId}:
+ *   get:
+ *     summary: Buscar detalhes de uma meta financeira específica (sem userId na URL)
+ *     tags: [Finanças]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: goalId
+ *         required: true
+ *         description: ID da meta financeira
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Detalhes da meta retornados com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/FinancialGoal'
+ *       404:
+ *         description: Meta não encontrada
+ */
+router.get("/goals/:goalId", auth, financeController.getGoalById);
 
 
 module.exports = router;

@@ -21,9 +21,20 @@ import {
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-export default function VidaScoreDetails() {
-  const userId = localStorage.getItem("user");
+// Tooltip customizado para LineChart
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#1f2937] p-2 rounded shadow-lg text-white">
+        <p className="font-semibold">{label}</p>
+        <p className="font-bold text-green-400">{payload[0].value.toFixed(0)}</p>
+      </div>
+    );
+  }
+  return null;
+};
 
+export default function VidaScoreDetails() {
   const [vidaScore, setVidaScore] = useState(null);
   const [scoreHistory, setScoreHistory] = useState([]);
   const [financialReport, setFinancialReport] = useState(null);
@@ -39,10 +50,18 @@ export default function VidaScoreDetails() {
     "Invista em educação financeira para melhorar decisões.",
   ];
 
+  // Função para definir cor do score conforme faixa
+  const getScoreColor = (score) => {
+    if (score <= 300) return "text-red-500";
+    if (score <= 500) return "text-yellow-400";
+    if (score <= 700) return "text-blue-400";
+    return "text-green-400";
+  };
+
   // Buscar dados do score
   const fetchVidaScore = async () => {
     try {
-      const res = await axios.get(`/finance/${userId}/vida-score`);
+      const res = await axios.get(`/finance/vida-score`);
       setVidaScore(res.data.vidaScore);
     } catch (err) {
       console.error("Erro ao buscar V.I.D.A. Score:", err);
@@ -50,23 +69,20 @@ export default function VidaScoreDetails() {
     }
   };
 
-  // Buscar histórico do score (supondo que tenha endpoint /finance/:userId/vida-score/history)
+  // Buscar histórico do score
   const fetchScoreHistory = async () => {
     try {
-      const res = await axios.get(`/finance/${userId}/vida-score/history`);
-      // Espera um array [{ date: '2025-06-10', score: 75 }, ...]
+      const res = await axios.get(`/finance/vida-score/history`);
       setScoreHistory(res.data);
     } catch (err) {
       console.error("Erro ao buscar histórico do score:", err);
-      // Pode ser que não tenha esse endpoint, ignore se não existir
     }
   };
 
   // Buscar relatório financeiro resumido para gráficos
   const fetchFinancialReport = async () => {
     try {
-      const res = await axios.get(`/finance/${userId}/reports`);
-      // Espera um objeto { summary: { 'income-Salary': 5000, 'expense-Food': 1200, ... } }
+      const res = await axios.get(`/finance/reports`);
       setFinancialReport(res.data.summary);
     } catch (err) {
       console.error("Erro ao buscar relatório financeiro:", err);
@@ -78,7 +94,7 @@ export default function VidaScoreDetails() {
     Promise.all([fetchVidaScore(), fetchScoreHistory(), fetchFinancialReport()]).finally(() =>
       setLoading(false)
     );
-  }, [userId]);
+  }, []);
 
   // Preparar dados para gráfico de pizza (categorias de gastos e receitas)
   const preparePieData = () => {
@@ -129,7 +145,9 @@ export default function VidaScoreDetails() {
         ) : (
           <>
             {/* Score Atual */}
-            <div className="text-5xl font-bold text-green-400 mb-8">{vidaScore?.toFixed(1)}</div>
+            <div className={`text-5xl font-bold mb-8 ${getScoreColor(vidaScore)}`}>
+              {vidaScore !== null ? vidaScore.toFixed(0) : "-"}
+            </div>
 
             {/* Explicação detalhada */}
             <section className="mb-10 max-w-3xl">
@@ -149,10 +167,16 @@ export default function VidaScoreDetails() {
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={scoreHistory} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                    <XAxis dataKey="date" stroke="#94a3b8" />
-                    <YAxis domain={[0, 100]} stroke="#94a3b8" />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="score" stroke="#22c55e" strokeWidth={3} dot />
+                    <XAxis dataKey="date" stroke="#94a3b8" padding={{ left: 20, right: 20 }} />
+                    <YAxis domain={[0, 1000]} stroke="#94a3b8" />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#22c55e"
+                      strokeWidth={3}
+                      dot={{ r: 6, strokeWidth: 2, fill: '#22c55e', stroke: '#fff' }}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
