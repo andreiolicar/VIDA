@@ -34,4 +34,16 @@ const update = async (req, res) => {
   }
 };
 
-module.exports = { create, getAll, update };
+const remove = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const success = await wellnessHabitService.removeService(id);
+    if (!success) return res.status(404).json({ error: 'Hábito não encontrado' });
+    res.json({ message: 'Hábito removido com sucesso.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao remover hábito' });
+  }
+};
+
+module.exports = { create, getAll, update, remove };

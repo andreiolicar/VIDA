@@ -29,8 +29,17 @@ const updateService = async (id, data) => {
   return habit;
 };
 
+const removeService = async (id) => {
+  const habit = await WellnessHabit.findByPk(id);
+  if (!habit) return null;
+
+  await habit.destroy();
+  return true;
+};
+
 module.exports = {
   createService,
   getAllService,
   updateService,
+  removeService,
 };
