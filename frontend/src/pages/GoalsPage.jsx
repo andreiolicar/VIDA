@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Trash } from 'lucide-react';
 import Sidebar from '@/components/dashboard/Sidebar';
 import DashboardRightPanel from '@/components/dashboard/DashboardRightPanel';
 import axios from '@/services/axios';
@@ -11,8 +12,36 @@ function formatCurrency(value) {
     : 'R$ 0,00';
 }
 
-// Card para cada meta financeira
-function GoalCard({ goal, onClick }) {
+// Modal de confirmação de exclusão
+function ConfirmModal({ isOpen, title, message, onConfirm, onCancel }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-[#1f2937] p-6 rounded-xl max-w-sm w-full text-white shadow-lg">
+        <h2 className="text-xl font-semibold mb-4">{title}</h2>
+        <p className="mb-6">{message}</p>
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 transition"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition"
+          >
+            Excluir
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Card para cada meta financeira com botão de exclusão
+function GoalCard({ goal, onClick, onDelete }) {
   const progressPercent = Math.min(
     100,
     goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0
@@ -26,9 +55,22 @@ function GoalCard({ goal, onClick }) {
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') onClick();
       }}
-      className="bg-[#1f2937] rounded-xl p-6 shadow-md cursor-pointer hover:bg-opacity-80 transition flex flex-col justify-between min-w-[220px] max-w-[280px] h-52"
+      className="bg-[#1f2937] rounded-xl p-6 shadow-md cursor-pointer hover:bg-opacity-80 transition flex flex-col justify-between min-w-[220px] max-w-[280px] h-52 relative"
       aria-label={`Meta: ${goal.title}, progresso ${progressPercent.toFixed(1)}%`}
     >
+      {/* Botão de exclusão */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(goal);
+        }}
+        title="Excluir meta"
+        className="absolute top-3 right-3 text-red-500 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
+        aria-label={`Excluir meta ${goal.title}`}
+      >
+        <Trash size={20} />
+      </button>
+
       <div>
         <h3 className="text-lg font-semibold mb-2 truncate" title={goal.title}>
           {goal.title}
@@ -60,6 +102,8 @@ export default function GoalsPage() {
   const [filteredGoals, setFilteredGoals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterText, setFilterText] = useState('');
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [goalToDelete, setGoalToDelete] = useState(null);
 
   const rawUser = localStorage.getItem('user');
   let userId = null;
@@ -117,6 +161,31 @@ export default function GoalsPage() {
     navigate(-1);
   }
 
+  function openDeleteModal(goal) {
+    setGoalToDelete(goal);
+    setConfirmModalOpen(true);
+  }
+
+  function cancelDelete() {
+    setGoalToDelete(null);
+    setConfirmModalOpen(false);
+  }
+
+  async function confirmDelete() {
+    if (!goalToDelete) return;
+
+    try {
+      await axios.delete(`/finance/${userId}/goals/${goalToDelete.id}`);
+      setGoals((prev) => prev.filter((g) => g.id !== goalToDelete.id));
+      setFilteredGoals((prev) => prev.filter((g) => g.id !== goalToDelete.id));
+      setConfirmModalOpen(false);
+      setGoalToDelete(null);
+    } catch (error) {
+      alert('Erro ao excluir meta financeira.');
+      console.error(error);
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white">
       <Sidebar />
@@ -164,12 +233,21 @@ export default function GoalsPage() {
                 key={goal.id}
                 goal={goal}
                 onClick={() => handleGoalClick(goal.id)}
+                onDelete={openDeleteModal}
               />
             ))}
           </div>
         )}
       </main>
       <DashboardRightPanel />
+
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        title="Confirmar exclusão"
+        message={`Tem certeza que deseja excluir a meta "${goalToDelete?.title}"? Essa ação não pode ser desfeita.`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
     </div>
   );
 }

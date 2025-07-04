@@ -61,6 +61,8 @@ export default function EditGoal() {
         deadline: deadline ? new Date(deadline).toISOString() : null,
       };
 
+      console.log('Payload enviado:', payload);
+
       const response = await axios.patch(`/finance/${userId}/goals/${id}`, payload);
 
       if (!response.data) {
@@ -69,7 +71,9 @@ export default function EditGoal() {
 
       navigate('/dashboard/finance');
     } catch (err) {
-      setError(err.message || 'Erro inesperado.');
+      const message = err.response?.data?.message || err.message || 'Erro inesperado.';
+      setError(message);
+      console.error('Erro na requisição PATCH:', err.response || err);
     } finally {
       setLoading(false);
     }

@@ -205,7 +205,7 @@ export default function GoalDetails() {
             <h1 className="text-3xl font-bold">{goal.title}</h1>
 
             {/* Container dos botões Ações e Voltar */}
-            <div className="flex items-center gap-4" ref={actionsRef}>
+            <div className="flex items-center gap-2" ref={actionsRef}>
               {/* Botão Ações */}
               <div className="relative">
                 <button
@@ -216,7 +216,16 @@ export default function GoalDetails() {
                   aria-controls="actions-menu"
                 >
                   Ações
-                  <MoreVertical size={18} />
+                  <svg
+                    className={`w-4 h-4 transition-transform ${actionsOpen ? 'rotate-180' : 'rotate-0'}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"></path>
+                  </svg>
                 </button>
 
                 {/* Dropdown Ações */}
@@ -262,10 +271,9 @@ export default function GoalDetails() {
               {/* Botão Voltar */}
               <button
                 onClick={handleBack}
-                className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg font-semibold transition"
+                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-semibold transition"
                 aria-label="Voltar"
               >
-                <ArrowLeft size={20} />
                 Voltar
               </button>
             </div>
