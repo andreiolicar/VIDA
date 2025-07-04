@@ -225,6 +225,12 @@ node src/server.js
 
 ---
 
+## ETEC Zona Leste
+
+Todos os integrantes do projeto V.I.D.A. são alunos da Etec Zona Leste. Unidos pelo interesse em tecnologia e impacto social, nós desenvolvemos a solução com dedicação e trabalho em equipe, representando com orgulho nossa escola.
+
+---
+
 ## Apoie o Projeto
 
 Este README fornece uma visão geral do projeto VIDA e sua estrutura. Para detalhes específicos sobre cada módulo e funcionalidade, consulte a documentação dentro das pastas correspondentes. Se você curtiu, deixe uma ⭐ estrela no repositório para mostrar seu apoio!
