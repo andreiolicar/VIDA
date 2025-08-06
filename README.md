@@ -61,26 +61,13 @@ FLUSH PRIVILEGES;
 - Configure o `.env` no backend com suas credenciais:
 
 ```env
-PORT=5000
-
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=vida_user
-DB_PASSWORD=Vida2025@api
-DB_NAME=vida_db
-
-JWT_SECRET=4671ba8aedd063483b3f8a2ee15b75d2939f7852a4fe23dd07919e9e8a2c4df473d162e4c541032fa3b83d520991963b5b1b02b5025f5d3e93858880dd230d77
-
-SMTP_USER=api.vida.app@gmail.com
-SMTP_PASS=cjgr ozmc qrhn lcaq
-
-GEMINI_API_KEY=AIzaSyBFLvf5vUfDFj7IN8531Xq3Ikf2tbY_40I
+Entre em contato e solicite o .env!
 
 ```
 - Configure o `.env` no frontend com suas credenciais:
 
 ```env
-VITE_API_URL=http://localhost:5000/api
+Entre em contato e solicite o .env!
 
 ```
 
